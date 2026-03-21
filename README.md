@@ -91,9 +91,9 @@ Projet-ABS/
 Quatre tables principales :
 
 - **users** — comptes utilisateurs (username, email, mot de passe hashé)
-- **countries** — pays référencés (nom, code ISO, coordonnées)
+- **pays** — pays référencés (nom, code ISO, coordonnées)
 - **places** — lieux à découvrir (nom, description, coordonnées, image, lié à un pays)
-- **reviews** — avis des utilisateurs (note 1-5, titre, commentaire, lié à un utilisateur et un lieu)
+- **avis** — avis des utilisateurs (note 1-5, titre, commentaire, lié à un utilisateur et un lieu)
 
 ### Schéma SQL
 
@@ -109,7 +109,7 @@ CREATE TABLE users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE countries (
+CREATE TABLE pays (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     code VARCHAR(3) NOT NULL,
@@ -121,15 +121,15 @@ CREATE TABLE places (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     description TEXT,
-    country_id INT NOT NULL,
+    pays_id INT NOT NULL,
     lat DECIMAL(10,7) NOT NULL,
     lng DECIMAL(10,7) NOT NULL,
     image_url VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (country_id) REFERENCES countries(id)
+    FOREIGN KEY (pays_id) REFERENCES pays(id)
 );
 
-CREATE TABLE reviews (
+CREATE TABLE avis (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     place_id INT NOT NULL,
