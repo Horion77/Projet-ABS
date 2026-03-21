@@ -1,0 +1,23 @@
+# Configuration locale (contient les identifiants BDD)
+config/database.php
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE / Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Fichiers uploadés par les utilisateurs (si applicable)
+assets/uploads/*
+!assets/uploads/.gitkeep
