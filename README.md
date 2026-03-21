@@ -58,16 +58,16 @@ Projet-ABS/
 │   └── functions.php          # Fonctions utilitaires partagées
 ├── pages/
 │   ├── login.php              # Page de connexion
-│   ├── register.php           # Page d'inscription
+│   ├── inscription.php           # Page d'inscription
 │   ├── map.php                # Page carte interactive
 │   ├── place.php              # Détail d'un lieu + avis
-│   ├── country.php            # Page pays + liste de lieux
-│   ├── reviews.php            # Tous les avis (paginés)
-│   └── profile.php            # Profil utilisateur
+│   ├── pays.php            # Page pays + liste de lieux
+│   ├── avis.php            # Tous les avis (paginés)
+│   └── profil.php            # Profil utilisateur
 ├── actions/
 │   ├── login_action.php       # Traitement formulaire connexion
-│   ├── register_action.php    # Traitement formulaire inscription
-│   ├── review_action.php      # Traitement formulaire avis
+│   ├── inscription_action.php    # Traitement formulaire inscription
+│   ├── avis_action.php      # Traitement formulaire avis
 │   └── logout.php             # Déconnexion
 ├── assets/
 │   ├── css/
