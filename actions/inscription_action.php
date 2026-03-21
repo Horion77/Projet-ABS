@@ -1,0 +1,2 @@
+<?php
+// Traitement formulaire inscription
