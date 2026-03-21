@@ -195,8 +195,8 @@ CREATE TABLE reviews (
 |---------|-------|
 | `main` | Code stable et intégré |
 | `feature/alan-map` | Développement carte & lieu |
-| `feature/sara-auth` | Développement authentification & accueil |
-| `feature/basma-reviews` | Développement avis & pages dynamiques |
+| `feature/basma-auth` | Développement authentification & accueil |
+| `feature/sara-reviews` | Développement avis & pages dynamiques |
 
 Chaque membre travaille sur sa branche, puis merge dans `main` après validation.
 
