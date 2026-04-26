@@ -6,6 +6,11 @@ Change log du projet A.B.S.
 
 # Versions
 
+## [0.0.4] - 2026-04-04 - Structure v2
+### Ajout
+*
+*
+
 ## [0.0.3] - 2026-03-21 - Structure v2
 ### Ajout
 * Fichiers actions (`avis_action.php`, `inscription_action.php`, `login_action.php`, `logout.php`)
