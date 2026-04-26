@@ -1,6 +1,6 @@
 <?php
 /**
- * Fonctions utilitaires (partagées)
+ * Fonctions
  */
 
 function isLoggedIn(): bool

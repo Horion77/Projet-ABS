@@ -1,1 +1,21 @@
-/* Styles carte interactive */
+/* assets/css/map.css */
+#map {
+    width: 100%;
+    height: 70vh; /* Prend 70% de la hauteur de l'écran */
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Styles optionnels pour les popups Mapbox */
+.mapboxgl-popup-content {
+    font-family: Arial, sans-serif;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.mapboxgl-popup-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.2rem;
+    color: #0d5c63;
+}
