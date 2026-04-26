@@ -4,6 +4,8 @@
 --  Moteur : MySQL 8.0+  |  Encodage : utf8mb4
 -- ============================================================
 
+DROP DATABASE IF EXISTS abs_db;
+
 CREATE DATABASE IF NOT EXISTS abs_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
@@ -156,13 +158,6 @@ CREATE TABLE avis (
 
   PRIMARY KEY (id_avis),
 
-  -- Règle métier : exactement une FK géo renseignée
-  CONSTRAINT chk_avis_cible CHECK (
-    (id_pays IS NOT NULL AND id_ville IS NULL AND id_lieu IS NULL) OR
-    (id_pays IS NULL AND id_ville IS NOT NULL AND id_lieu IS NULL) OR
-    (id_pays IS NULL AND id_ville IS NULL AND id_lieu IS NOT NULL)
-  ),
-
   -- Note entre 1 et 5
   CONSTRAINT chk_avis_note CHECK (note BETWEEN 1 AND 5),
 
@@ -279,12 +274,6 @@ CREATE TABLE visite (
 
   PRIMARY KEY (id_visite),
 
-  CONSTRAINT chk_visite_cible CHECK (
-    (id_pays IS NOT NULL AND id_ville IS NULL AND id_lieu IS NULL) OR
-    (id_pays IS NULL AND id_ville IS NOT NULL AND id_lieu IS NULL) OR
-    (id_pays IS NULL AND id_ville IS NULL AND id_lieu IS NOT NULL)
-  ),
-
   CONSTRAINT fk_visite_utilisateur
     FOREIGN KEY (id_utilisateur) REFERENCES utilisateur (id_utilisateur)
     ON UPDATE CASCADE ON DELETE CASCADE,
@@ -345,12 +334,6 @@ CREATE TABLE collection_item (
   id_lieu         INT UNSIGNED    DEFAULT NULL,
 
   PRIMARY KEY (id_item),
-
-  CONSTRAINT chk_item_cible CHECK (
-    (id_pays IS NOT NULL AND id_ville IS NULL AND id_lieu IS NULL) OR
-    (id_pays IS NULL AND id_ville IS NOT NULL AND id_lieu IS NULL) OR
-    (id_pays IS NULL AND id_ville IS NULL AND id_lieu IS NOT NULL)
-  ),
 
   -- Evite les doublons dans une même collection
   UNIQUE KEY uq_item_coll_pays  (id_collection, id_pays),
