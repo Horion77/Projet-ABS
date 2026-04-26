@@ -1,36 +1,21 @@
 <?php
-// 1. LES LIGNES MAGIQUES (Affichent les erreurs au lieu d'une page blanche)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require __DIR__ . '/../app/bootstrap.php';
-// Sécurité : on force le chargement des fonctions si bootstrap ne le fait pas
 require_once __DIR__ . '/../includes/functions.php'; 
-
 use App\Models\Database;
 
-// 2. RÉCUPÉRATION SÉCURISÉE DES DONNÉES
-try {
-    $pdo = Database::getPdo();
-    // On utilise les vraies tables au lieu de la vue, pour être 100% sûr que ça marche
-    $sql = "SELECT l.id_lieu, l.nom AS name, l.latitude AS lat, l.longitude AS lng, p.nom AS country_name 
-            FROM lieu l
-            JOIN ville v ON l.id_ville = v.id_ville
-            JOIN pays p ON v.id_pays = p.id_pays
-            WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL";
-            
-    $stmt = $pdo->query($sql);
-    $places = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
-} catch (Exception $e) {
-    // Si la base de données plante, on affiche l'erreur proprement
-    die("<div style='color:red; padding:20px;'>Erreur de base de données : " . $e->getMessage() . "</div>");
-}
+// 1. Récupération des lieux (on s'assure qu'ils ont bien des coordonnées GPS)
+$pdo = Database::getPdo();
+$sql = "SELECT id_lieu, lieu AS name, latitude AS lat, longitude AS lng, pays AS country_name, note_moyenne AS avg_rating 
+        FROM vue_classement_lieux 
+        WHERE latitude IS NOT NULL AND longitude IS NOT NULL";
+$stmt = $pdo->query($sql);
+$places = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
+// 2. VARIABLES REQUISES POUR NE PAS FAIRE PLANTER LE HEADER
 $pageTitre = 'Carte Interactive';
 $fichierCssPage = 'map';
+$prefixRacine = prefixRacine(); // LE VOILÀ, LE DÉTAIL QUI DÉBLOQUE TOUT !
 
-// 3. INCLUSION DU HEADER
 require __DIR__ . '/../app/Views/partials/head.php';
 ?>
 
@@ -38,22 +23,52 @@ require __DIR__ . '/../app/Views/partials/head.php';
 <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
 
 <div class="conteneur">
-    <h1>Explorez les lieux sur la carte</h1>
+    <h1 style="margin-bottom: 15px;">Explorez les lieux sur la carte</h1>
     
-    <div id="map" style="height: 70vh; width: 100%; border-radius: 8px; margin-top: 20px; background-color: #e5e5e5; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+    <div id="map" style="height: 70vh; width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"></div>
 </div>
 
 <script>
-    const mapboxToken = 'pk.eyJ1IjoiYnItIiwiYSI6ImNtb2Z2eWpvZTBrZmoycHNibTg3OHliNWoifQ.JIgFJdRqYhu8VejEf_uasA';
+    // Configuration
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYnItIiwiYSI6ImNtb2Z2eWpvZTBrZmoycHNibTg3OHliNWoifQ.JIgFJdRqYhu8VejEf_uasA';
     const placesData = <?= json_encode($places) ?>;
     
-    // Astuce de pro : on affiche les données dans la console pour vérifier que PHP a bien travaillé
-    console.log("Lieux chargés depuis PHP :", placesData);
+    // Création de la carte
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [2.3522, 48.8566], // Centré sur Paris par défaut
+        zoom: 2 // Vue mondiale
+    });
+    
+    // Ajout des boutons de zoom
+    map.addControl(new mapboxgl.NavigationControl());
+    
+    // Placement des marqueurs
+    placesData.forEach(place => {
+        // On vérifie que la latitude et longitude sont valides
+        if (place.lng && place.lat) {
+            const noteText = place.avg_rating ? place.avg_rating + '/5' : 'Aucun avis';
+            
+            // Design du petit popup au clic
+            const popupContent = `
+                <div style="font-family: sans-serif;">
+                    <h3 style="margin: 0 0 5px 0; color: #0d5c63;">${place.name}</h3>
+                    <p style="margin: 3px 0; color: #555;"><strong>Pays :</strong> ${place.country_name}</p>
+                    <p style="margin: 3px 0; color: #555;"><strong>Note :</strong> ${noteText}</p>
+                    <a href="place.php?id=${place.id_lieu}" style="display: inline-block; margin-top: 8px; padding: 6px 12px; background: #0d5c63; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem;">Voir la fiche</a>
+                </div>
+            `;
+            
+            const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
+            
+            // Création du marqueur sur la carte
+            new mapboxgl.Marker({ color: '#0d5c63' })
+                .setLngLat([parseFloat(place.lng), parseFloat(place.lat)])
+                .setPopup(popup)
+                .addTo(map);
+        }
+    });
 </script>
 
-<script src="../assets/js/map.js"></script>
-
-<?php
-// 5. INCLUSION DU FOOTER
-require __DIR__ . '/../app/Views/partials/foot.php';
-?>
+<?php require __DIR__ . '/../app/Views/partials/foot.php'; ?>
