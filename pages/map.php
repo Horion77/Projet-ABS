@@ -1,74 +1,88 @@
 <?php
+declare(strict_types=1);
 require __DIR__ . '/../app/bootstrap.php';
-require_once __DIR__ . '/../includes/functions.php'; 
+
 use App\Models\Database;
 
-// 1. Récupération des lieux (on s'assure qu'ils ont bien des coordonnées GPS)
 $pdo = Database::getPdo();
-$sql = "SELECT id_lieu, lieu AS name, latitude AS lat, longitude AS lng, pays AS country_name, note_moyenne AS avg_rating 
-        FROM vue_classement_lieux 
-        WHERE latitude IS NOT NULL AND longitude IS NOT NULL";
-$stmt = $pdo->query($sql);
-$places = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
-// 2. VARIABLES REQUISES POUR NE PAS FAIRE PLANTER LE HEADER
+$places = [];
+$countries = [];
+
+$sql = 'SELECT
+    l.id_lieu,
+    l.nom AS name,
+    l.latitude AS lat,
+    l.longitude AS lng,
+    p.nom AS country_name,
+    p.id_pays,
+    COALESCE(ROUND(AVG(a.note), 2), NULL) AS avg_rating
+ FROM lieu l
+ JOIN categorie_lieu cl ON cl.id_categorie = l.id_categorie
+ JOIN ville vi ON vi.id_ville = l.id_ville
+ JOIN pays p ON p.id_pays = vi.id_pays
+ LEFT JOIN avis a ON a.id_lieu = l.id_lieu AND a.visibility = \'public\'
+ WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL
+ GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, p.nom, p.id_pays, cl.libelle, vi.nom';
+
+$stmt = $pdo->query($sql);
+if ($stmt) {
+    $places = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$cStmt = $pdo->query(
+    'SELECT DISTINCT p.id_pays, p.nom
+     FROM pays p
+     JOIN ville v ON v.id_pays = p.id_pays
+     JOIN lieu l2 ON l2.id_ville = v.id_ville
+     WHERE l2.latitude IS NOT NULL AND l2.longitude IS NOT NULL
+     ORDER BY p.nom'
+);
+if ($cStmt) {
+    $countries = $cStmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 $pageTitre = 'Carte Interactive';
 $fichierCssPage = 'map';
-$prefixRacine = prefixRacine(); // LE VOILÀ, LE DÉTAIL QUI DÉBLOQUE TOUT !
+$prefixRacine = prefixRacine();
+
+$jsonFlags = JSON_UNESCAPED_UNICODE;
+if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+    $jsonFlags |= constant('JSON_INVALID_UTF8_SUBSTITUTE');
+}
+
+$mapData = [
+    'token' => 'pk.eyJ1IjoiYnItIiwiYSI6ImNtb2Z2eWpvZTBrZmoycHNibTg3OHliNWoifQ.JIgFJdRqYhu8VejEf_uasA',
+    'places' => $places,
+    'countries' => $countries,
+    'placePath' => 'place.php',
+];
 
 require __DIR__ . '/../app/Views/partials/head.php';
 ?>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" />
 
-<script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
-<link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+<div class="conteneur conteneur-map">
+    <h1 class="titre-carte">Explorez les lieux sur la carte</h1>
 
-<div class="conteneur">
-    <h1 style="margin-bottom: 15px;">Explorez les lieux sur la carte</h1>
-    
-    <div id="map" style="height: 70vh; width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"></div>
+    <div class="map-toolbar" role="region" aria-label="Filtrer la carte par pays">
+        <label for="map-country-filter" class="map-filter-label">Pays</label>
+        <select id="map-country-filter" class="map-country-select">
+            <option value="">Tous les pays</option>
+            <?php foreach ($countries as $c) : ?>
+            <option value="<?= (int) $c['id_pays'] ?>"><?= e((string) $c['nom']) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div id="map" class="map-canvas" aria-label="Carte des lieux"></div>
 </div>
 
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js" defer></script>
 <script>
-    // Configuration
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYnItIiwiYSI6ImNtb2Z2eWpvZTBrZmoycHNibTg3OHliNWoifQ.JIgFJdRqYhu8VejEf_uasA';
-    const placesData = <?= json_encode($places) ?>;
-    
-    // Création de la carte
-    const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [2.3522, 48.8566], // Centré sur Paris par défaut
-        zoom: 2 // Vue mondiale
-    });
-    
-    // Ajout des boutons de zoom
-    map.addControl(new mapboxgl.NavigationControl());
-    
-    // Placement des marqueurs
-    placesData.forEach(place => {
-        // On vérifie que la latitude et longitude sont valides
-        if (place.lng && place.lat) {
-            const noteText = place.avg_rating ? place.avg_rating + '/5' : 'Aucun avis';
-            
-            // Design du petit popup au clic
-            const popupContent = `
-                <div style="font-family: sans-serif;">
-                    <h3 style="margin: 0 0 5px 0; color: #0d5c63;">${place.name}</h3>
-                    <p style="margin: 3px 0; color: #555;"><strong>Pays :</strong> ${place.country_name}</p>
-                    <p style="margin: 3px 0; color: #555;"><strong>Note :</strong> ${noteText}</p>
-                    <a href="place.php?id=${place.id_lieu}" style="display: inline-block; margin-top: 8px; padding: 6px 12px; background: #0d5c63; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem;">Voir la fiche</a>
-                </div>
-            `;
-            
-            const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
-            
-            // Création du marqueur sur la carte
-            new mapboxgl.Marker({ color: '#0d5c63' })
-                .setLngLat([parseFloat(place.lng), parseFloat(place.lat)])
-                .setPopup(popup)
-                .addTo(map);
-        }
-    });
+window.MAP_DATA = <?= json_encode($mapData, $jsonFlags) ?>;
 </script>
+<script src="<?= e($prefixRacine) ?>assets/js/map.js" defer></script>
 
-<?php require __DIR__ . '/../app/Views/partials/foot.php'; ?>
+<?php
+require __DIR__ . '/../app/Views/partials/foot.php';

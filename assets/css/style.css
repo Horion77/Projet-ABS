@@ -186,6 +186,14 @@ button, .btn {
 }
 button:hover, .btn:hover { background: var(--couleur-primaire-fonce); }
 
+/* Mise en page centrale (carte, fiches) */
+.conteneur {
+  max-width: var(--max-largeur);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1.25rem 2.5rem;
+}
+
 /* Profil (page simple) */
 .conteneur-profil { max-width: var(--max-largeur); margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
 .bloc-profil, .bloc-avis { margin: 1.5rem 0; }

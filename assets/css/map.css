@@ -1,21 +1,110 @@
-/* assets/css/map.css */
-#map {
-    width: 100%;
-    height: 70vh; /* Prend 70% de la hauteur de l'écran */
-    border-radius: 8px;
-    margin-top: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+/* Page carte Mapbox : filtre + zone #map + popups */
+
+.conteneur-map {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: var(--max-largeur);
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 1rem;
+  padding-bottom: 2.5rem;
 }
 
-/* Styles optionnels pour les popups Mapbox */
+.titre-carte {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.4rem;
+  line-height: 1.2;
+  color: var(--couleur-texte);
+}
+
+.map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.map-filter-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--couleur-texte);
+}
+
+.map-country-select {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  min-width: min(100%, 18rem);
+  max-width: 100%;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  background: #fff;
+  color: var(--couleur-texte);
+}
+
+.map-canvas#map,
+#map.map-canvas {
+  width: 100%;
+  min-height: 22rem;
+  height: calc(100dvh - 14rem);
+  max-height: 50rem;
+  border-radius: var(--rayon);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* Popups Mapbox */
 .mapboxgl-popup-content {
-    font-family: Arial, sans-serif;
-    padding: 15px;
-    border-radius: 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  max-width: 18rem;
 }
 
-.mapboxgl-popup-content h3 {
-    margin: 0 0 5px 0;
-    font-size: 1.2rem;
-    color: #0d5c63;
+.mapboxgl-popup-content h3,
+.map-popup-title {
+  margin: 0 0 0.4rem 0;
+  font-size: 1.1rem;
+  color: var(--couleur-primaire, #0d5c63);
+  line-height: 1.25;
+}
+
+.map-popup-line {
+  margin: 0.25rem 0;
+  font-size: 0.92rem;
+  color: #444;
+  line-height: 1.4;
+}
+
+a.map-popup-cta {
+  display: inline-block;
+  margin-top: 0.65rem;
+  padding: 0.45rem 0.9rem;
+  background: var(--couleur-primaire, #0d5c63);
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--rayon, 6px);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+a.map-popup-cta:hover,
+a.map-popup-cta:focus-visible {
+  text-decoration: none;
+  background: var(--couleur-primaire-fonce, #094a50);
+  color: #fff;
+}
+
+/* Mobile */
+@media (max-width: 32rem) {
+  .titre-carte { font-size: 1.2rem; }
+  .map-canvas#map,
+  #map.map-canvas {
+    min-height: 16rem;
+    height: min(50dvh, 22rem);
+    max-height: none;
+  }
+  .map-toolbar { flex-direction: column; align-items: stretch; }
+  .map-country-select { min-width: 0; max-width: none; width: 100%; }
 }
