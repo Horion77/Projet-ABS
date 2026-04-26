@@ -1,2 +1,3 @@
 <?php
-// Traitement formulaire inscription
+require __DIR__ . '/../app/bootstrap.php';
+(new \App\Controllers\InscriptionController())->traiterInscription();

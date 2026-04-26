@@ -1,2 +1,3 @@
 <?php
-// Traitement formulaire connexion
+require __DIR__ . '/../app/bootstrap.php';
+(new \App\Controllers\AuthController())->traiterLogin();
