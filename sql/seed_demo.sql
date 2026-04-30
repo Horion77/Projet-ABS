@@ -10,8 +10,9 @@ INSERT INTO ville (nom, id_pays) VALUES ('Rabat', @p_maroc);
 SET @v_rabat = LAST_INSERT_ID();
 
 -- Musée=1, Parc=5 d’après l’ordre d’insert dans database.sql
-INSERT INTO lieu (nom, description, latitude, longitude, id_categorie, id_ville) VALUES
-('Musée de la Médina', 'Lieu de test pour l’équipe.', 34.02, -6.84, 1, @v_rabat);
+INSERT INTO lieu (nom, description, latitude, longitude, image_url, id_categorie, id_ville) VALUES
+('Musée de la Médina', 'Lieu de test pour l’équipe.', 34.02, -6.84,
+ 'https://images.unsplash.com/photo-1566127444979-b3d2b37dd3cd?w=800&q=80', 1, @v_rabat);
 SET @lieu1 = LAST_INSERT_ID();
 
 INSERT INTO lieu (nom, description, latitude, longitude, id_categorie, id_ville) VALUES
@@ -25,6 +26,10 @@ SET @u = LAST_INSERT_ID();
 -- Avis publics sur des lieux (alimente vue_classement_lieux et l’accueil)
 INSERT INTO avis (note, description, visibility, id_utilisateur, id_lieu) VALUES
 (5, 'Super accueil et trés beaux parcours.', 'public', @u, @lieu1);
+SET @avis1 = LAST_INSERT_ID();
 
 INSERT INTO avis (note, description, visibility, id_utilisateur, id_lieu) VALUES
 (4, 'Agréable pour une fin de matinée.', 'public', @u, @lieu2);
+
+INSERT INTO photo_avis (url, ordre, id_avis) VALUES
+('https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=400&q=80', 0, @avis1);

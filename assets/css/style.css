@@ -209,3 +209,19 @@ button:hover, .btn:hover { background: var(--couleur-primaire-fonce); }
 .cible-avis { color: #444; font-size: 0.95rem; }
 .comm-avis { margin: 0.3rem 0; font-size: 0.95rem; }
 .liste-avis-profil time { font-size: 0.82rem; color: #666; }
+
+.profil-avatar-wrap { margin: 0 0 1rem 0; }
+.profil-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--couleur-bordure);
+}
+.profil-bio { margin-top: 1.25rem; max-width: 40rem; }
+.profil-bio-titre { font-size: 1rem; margin: 0 0 0.35rem 0; color: #333; }
+.profil-bio-texte { margin: 0; line-height: 1.55; }
+.liste-avis-profil .avis-photo-wrap { margin: 0.4rem 0 0; }
+.liste-avis-profil .avis-photo-thumb {
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--couleur-bordure);
+}

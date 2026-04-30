@@ -14,6 +14,7 @@ $sql = 'SELECT
     l.nom AS name,
     l.latitude AS lat,
     l.longitude AS lng,
+    l.image_url,
     p.nom AS country_name,
     p.id_pays,
     COALESCE(ROUND(AVG(a.note), 2), NULL) AS avg_rating
@@ -23,7 +24,7 @@ $sql = 'SELECT
  JOIN pays p ON p.id_pays = vi.id_pays
  LEFT JOIN avis a ON a.id_lieu = l.id_lieu AND a.visibility = \'public\'
  WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL
- GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, p.nom, p.id_pays, cl.libelle, vi.nom';
+ GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, l.image_url, p.nom, p.id_pays, cl.libelle, vi.nom';
 
 $stmt = $pdo->query($sql);
 if ($stmt) {
@@ -51,8 +52,24 @@ if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
     $jsonFlags |= constant('JSON_INVALID_UTF8_SUBSTITUTE');
 }
 
+$mapboxToken = getenv('MAPBOX_TOKEN');
+if (!is_string($mapboxToken) || trim($mapboxToken) === '') {
+    $mapboxToken = '';
+    $mapboxFile = dirname(__DIR__) . '/config/mapbox.php';
+    if (is_file($mapboxFile)) {
+        $loaded = require $mapboxFile;
+        if (is_string($loaded)) {
+            $mapboxToken = trim($loaded);
+        }
+    }
+}
+if ($mapboxToken === '' || $mapboxToken === 'VOTRE_TOKEN_MAPBOX_PUBLIC_ICI') {
+    // Jeton de secours pour démo locale ; préférer MAPBOX_TOKEN ou config/mapbox.php (voir mapbox.example.php).
+    $mapboxToken = 'pk.eyJ1IjoiYnItIiwiYSI6ImNtb2Z2eWpvZTBrZmoycHNibTg3OHliNWoifQ.JIgFJdRqYhu8VejEf_uasA';
+}
+
 $mapData = [
-    'token' => 'pk.eyJ1IjoiYnItIiwiYSI6ImNtb2Z2eWpvZTBrZmoycHNibTg3OHliNWoifQ.JIgFJdRqYhu8VejEf_uasA',
+    'token' => $mapboxToken,
     'places' => $places,
     'countries' => $countries,
     'placePath' => 'place.php',

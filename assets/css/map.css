@@ -77,6 +77,18 @@
   line-height: 1.4;
 }
 
+.map-popup-img-wrap {
+  margin: 0 0 0.5rem 0;
+}
+.map-popup-img {
+  display: block;
+  width: 100%;
+  max-width: 10rem;
+  height: auto;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
 a.map-popup-cta {
   display: inline-block;
   margin-top: 0.65rem;

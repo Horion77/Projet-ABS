@@ -1,5 +1,6 @@
 # Configuration locale (contient les identifiants BDD)
 config/database.php
+config/mapbox.php
 
 # macOS
 .DS_Store

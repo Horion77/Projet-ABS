@@ -8,12 +8,23 @@ $mesAvis = $mesAvis ?? [];
 
         <section class="bloc-profil" aria-labelledby="titre-infos">
             <h2 id="titre-infos">Vos informations</h2>
+            <?php if (!empty($util['avatar_url'])) : ?>
+                <p class="profil-avatar-wrap">
+                    <img class="profil-avatar" src="<?= e((string) $util['avatar_url']) ?>" alt="" width="96" height="96" loading="lazy">
+                </p>
+            <?php endif; ?>
             <dl class="grille-profil">
                 <dt>Prénom</dt><dd><?= e($util['prenom']) ?></dd>
                 <dt>Nom</dt><dd><?= e($util['nom']) ?></dd>
                 <dt>E-mail</dt><dd><?= e($util['email']) ?></dd>
                 <dt>Inscription</dt><dd><?= e($util['created_at']) ?></dd>
             </dl>
+            <?php if (!empty($util['bio'])) : ?>
+                <div class="profil-bio">
+                    <h3 class="profil-bio-titre">Bio</h3>
+                    <p class="profil-bio-texte"><?= nl2br(e((string) $util['bio'])) ?></p>
+                </div>
+            <?php endif; ?>
         </section>
 
         <section class="bloc-avis" aria-labelledby="titre-mes-avis">
@@ -40,6 +51,11 @@ $mesAvis = $mesAvis ?? [];
                         </span>
                         <?php if (!empty($a['description'])) : ?>
                             <p class="comm-avis"><?= e($a['description']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($a['photo_thumb'])) : ?>
+                            <p class="avis-photo-wrap">
+                                <img class="avis-photo-thumb" src="<?= e((string) $a['photo_thumb']) ?>" alt="" width="100" height="100" loading="lazy">
+                            </p>
                         <?php endif; ?>
                         <time datetime="<?= e($a['created_at']) ?>"><?= e($a['created_at']) ?></time>
                     </li>

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/../app/bootstrap.php';
 
+use App\Models\AvisModel;
 use App\Models\Database;
 
 $prefixRacine = prefixRacine();
@@ -13,13 +14,14 @@ $place = null;
 $avis = [];
 $noteMoy = null;
 $erreur = null;
+$dejaAvisLieu = false;
 
 if ($id < 1) {
     $erreur = 'Identifiant de lieu invalide.';
 } else {
     $pdo = Database::getPdo();
     $stmt = $pdo->prepare(
-        'SELECT l.id_lieu, l.nom, l.description, l.latitude, l.longitude,
+        'SELECT l.id_lieu, l.nom, l.description, l.latitude, l.longitude, l.image_url,
             cl.libelle AS categorie, vi.nom AS ville, p.nom AS pays, p.id_pays
          FROM lieu l
          JOIN categorie_lieu cl ON cl.id_categorie = l.id_categorie
@@ -35,7 +37,9 @@ if ($id < 1) {
         $pageTitre = (string) $place['nom'];
 
         $qAvis = $pdo->prepare(
-            "SELECT a.id_avis, a.note, a.description, a.created_at, u.nom, u.prenom
+            "SELECT a.id_avis, a.note, a.description, a.created_at, u.nom, u.prenom,
+                (SELECT ph.url FROM photo_avis ph WHERE ph.id_avis = a.id_avis
+                 ORDER BY ph.ordre ASC, ph.id_photo ASC LIMIT 1) AS photo_thumb
              FROM avis a
              JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
              WHERE a.id_lieu = :id AND a.visibility = 'public'
@@ -53,6 +57,11 @@ if ($id < 1) {
         if ($rowAvg && (int) $rowAvg['n'] > 0 && $rowAvg['moy'] !== null) {
             $noteMoy = $rowAvg['moy'];
         }
+
+        $dejaAvisLieu = false;
+        if (isLoggedIn()) {
+            $dejaAvisLieu = AvisModel::utilisateurADejaAvisSurLieu((int) $_SESSION['user_id'], $id);
+        }
     }
 }
 
@@ -66,7 +75,11 @@ require __DIR__ . '/../app/Views/partials/head.php';
     <?php else : ?>
         <article class="place-article">
             <div class="place-entete">
-                <div class="place-illu" aria-hidden="true"></div>
+                <div class="place-illu<?= !empty($place['image_url']) ? ' place-illu--photo' : '' ?>" aria-hidden="true">
+                    <?php if (!empty($place['image_url'])) : ?>
+                        <img src="<?= e((string) $place['image_url']) ?>" alt="" class="place-illu-img" width="400" height="300" loading="lazy">
+                    <?php endif; ?>
+                </div>
                 <div class="place-entete-texte">
                     <p class="place-crumbs">
                         <a href="<?= e($prefixRacine) ?>index.php">Accueil</a>
@@ -101,7 +114,42 @@ require __DIR__ . '/../app/Views/partials/head.php';
                     <?= e((string) $place['latitude']) ?>, <?= e((string) $place['longitude']) ?>
                 </p>
             <?php endif; ?>
-            <!-- TODO: include formulaire d’avis (autre branche) -->
+
+            <?php if (isLoggedIn()) : ?>
+                <section class="place-form-avis" aria-labelledby="titre-form-avis">
+                    <h2 id="titre-form-avis">Donner votre avis</h2>
+                    <?= displayErrors() ?>
+                    <?= displaySuccess() ?>
+                    <?php if ($dejaAvisLieu) : ?>
+                        <p class="message-vide">Vous avez déjà laissé un avis pour ce lieu.</p>
+                    <?php else : ?>
+                        <form class="form-avis-lieu" method="post" action="<?= e($prefixRacine) ?>actions/avis_action.php" novalidate>
+                            <input type="hidden" name="id_lieu" value="<?= (int) $place['id_lieu'] ?>">
+                            <div class="groupe-champ">
+                                <label for="avis-note">Note (1 à 5) *</label>
+                                <select id="avis-note" name="note" required>
+                                    <?php for ($n = 5; $n >= 1; $n--) : ?>
+                                        <option value="<?= $n ?>"><?= $n ?><?= $n === 5 ? ' (le mieux)' : ($n === 1 ? ' (le moins)' : '') ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                            <div class="groupe-champ">
+                                <label for="avis-desc">Commentaire (optionnel)</label>
+                                <textarea id="avis-desc" name="description" rows="4" maxlength="8000" placeholder="Partagez votre expérience…"></textarea>
+                            </div>
+                            <div class="groupe-champ form-avis-vis">
+                                <input type="checkbox" id="avis-prive" name="visibility" value="prive">
+                                <label for="avis-prive">Avis privé (visible seulement sur votre profil)</label>
+                            </div>
+                            <button type="submit" class="btn btn-avis-submit">Publier mon avis</button>
+                        </form>
+                    <?php endif; ?>
+                </section>
+            <?php else : ?>
+                <section class="place-form-avis place-form-avis--invite" aria-label="Connexion requise">
+                    <p><a href="<?= e($prefixRacine) ?>pages/login.php">Connectez-vous</a> pour publier un avis sur ce lieu.</p>
+                </section>
+            <?php endif; ?>
         </article>
 
         <section class="place-avis" aria-label="Avis">
@@ -127,6 +175,11 @@ require __DIR__ . '/../app/Views/partials/head.php';
                         </div>
                         <?php if (!empty($a['description'])) : ?>
                             <p class="avis-texte">« <?= nl2br(e((string) $a['description'])) ?> »</p>
+                        <?php endif; ?>
+                        <?php if (!empty($a['photo_thumb'])) : ?>
+                            <p class="avis-photo-wrap">
+                                <img class="avis-photo-thumb" src="<?= e((string) $a['photo_thumb']) ?>" alt="" width="100" height="100" loading="lazy">
+                            </p>
                         <?php endif; ?>
                     </li>
                     <?php endforeach; ?>

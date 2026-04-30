@@ -1,1 +1,66 @@
-/* Styles pages d'avis */
+/* Page liste globale des avis (pages/avis.php) */
+
+.conteneur-avis-liste {
+  padding-top: 1.25rem;
+  padding-bottom: 2.5rem;
+  max-width: var(--max-largeur);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.titre-page-avis {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.5rem;
+  color: var(--couleur-texte);
+}
+
+.intro-avis {
+  margin: 0 0 1.25rem 0;
+  color: var(--couleur-texte-alt);
+  font-size: 0.98rem;
+}
+
+.liste-avis-globale {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.carte-avis-global {
+  background: var(--couleur-bloc, #fffdf8);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  padding: 1rem 1.15rem;
+  margin-bottom: 0.85rem;
+}
+
+.carte-avis-global-ent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.75rem;
+}
+
+.avis-cible {
+  margin: 0.4rem 0 0.25rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.avis-lien-lieu {
+  margin: 0.5rem 0 0;
+  font-size: 0.92rem;
+}
+
+.avis-photo-wrap {
+  margin: 0.5rem 0 0;
+}
+.avis-photo-thumb {
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--couleur-bordure);
+}
+
+@media (max-width: 32rem) {
+  .titre-page-avis { font-size: 1.25rem; }
+}

@@ -183,7 +183,14 @@ CREATE TABLE avis (
    $password = '******';
    ```
 
-5. **Lancer le site**
+5. **Carte Mapbox (recommandé)**
+
+   - Copier [`config/mapbox.example.php`](config/mapbox.example.php) en `config/mapbox.php` et y mettre votre [jeton d’accès public Mapbox](https://account.mapbox.com/access-tokens/), **ou** définir la variable d’environnement `MAPBOX_TOKEN`.
+   - Sans `mapbox.php` ni variable d’environnement, le site utilise un jeton de secours intégré au code (pratique pour une démo locale uniquement).
+
+   Bases déjà créées avant l’ajout de la colonne `lieu.image_url` : exécuter une fois [`sql/migration_add_image_url_lieu.sql`](sql/migration_add_image_url_lieu.sql).
+
+6. **Lancer le site**
 
    Accéder à `http://localhost/Projet-ABS/` dans le navigateur.
 

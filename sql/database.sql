@@ -115,6 +115,7 @@ CREATE TABLE lieu (
   latitude        DECIMAL(9, 6)   DEFAULT NULL,
   longitude       DECIMAL(9, 6)   DEFAULT NULL,
   adresse         VARCHAR(255)    DEFAULT NULL,
+  image_url       VARCHAR(500)    DEFAULT NULL,
   id_categorie    INT UNSIGNED    NOT NULL,
   id_ville        INT UNSIGNED    NOT NULL,
 

@@ -52,8 +52,16 @@
     var idPays = place.id_pays == null ? '' : String(place.id_pays);
     var idLieu = place.id_lieu;
     var link = placeFile + '?id=' + encodeURIComponent(String(idLieu));
+    var imgUrl = place.image_url ? String(place.image_url).trim() : '';
+    var imgBlock =
+      imgUrl !== ''
+        ? '<p class="map-popup-img-wrap"><img class="map-popup-img" src="' +
+          escapeHtml(imgUrl) +
+          '" alt="" width="160" height="100" loading="lazy"></p>'
+        : '';
     var inner =
       '<div class="map-popup-body">' +
+      imgBlock +
       '<h3 class="map-popup-title">' + escapeHtml(place.name) + '</h3>' +
       '<p class="map-popup-line"><strong>Pays :</strong> ' + escapeHtml(place.country_name) + '</p>' +
       '<p class="map-popup-line"><strong>Note :</strong> ' + escapeHtml(noteText) + '</p>' +
