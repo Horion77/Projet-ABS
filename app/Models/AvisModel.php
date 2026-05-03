@@ -1,23 +1,26 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Core\Modele;
 use PDO;
 
 /**
- * Avis (profil, lieu, flux global)
+ * Avis : profil utilisateur, fiche lieu, flux global paginé.
  */
-class AvisModel
+class AvisModel extends Modele
 {
-    public static function lieuExiste(int $idLieu) : bool
+    public static function lieuExiste(int $idLieu): bool
     {
-        $st = Database::getPdo()->prepare('SELECT 1 FROM lieu WHERE id_lieu = :id LIMIT 1');
+        $st = self::pdo()->prepare('SELECT 1 FROM lieu WHERE id_lieu = :id LIMIT 1');
         $st->execute([':id' => $idLieu]);
         return (bool) $st->fetchColumn();
     }
 
-    public static function utilisateurADejaAvisSurLieu(int $idUtilisateur, int $idLieu) : bool
+    public static function utilisateurADejaAvisSurLieu(int $idUtilisateur, int $idLieu): bool
     {
-        $st = Database::getPdo()->prepare(
+        $st = self::pdo()->prepare(
             'SELECT COUNT(*) FROM avis WHERE id_utilisateur = :u AND id_lieu = :l'
         );
         $st->execute([':u' => $idUtilisateur, ':l' => $idLieu]);
@@ -27,10 +30,9 @@ class AvisModel
     /**
      * @return list<array<string, mixed>>
      */
-    public static function listePubliqueRecents(int $limite = 80) : array
+    public static function listePubliqueRecents(int $limite = 80): array
     {
         $limite = max(1, min(200, $limite));
-        $pdo    = Database::getPdo();
         $sql    = "SELECT a.id_avis, a.note, a.titre, a.description, a.created_at, a.id_lieu, a.id_ville, a.id_pays,
                 u.prenom, u.nom,
                 l.nom AS lieu_nom,
@@ -46,7 +48,7 @@ class AvisModel
              WHERE a.visibility = 'public'
              ORDER BY a.created_at DESC
              LIMIT {$limite}";
-        $q = $pdo->query($sql);
+        $q = self::pdo()->query($sql);
         return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
@@ -57,12 +59,12 @@ class AvisModel
         ?string $description,
         string $visibility = 'public',
         ?string $titre = null
-    ) : int {
+    ): int {
         if ($visibility !== 'public' && $visibility !== 'prive') {
             $visibility = 'public';
         }
         $titre = $titre !== null && $titre !== '' ? mb_substr($titre, 0, 200) : null;
-        $st    = Database::getPdo()->prepare(
+        $st    = self::pdo()->prepare(
             'INSERT INTO avis (note, titre, description, visibility, id_utilisateur, id_lieu)
              VALUES (:n, :t, :d, :v, :u, :l)'
         );
@@ -74,15 +76,14 @@ class AvisModel
             ':u' => $idUtilisateur,
             ':l' => $idLieu,
         ]);
-        return (int) Database::getPdo()->lastInsertId();
+        return (int) self::pdo()->lastInsertId();
     }
 
     /**
-     * Nombre d’avis publics sur un lieu (pour pagination reviews).
+     * Nombre d'avis publics sur un lieu (pour pagination du flux d'avis).
      */
-    public static function compterPublicsLieux(?int $filtreNote, ?int $filtreIdPays) : int
+    public static function compterPublicsLieux(?int $filtreNote, ?int $filtreIdPays): int
     {
-        $pdo = Database::getPdo();
         $sql = "SELECT COUNT(*) FROM avis a
             JOIN lieu l ON a.id_lieu = l.id_lieu
             JOIN ville vi ON l.id_ville = vi.id_ville
@@ -97,7 +98,7 @@ class AvisModel
             $sql .= ' AND p.id_pays = :pays';
             $params[':pays'] = $filtreIdPays;
         }
-        $st = $pdo->prepare($sql);
+        $st = self::pdo()->prepare($sql);
         $st->execute($params);
         return (int) $st->fetchColumn();
     }
@@ -110,12 +111,11 @@ class AvisModel
         int $parPage,
         ?int $filtreNote,
         ?int $filtreIdPays
-    ) : array {
+    ): array {
         $page    = max(1, $page);
         $parPage = max(1, min(50, $parPage));
         $offset  = ($page - 1) * $parPage;
 
-        $pdo = Database::getPdo();
         $sql = "SELECT a.id_avis, a.note, a.titre, a.description, a.created_at, a.id_lieu,
                 u.prenom, u.nom,
                 l.nom AS lieu_nom,
@@ -138,14 +138,14 @@ class AvisModel
             $params[':pays'] = $filtreIdPays;
         }
         $sql .= ' ORDER BY a.created_at DESC LIMIT ' . (int) $parPage . ' OFFSET ' . (int) $offset;
-        $st = $pdo->prepare($sql);
+        $st = self::pdo()->prepare($sql);
         $st->execute($params);
         return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    public static function parUtilisateur(int $idUtilisateur) : array
+    public static function parUtilisateur(int $idUtilisateur): array
     {
-        $st = Database::getPdo()->prepare(
+        $st = self::pdo()->prepare(
             "SELECT a.id_avis, a.note, a.titre, a.description, a.created_at, a.id_lieu, a.id_ville, a.id_pays,
                 l.nom  AS libelle_lieu,
                 v.nom  AS libelle_ville,
@@ -160,6 +160,45 @@ class AvisModel
              ORDER BY a.created_at DESC"
         );
         $st->execute([':uid' => $idUtilisateur]);
-        return $st->fetchAll();
+        return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Avis publics sur un lieu donné (utilisé par la fiche lieu).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function publicsParLieu(int $idLieu): array
+    {
+        $st = self::pdo()->prepare(
+            "SELECT a.id_avis, a.note, a.titre, a.description, a.created_at, u.nom, u.prenom,
+                (SELECT ph.url FROM photo_avis ph WHERE ph.id_avis = a.id_avis
+                 ORDER BY ph.ordre ASC, ph.id_photo ASC LIMIT 1) AS photo_thumb
+             FROM avis a
+             JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
+             WHERE a.id_lieu = :id AND a.visibility = 'public'
+             ORDER BY a.created_at DESC"
+        );
+        $st->execute([':id' => $idLieu]);
+        return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Note moyenne et nombre d'avis publics sur un lieu.
+     *
+     * @return array{n:int, moy:string|null}
+     */
+    public static function statsParLieu(int $idLieu): array
+    {
+        $st = self::pdo()->prepare(
+            "SELECT COUNT(*) AS n, COALESCE(ROUND(AVG(a.note), 2), NULL) AS moy
+             FROM avis a WHERE a.id_lieu = :id AND a.visibility = 'public'"
+        );
+        $st->execute([':id' => $idLieu]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        return [
+            'n'   => (int) ($row['n'] ?? 0),
+            'moy' => $row['moy'] ?? null,
+        ];
     }
 }

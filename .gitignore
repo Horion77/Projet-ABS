@@ -1,6 +1,10 @@
 # Configuration locale (contient les identifiants BDD)
-config/database.php
-config/mapbox.php
+app/Config/bdd.php
+app/Config/mapbox.php
+
+# Stockage local (logs, uploads non versionnés)
+storage/*
+!storage/.gitkeep
 
 # macOS
 .DS_Store
@@ -20,5 +24,5 @@ Desktop.ini
 *~
 
 # Fichiers uploadés par les utilisateurs (si applicable)
-assets/uploads/*
-!assets/uploads/.gitkeep
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep

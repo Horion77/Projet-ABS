@@ -1,31 +1,33 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Controllers;
 
-use App\Core\View;
+use App\Core\Controleur;
+use App\Core\Session;
 use App\Models\UtilisateurModel;
 
-class InscriptionController
+/**
+ * Inscription : formulaire + traitement.
+ */
+class InscriptionController extends Controleur
 {
-    public function form() : void
+    public function afficher(): void
     {
-        $old = $_SESSION['old_inscription'] ?? [];
-        if (isset($_SESSION['old_inscription'])) {
-            unset($_SESSION['old_inscription']);
-        }
-        View::render('auth/inscription', [
-            'old'       => $old,
+        $this->rendre('inscription/index', [
+            'old'       => Session::recupererAncien('old_inscription'),
             'pageTitre' => 'Inscription',
         ], 'auth');
     }
 
-    public function traiterInscription() : void
+    public function traiterInscription(): void
     {
         $erreurs = [];
-        $nom   = trim($_POST['nom']   ?? '');
-        $prenom = trim($_POST['prenom'] ?? '');
-        $email  = trim($_POST['email']  ?? '');
-        $mdp1   = $_POST['password']         ?? '';
-        $mdp2   = $_POST['password_confirm'] ?? '';
+        $nom    = $this->requete->postString('nom');
+        $prenom = $this->requete->postString('prenom');
+        $email  = $this->requete->postString('email');
+        $mdp1   = (string) $this->requete->post('password', '');
+        $mdp2   = (string) $this->requete->post('password_confirm', '');
 
         if ($nom === '' || mb_strlen($nom) < 2 || mb_strlen($nom) > 80) {
             $erreurs[] = 'Le nom doit faire entre 2 et 80 caractères.';
@@ -50,23 +52,21 @@ class InscriptionController
         }
 
         if (!empty($erreurs)) {
-            $_SESSION['errors']         = $erreurs;
-            $_SESSION['old_inscription'] = [
+            Session::flashErreurs($erreurs);
+            Session::flashAncien('old_inscription', [
                 'nom'    => $nom,
                 'prenom' => $prenom,
                 'email'  => $email,
-            ];
-            redirect('../pages/inscription.php');
+            ]);
+            $this->rediriger('/inscription');
         }
 
         $hash = password_hash($mdp1, PASSWORD_DEFAULT);
-        $id  = UtilisateurModel::creer($nom, $prenom, $email, $hash);
+        $id   = UtilisateurModel::creer($nom, $prenom, $email, $hash);
 
-        $_SESSION['user_id']     = $id;
-        $_SESSION['user_prenom'] = $prenom;
-        $_SESSION['user_nom']   = $nom;
-        $_SESSION['success']     = 'Bienvenue sur ABS ! Votre compte est prêt.';
+        Session::connecter($id, $prenom, $nom);
+        Session::flashSucces('Bienvenue sur ABS ! Votre compte est prêt.');
 
-        redirect('../index.php');
+        $this->rediriger('/');
     }
 }

@@ -1,29 +1,32 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Controllers;
 
-use App\Core\View;
+use App\Core\Controleur;
+use App\Core\Session;
 use App\Models\AvisModel;
 use App\Models\UtilisateurModel;
 
-class ProfilController
+/**
+ * Profil utilisateur connecté + ses propres avis.
+ */
+class ProfilController extends Controleur
 {
-    public function montrer() : void
+    public function afficher(): void
     {
-        if (!isLoggedIn()) {
-            redirect('login.php');
-        }
+        $this->exigerConnexion('/connexion');
 
-        $id = (int) $_SESSION['user_id'];
-        $util  = UtilisateurModel::parId($id);
+        $id   = (int) ($_SESSION['user_id'] ?? 0);
+        $util = UtilisateurModel::parId($id);
         if (!$util) {
-            session_destroy();
-            redirect('login.php');
+            Session::deconnecter();
+            $this->rediriger('/connexion');
         }
-        $mesAvis = AvisModel::parUtilisateur($id);
 
-        View::render('profil/index', [
-            'util'     => $util,
-            'mesAvis'  => $mesAvis,
+        $this->rendre('profil/index', [
+            'util'      => $util,
+            'mesAvis'   => AvisModel::parUtilisateur($id),
             'pageTitre' => 'Mon profil',
         ]);
     }

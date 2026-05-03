@@ -1,45 +1,50 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Core\Modele;
+use PDO;
+
 /**
- * Données compte utilisateur (table utilisateur)
+ * Données du compte utilisateur (table utilisateur).
  */
-class UtilisateurModel
+class UtilisateurModel extends Modele
 {
-    public static function parEmail(string $email) : ?array
+    public static function parEmail(string $email): ?array
     {
-        $st = Database::getPdo()->prepare('SELECT * FROM utilisateur WHERE email = :e LIMIT 1');
+        $st = self::pdo()->prepare('SELECT * FROM utilisateur WHERE email = :e LIMIT 1');
         $st->execute([':e' => $email]);
-        $r = $st->fetch();
+        $r = $st->fetch(PDO::FETCH_ASSOC);
         return $r ?: null;
     }
 
-    public static function parId(int $id) : ?array
+    public static function parId(int $id): ?array
     {
-        $st = Database::getPdo()->prepare('SELECT * FROM utilisateur WHERE id_utilisateur = :id LIMIT 1');
+        $st = self::pdo()->prepare('SELECT * FROM utilisateur WHERE id_utilisateur = :id LIMIT 1');
         $st->execute([':id' => $id]);
-        $r = $st->fetch();
+        $r = $st->fetch(PDO::FETCH_ASSOC);
         return $r ?: null;
     }
 
-    public static function emailExiste(string $email) : bool
+    public static function emailExiste(string $email): bool
     {
-        $st = Database::getPdo()->prepare('SELECT COUNT(*) FROM utilisateur WHERE email = :e');
+        $st = self::pdo()->prepare('SELECT COUNT(*) FROM utilisateur WHERE email = :e');
         $st->execute([':e' => $email]);
         return (int) $st->fetchColumn() > 0;
     }
 
-    public static function creer(string $nom, string $prenom, string $email, string $hash) : int
+    public static function creer(string $nom, string $prenom, string $email, string $hash): int
     {
-        $st = Database::getPdo()->prepare(
+        $st = self::pdo()->prepare(
             'INSERT INTO utilisateur (nom, prenom, email, password_hash) VALUES (:nom, :prenom, :email, :ph)'
         );
         $st->execute([
-            ':nom'   => $nom,
+            ':nom'    => $nom,
             ':prenom' => $prenom,
-            ':email' => $email,
-            ':ph'    => $hash,
+            ':email'  => $email,
+            ':ph'     => $hash,
         ]);
-        return (int) Database::getPdo()->lastInsertId();
+        return (int) self::pdo()->lastInsertId();
     }
 }

@@ -1,13 +1,19 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Core\Modele;
 use PDO;
 
-class PaysModel
+/**
+ * Données pays + lieux d'un pays.
+ */
+class PaysModel extends Modele
 {
-    public static function parId(int $idPays) : ?array
+    public static function parId(int $idPays): ?array
     {
-        $st = Database::getPdo()->prepare('SELECT * FROM pays WHERE id_pays = :id LIMIT 1');
+        $st = self::pdo()->prepare('SELECT * FROM pays WHERE id_pays = :id LIMIT 1');
         $st->execute([':id' => $idPays]);
         $r = $st->fetch(PDO::FETCH_ASSOC);
         return $r ?: null;
@@ -16,9 +22,9 @@ class PaysModel
     /**
      * @return list<array{id_pays:int|string,nom:string}>
      */
-    public static function listePourFiltre() : array
+    public static function listePourFiltre(): array
     {
-        $q = Database::getPdo()->query('SELECT id_pays, nom FROM pays ORDER BY nom ASC');
+        $q = self::pdo()->query('SELECT id_pays, nom FROM pays ORDER BY nom ASC');
         return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
@@ -27,9 +33,9 @@ class PaysModel
      *
      * @return list<array<string, mixed>>
      */
-    public static function lieuxAvecNotes(int $idPays) : array
+    public static function lieuxAvecNotes(int $idPays): array
     {
-        $st = Database::getPdo()->prepare(
+        $st = self::pdo()->prepare(
             "SELECT l.id_lieu, l.nom, l.image_url, vi.nom AS ville_nom,
                 COUNT(a.id_avis) AS nb_avis,
                 COALESCE(ROUND(AVG(a.note), 2), NULL) AS avg_rating

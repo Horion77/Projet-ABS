@@ -23,25 +23,40 @@ Projet réalisé dans le cadre du cours de Programmation Web (HTML / CSS / PHP /
 |--------|-------------|
 | Structure | HTML5 |
 | Style | CSS3 natif (aucun framework) |
-| Serveur | PHP 8+ (natif, aucun framework) |
+| Serveur | PHP 8.1+ (natif, aucun framework) |
 | Base de données | MySQL (PDO) |
-| Carte interactive | Librairie JavaScript de cartographie (type Leaflet.js) |
+| Carte interactive | Mapbox GL JS |
 | Versionnement | Git / GitHub |
+
+---
+
+## Architecture MVC
+
+L'application suit une architecture **Modèle / Vue / Contrôleur** stricte avec un **front controller** unique.
+Toutes les requêtes passent par `public/index.php`, qui appelle le **Routeur**, qui dispatche vers le bon **Contrôleur**, lequel sollicite ses **Modèles** puis rend une **Vue**.
+
+```text
+Navigateur → public/index.php → Routeur → Controller → Model(s) → BDD
+                                            ↓
+                                          Vue → HTML → Navigateur
+```
+
+Convention de nommage : dossiers structurels en anglais, fichiers PHP et URLs publiques en français.
+Voir [docs/architecture.md](docs/architecture.md) pour le détail.
 
 ---
 
 ## Fonctionnalités
 
-- Page d'accueil attrayante avec présentation du site et aperçu des lieux populaires
-- Inscription et connexion sécurisées (hashage `password_hash`, sessions PHP)
-- Carte interactive du monde avec marqueurs cliquables pour chaque lieu
+- Page d'accueil avec présentation du site et aperçu des lieux populaires
+- Inscription et connexion sécurisées (`password_hash`, sessions PHP)
+- Carte interactive Mapbox avec marqueurs cliquables
 - Fiche détaillée par lieu (description, image, pays, note moyenne)
-- Système d'avis : note sur 5 étoiles + commentaire, accessible aux utilisateurs connectés
-- Page d'avis par pays avec liste des lieux et notes moyennes
-- Page globale de tous les avis avec pagination et filtres
+- Système d'avis : note 1–5 étoiles + commentaire pour utilisateurs connectés
+- Page pays avec liste des lieux et notes moyennes
+- Page globale de tous les avis avec pagination et filtres (note, pays)
 - Profil utilisateur affichant ses propres avis
-- Validation des données côté serveur (PHP) et côté client (JavaScript)
-- Navigation cohérente sur l'ensemble du site
+- Validation côté serveur (PHP) et côté client (JavaScript)
 
 ---
 
@@ -49,109 +64,109 @@ Projet réalisé dans le cadre du cours de Programmation Web (HTML / CSS / PHP /
 
 ```
 Projet-ABS/
-├── index.php                  # Page d'accueil
-├── config/
-│   └── database.php           # Connexion BDD (PDO)
-├── includes/
-│   ├── header.php             # En-tête commun (navbar)
-│   ├── footer.php             # Pied de page commun
-│   └── functions.php          # Fonctions utilitaires partagées
-├── pages/
-│   ├── login.php              # Page de connexion
-│   ├── inscription.php           # Page d'inscription
-│   ├── map.php                # Page carte interactive
-│   ├── place.php              # Détail d'un lieu + avis
-│   ├── pays.php            # Page pays + liste de lieux
-│   ├── reviews.php         # Tous les avis (paginés + filtres)
-│   ├── avis.php            # Redirige vers reviews.php
-│   ├── country.php         # Fiche pays + lieux du pays
-│   └── profil.php            # Profil utilisateur
-├── actions/
-│   ├── login_action.php       # Traitement formulaire connexion
-│   ├── inscription_action.php    # Traitement formulaire inscription
-│   ├── review_action.php    # Traitement formulaire avis (plan Sara)
-│   ├── avis_action.php      # Alias → même traitement que review_action
-│   └── logout.php             # Déconnexion
-├── assets/
-│   ├── css/
-│   │   ├── style.css          # Styles globaux, variables, navbar, footer
-│   │   ├── home.css           # Styles page d'accueil
-│   │   ├── auth.css           # Styles login / register
-│   │   ├── map.css            # Styles carte interactive
-│   │   └── reviews.css        # Styles pages d'avis
-│   ├── js/
-│   │   ├── map.js             # Logique carte interactive
-│   │   └── validation.js      # Validation front-end des formulaires
-│   └── images/
-└── sql/
-    └── database.sql           # Schéma complet de la BDD
+├── README.md
+├── CHANGELOG.md
+├── LICENSE
+├── .gitignore
+├── .htaccess                      # filet de sécurité → public/
+├── public/                        # ⬅ DocumentRoot Apache/MAMP/XAMPP
+│   ├── index.php                  # Front controller unique
+│   ├── .htaccess                  # mod_rewrite : tout vers index.php
+│   └── assets/
+│       ├── css/  (style, home, auth, map, place, reviews)
+│       ├── js/   (map.js, validation.js)
+│       └── images/
+├── app/
+│   ├── bootstrap.php              # autoload PSR-4 + helpers + session
+│   ├── Config/
+│   │   ├── application.php
+│   │   ├── bdd.php                # PDO (gitignored)
+│   │   ├── bdd.exemple.php
+│   │   ├── mapbox.exemple.php
+│   │   └── routes.php             # déclaration des routes
+│   ├── Core/                      # noyau du framework maison
+│   │   ├── Routeur.php
+│   │   ├── Controleur.php         # base abstraite
+│   │   ├── Modele.php             # base abstraite
+│   │   ├── BaseDeDonnees.php
+│   │   ├── Vue.php
+│   │   ├── Requete.php
+│   │   ├── Reponse.php
+│   │   ├── Session.php
+│   │   └── Aides.php              # fonctions helpers globales
+│   ├── Controllers/
+│   │   ├── AccueilController.php
+│   │   ├── ConnexionController.php
+│   │   ├── InscriptionController.php
+│   │   ├── ProfilController.php
+│   │   ├── CarteController.php
+│   │   ├── LieuController.php
+│   │   ├── PaysController.php
+│   │   ├── AvisController.php          # POST création
+│   │   └── AvisListeController.php     # GET liste paginée
+│   ├── Models/
+│   │   ├── UtilisateurModel.php
+│   │   ├── PaysModel.php
+│   │   ├── AvisModel.php
+│   │   ├── LieuModel.php
+│   │   └── AccueilModel.php
+│   └── Views/
+│       ├── layouts/principal.php
+│       ├── partials/   (entete, navigation, pied, messages)
+│       ├── accueil/    (index)
+│       ├── connexion/  (index)
+│       ├── inscription/(index)
+│       ├── profil/     (index)
+│       ├── carte/      (index)
+│       ├── lieu/       (afficher)
+│       ├── pays/       (afficher)
+│       ├── avis/       (index)
+│       └── erreurs/    (404)
+├── sql/
+│   ├── schema/database.sql
+│   ├── seeds/seed_demo.sql
+│   └── migrations/
+│       ├── 2026_04_30_add_image_url_lieu.sql
+│       └── 2026_04_30_add_titre_avis.sql
+├── storage/                       # logs, uploads (hors doc-root)
+└── docs/
+    └── architecture.md
 ```
+
+---
+
+## URLs publiques
+
+| Méthode | Chemin              | Contrôleur::action                            |
+|---------|---------------------|------------------------------------------------|
+| GET     | `/`                 | `AccueilController::index`                     |
+| GET     | `/connexion`        | `ConnexionController::afficher`                |
+| POST    | `/connexion`        | `ConnexionController::traiterConnexion`        |
+| POST    | `/deconnexion`      | `ConnexionController::deconnecter`             |
+| GET     | `/inscription`      | `InscriptionController::afficher`              |
+| POST    | `/inscription`      | `InscriptionController::traiterInscription`    |
+| GET     | `/profil`           | `ProfilController::afficher`                   |
+| GET     | `/carte`            | `CarteController::index`                       |
+| GET     | `/lieu?id=…`        | `LieuController::afficher`                     |
+| GET     | `/pays?id=…`        | `PaysController::afficher`                     |
+| GET     | `/avis`             | `AvisListeController::index`                   |
+| POST    | `/avis`             | `AvisController::traiterSoumission`            |
 
 ---
 
 ## Base de données
 
-Quatre tables principales :
-
-- **users** — comptes utilisateurs (username, email, mot de passe hashé)
-- **pays** — pays référencés (nom, code ISO, coordonnées)
-- **places** — lieux à découvrir (nom, description, coordonnées, image, lié à un pays)
-- **avis** — avis des utilisateurs (note 1-5, titre, commentaire, lié à un utilisateur et un lieu)
-
-### Schéma SQL
-
-```sql
-CREATE DATABASE IF NOT EXISTS projet_abs;
-USE projet_abs;
-
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE pays (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    code VARCHAR(3) NOT NULL,
-    lat DECIMAL(10,7),
-    lng DECIMAL(10,7)
-);
-
-CREATE TABLE places (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    description TEXT,
-    pays_id INT NOT NULL,
-    lat DECIMAL(10,7) NOT NULL,
-    lng DECIMAL(10,7) NOT NULL,
-    image_url VARCHAR(255),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pays_id) REFERENCES pays(id)
-);
-
-CREATE TABLE avis (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    place_id INT NOT NULL,
-    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    title VARCHAR(150),
-    comment TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (place_id) REFERENCES places(id)
-);
-```
+Voir [`sql/schema/database.sql`](sql/schema/database.sql) pour le schéma complet.
+Données de démonstration dans [`sql/seeds/seed_demo.sql`](sql/seeds/seed_demo.sql).
 
 ---
 
-## Installation - pour le lancement A.B.S
+## Installation
 
 ### Prérequis
 
-- Serveur local : MAMP, WAMP ou XAMPP (Apache + PHP + MySQL)
+- Serveur local : MAMP, WAMP ou XAMPP (Apache + PHP 8.1+ + MySQL)
+- Module Apache `mod_rewrite` activé
 - Git
 
 ### Étapes
@@ -162,42 +177,40 @@ CREATE TABLE avis (
    git clone <url-du-depot> Projet-ABS
    ```
 
-2. **Placer le projet dans le dossier du serveur web**
+2. **Pointer le DocumentRoot du serveur web sur `Projet-ABS/public/`**
 
-   - MAMP : `/Applications/MAMP/htdocs/Projet-ABS`
-   - WAMP : `C:\wamp64\www\Projet-ABS`
-   - XAMPP : `C:\xampp\htdocs\Projet-ABS`
+   - **MAMP** : *Préférences → Serveur Web → Document Root* → choisir `…/Projet-ABS/public`
+   - **XAMPP** : éditer `httpd.conf`, remplacer `DocumentRoot "…/htdocs"` par `DocumentRoot "…/Projet-ABS/public"` (et idem pour `<Directory …>`)
+   - **WAMP** : modifier l'alias dans `httpd-vhosts.conf`
+
+   À défaut, un `.htaccess` racine sert de filet de sécurité et redirige toutes les requêtes vers `public/`, mais la configuration recommandée est de pointer directement le DocumentRoot.
 
 3. **Créer la base de données**
 
    - Ouvrir phpMyAdmin (`http://localhost/phpmyadmin`)
-   - Créer une base de données nommée `projet_abs`
-   - Importer le fichier `sql/database.sql`
+   - Créer une base nommée `abs_db`
+   - Importer `sql/schema/database.sql`
+   - (optionnel) Importer `sql/seeds/seed_demo.sql` pour les données de démo
 
-4. **Configurer la connexion**
+4. **Configurer la connexion BDD**
 
-   Copier `config/database.example.php` en `config/database.php` et adapter les identifiants :
-
-   ```php
-   <?php
-   $host = 'localhost';
-   $dbname = 'projet_abs';
-   $username = '******';
-   $password = '******';
+   ```bash
+   cp app/Config/bdd.exemple.php app/Config/bdd.php
    ```
+
+   Éditer `app/Config/bdd.php` avec vos identifiants MySQL.
 
 5. **Carte Mapbox (recommandé)**
 
-   - Copier [`config/mapbox.example.php`](config/mapbox.example.php) en `config/mapbox.php` et y mettre votre [jeton d’accès public Mapbox](https://account.mapbox.com/access-tokens/), **ou** définir la variable d’environnement `MAPBOX_TOKEN`.
-   - Sans `mapbox.php` ni variable d’environnement, le site utilise un jeton de secours intégré au code (pratique pour une démo locale uniquement).
+   ```bash
+   cp app/Config/mapbox.exemple.php app/Config/mapbox.php
+   ```
 
-   Bases déjà créées avant l’ajout de la colonne `lieu.image_url` : exécuter une fois [`sql/migration_add_image_url_lieu.sql`](sql/migration_add_image_url_lieu.sql).
-
-   Bases créées avant l’ajout du **titre** sur les avis : exécuter [`sql/migration_add_titre_avis.sql`](sql/migration_add_titre_avis.sql).
+   Renseigner votre [jeton public Mapbox](https://account.mapbox.com/access-tokens/), ou définir la variable d'environnement `MAPBOX_TOKEN`. Sans configuration, un jeton de secours intégré au code est utilisé pour la démo locale.
 
 6. **Lancer le site**
 
-   Accéder à `http://localhost/Projet-ABS/` dans le navigateur.
+   Accéder à `http://localhost/` (ou l'URL de votre vhost) dans le navigateur.
 
 ---
 
