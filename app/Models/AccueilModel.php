@@ -17,6 +17,7 @@ class AccueilModel extends Modele
      */
     public static function classementLieux(int $limite): array
     {
+        // Si la vue SQL n'existe pas encore (BDD partielle), on renvoie [] sans faire planter la page.
         try {
             $q = self::pdo()->query(
                 "SELECT id_lieu, lieu, categorie, ville, pays, note_moyenne, nb_avis

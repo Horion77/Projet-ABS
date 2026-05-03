@@ -13,7 +13,7 @@ use App\Controllers\ProfilController;
 
 /**
  * Table de routage : [METHODE_HTTP, CHEMIN, [Controleur::class, 'methode']].
- * Toutes les URLs publiques sont en français pour rester cohérent avec l'interface.
+ * Le chemin est comparé tel quel (ex. /lieu) ; les paramètres passent en ?id=… dans la requête.
  */
 return [
     ['GET',  '/',             [AccueilController::class,     'index']],

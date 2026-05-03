@@ -61,6 +61,7 @@ class InscriptionController extends Controleur
             $this->rediriger('/inscription');
         }
 
+        // On ne stocke jamais le mot de passe en clair : seul le hash (algorithme par défaut PHP) part en BDD.
         $hash = password_hash($mdp1, PASSWORD_DEFAULT);
         $id   = UtilisateurModel::creer($nom, $prenom, $email, $hash);
 

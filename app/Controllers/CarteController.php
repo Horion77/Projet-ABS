@@ -25,6 +25,7 @@ class CarteController extends Controleur
         ], 'map');
     }
 
+    /** Ordre : variable d'environnement → fichier mapbox.php → jeton de secours (démo locale uniquement). */
     private function resoudreTokenMapbox(): string
     {
         $token = getenv('MAPBOX_TOKEN');

@@ -47,7 +47,10 @@ class Session
         }
     }
 
-    /** @param string|string[] $erreurs */
+    /**
+     * Messages flash : stockés en session puis lus une fois (displayErrors / displaySuccess les unset).
+     * @param string|string[] $erreurs
+     */
     public static function flashErreurs(array|string $erreurs): void
     {
         $_SESSION['errors'] = is_array($erreurs) ? array_values($erreurs) : [$erreurs];
@@ -58,11 +61,13 @@ class Session
         $_SESSION['success'] = $message;
     }
 
+    /** Reprise des champs formulaire après erreur (ex. old_login). */
     public static function flashAncien(string $cle, array $valeurs): void
     {
         $_SESSION[$cle] = $valeurs;
     }
 
+    /** Lit puis supprime la clé : une seule requête HTTP voit ces données. */
     public static function recupererAncien(string $cle): array
     {
         $val = $_SESSION[$cle] ?? [];

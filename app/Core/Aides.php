@@ -7,8 +7,11 @@ declare(strict_types=1);
  * Toutes les anciennes fonctions de includes/functions.php sont conservées,
  * sauf prefixRacine() qui devient inutile (les assets sont maintenant servis
  * en chemin absolu /assets/… via le front controller).
+ *
+ * if (!function_exists(...)) : évite une erreur fatale si le fichier est inclus deux fois.
  */
 
+// e() : toujours utiliser pour afficher du texte utilisateur/BDD dans le HTML (protection XSS).
 if (!function_exists('e')) {
     function e(string $s): string
     {

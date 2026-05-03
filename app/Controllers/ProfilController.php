@@ -19,6 +19,7 @@ class ProfilController extends Controleur
 
         $id   = (int) ($_SESSION['user_id'] ?? 0);
         $util = UtilisateurModel::parId($id);
+        // Compte supprimé en BDD mais session encore valide → on force la déconnexion.
         if (!$util) {
             Session::deconnecter();
             $this->rediriger('/connexion');

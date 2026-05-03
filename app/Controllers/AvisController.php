@@ -25,6 +25,7 @@ class AvisController extends Controleur
             $this->rediriger('/connexion');
         }
 
+        // Deux noms de champs possibles (évolution du formulaire / ancien code) : on accepte les deux.
         $idLieu = $this->requete->postInt('place_id', $this->requete->postInt('id_lieu'));
         $note   = $this->requete->postInt('rating', $this->requete->postInt('note'));
 

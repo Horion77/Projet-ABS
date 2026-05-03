@@ -38,6 +38,7 @@ class LieuModel extends Modele
      */
     public static function tousAvecNotes(): array
     {
+        // LEFT JOIN avis + GROUP BY : une ligne par lieu, AVG sur les avis publics seulement.
         $sql = "SELECT
                 l.id_lieu,
                 l.nom AS name,

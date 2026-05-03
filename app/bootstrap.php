@@ -18,6 +18,7 @@ if (!defined('APP_CONFIG')) {
 
 require_once APP_PATH . '/Core/Aides.php';
 
+// Autoload PSR-4 simplifié : App\X\Y → app/X/Y.php (pas de Composer dans ce projet).
 spl_autoload_register(static function (string $classe): void {
     if (!str_starts_with($classe, 'App\\')) {
         return;

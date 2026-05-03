@@ -27,6 +27,7 @@ class Routeur
         $methode = $req->methode();
         $chemin  = $req->chemin();
 
+        // Si le chemin existe dans la table mais pas la méthode → 405 ; sinon chemin inconnu → 404.
         $cheminAutorise = false;
         foreach ($this->routes as [$mRoute, $cRoute, $action]) {
             if ($cRoute !== $chemin) {

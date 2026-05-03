@@ -10,6 +10,7 @@ use PDO;
  */
 abstract class Modele
 {
+    /** final : les sous-classes ne redéfinissent pas l'accès PDO (une seule source de vérité). */
     final protected static function pdo(): PDO
     {
         return BaseDeDonnees::pdo();

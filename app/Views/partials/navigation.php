@@ -20,6 +20,7 @@
                     }
                     ?>
                     <a href="/profil"><?= e($nomNav) ?></a>
+                    <!-- POST : la déconnexion modifie l'état ; on évite un simple lien GET (bookmark, préchargement). -->
                     <form class="nav-deconnexion" method="post" action="/deconnexion">
                         <button type="submit" class="nav-auth nav-deconnexion-btn">Déconnexion</button>
                     </form>

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers;
@@ -8,7 +9,7 @@ use App\Models\AvisModel;
 use App\Models\PaysModel;
 
 /**
- * Flux global des avis publics : pagination + filtres (note, pays).
+ * Liste des avis publics : pagination + filtres (note, pays).
  */
 class AvisListeController extends Controleur
 {
@@ -32,6 +33,7 @@ class AvisListeController extends Controleur
 
         $total = AvisModel::compterPublicsLieux($filtreNote, $filtrePays);
         $pages = (int) max(1, (int) ceil($total / self::PAR_PAGE));
+        // Évite page=999 quand il n'y a qu'une page (ex. après filtre).
         if ($page > $pages) {
             $page = $pages;
         }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Core;
 
 /**
- * Helpers HTTP : redirections et réponses JSON.
+ * Helpers HTTP : redirections, JSON, 404. Les méthodes se terminent par exit (type never).
  */
 class Reponse
 {

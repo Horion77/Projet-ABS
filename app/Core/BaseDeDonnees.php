@@ -18,7 +18,7 @@ class BaseDeDonnees
     {
         if (self::$pdo === null) {
             $fichier = APP_CONFIG . '/bdd.php';
-            $pdo = null;
+            $pdo = null; // bdd.php doit assigner cette variable (convention du fichier de config).
             require $fichier;
             if (!$pdo instanceof PDO) {
                 throw new RuntimeException('Connexion BDD non initialisée (vérifier app/Config/bdd.php).');

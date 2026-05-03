@@ -31,7 +31,8 @@ class LieuController extends Controleur
             if (!$lieu) {
                 $erreur = 'Ce lieu n’existe pas ou n’est plus disponible.';
             } else {
-                $avis    = AvisModel::publicsParLieu($id);
+                $avis = AvisModel::publicsParLieu($id);
+                // Moyenne = null si aucun avis public (évite d'afficher « 0/5 » trompeur).
                 $stats   = AvisModel::statsParLieu($id);
                 $noteMoy = $stats['n'] > 0 ? $stats['moy'] : null;
 

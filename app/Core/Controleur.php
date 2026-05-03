@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace App\Core;
 
 /**
- * Base abstraite des contrôleurs. Sucre syntaxique pour le rendu et les redirections.
+ * Base abstraite des contrôleurs : rendu de vue et redirections.
+ * La méthode utilitaire s'appelle rendre() (et non afficher()) pour éviter le conflit avec
+ * les actions publiques nommées afficher() dans les sous-classes.
  */
 abstract class Controleur
 {

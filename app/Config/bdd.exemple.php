@@ -1,4 +1,8 @@
 <?php
+/**
+ * Modèle de configuration PDO. Copier en bdd.php et adapter (bdd.php n'est pas versionné).
+ * Ce fichier doit définir la variable $pdo (lue par Core/BaseDeDonnees.php).
+ */
 
 $host     = '127.0.0.1';
 $dbname   = 'abs_db';

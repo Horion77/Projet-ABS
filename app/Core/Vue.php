@@ -31,8 +31,10 @@ class Vue
         $fichierCssPage = $css ?? ($donnees['fichierCssPage'] ?? null);
         $donnees['fichierCssPage'] = $fichierCssPage;
 
+        // EXTR_SKIP : ne pas écraser une variable déjà existante (ex. $contenu) par accident.
         extract($donnees, EXTR_SKIP);
 
+        // Buffer : on capture la vue seule, puis le layout l'injecte dans $contenu.
         ob_start();
         require $cheminVue;
         $contenu = ob_get_clean();

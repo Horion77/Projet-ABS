@@ -137,6 +137,7 @@ class AvisModel extends Modele
             $sql .= ' AND p.id_pays = :pays';
             $params[':pays'] = $filtreIdPays;
         }
+        // LIMIT / OFFSET en entiers (cast) : pas de placeholder PDO ici ; les valeurs sont bornées plus haut.
         $sql .= ' ORDER BY a.created_at DESC LIMIT ' . (int) $parPage . ' OFFSET ' . (int) $offset;
         $st = self::pdo()->prepare($sql);
         $st->execute($params);

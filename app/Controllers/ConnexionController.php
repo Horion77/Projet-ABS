@@ -32,6 +32,7 @@ class ConnexionController extends Controleur
         }
 
         $user = UtilisateurModel::parEmail($email);
+        // password_verify : le mot de passe en clair n'est jamais comparé au hash « à la main ».
         if (!$user || !password_verify($mdp, (string) $user['password_hash'])) {
             Session::flashErreurs(['E-mail ou mot de passe incorrect.']);
             Session::flashAncien('old_login', ['email' => $email]);

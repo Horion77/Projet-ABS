@@ -13,6 +13,7 @@ class Requete
         return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
     }
 
+    /** Chemin seul (sans ?query), normalisé : toujours commence par /, sans slash final sauf /. */
     public function chemin(): string
     {
         $uri    = (string) ($_SERVER['REQUEST_URI'] ?? '/');

@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 /**
- * Constantes globales de l'application.
- * Chargé par app/bootstrap.php.
+ * Constantes globales (nom, env, base URL). Fichier prêt pour une évolution du bootstrap ;
+ * pour l’instant le démarrage ne fait que définir APP_ROOT / APP_CONFIG.
  */
 
 return [
