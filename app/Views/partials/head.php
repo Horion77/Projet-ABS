@@ -27,7 +27,7 @@ if (!isset($pageTitre)) {
             <nav id="nav-site" class="nav-site" aria-label="Principale">
                 <a href="<?= e($prefixRacine) ?>index.php">Accueil</a>
                 <a href="<?= e($prefixRacine) ?>pages/map.php">Carte</a>
-                <a href="<?= e($prefixRacine) ?>pages/avis.php">Avis</a>
+                <a href="<?= e($prefixRacine) ?>pages/reviews.php">Avis</a>
                 <?php if (isLoggedIn()) : ?>
                     <span class="nav-sep" aria-hidden="true"></span>
                     <?php

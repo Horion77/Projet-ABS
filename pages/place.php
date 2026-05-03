@@ -37,7 +37,7 @@ if ($id < 1) {
         $pageTitre = (string) $place['nom'];
 
         $qAvis = $pdo->prepare(
-            "SELECT a.id_avis, a.note, a.description, a.created_at, u.nom, u.prenom,
+            "SELECT a.id_avis, a.note, a.titre, a.description, a.created_at, u.nom, u.prenom,
                 (SELECT ph.url FROM photo_avis ph WHERE ph.id_avis = a.id_avis
                  ORDER BY ph.ordre ASC, ph.id_photo ASC LIMIT 1) AS photo_thumb
              FROM avis a
@@ -89,7 +89,8 @@ require __DIR__ . '/../app/Views/partials/head.php';
                     <h1 class="place-titre"><?= e((string) $place['nom']) ?></h1>
                     <p class="place-meta">
                         <?= e((string) $place['categorie']) ?>
-                        — <?= e((string) $place['ville']) ?>, <?= e((string) $place['pays']) ?>
+                        — <?= e((string) $place['ville']) ?>,
+                        <a href="<?= e($prefixRacine) ?>pages/country.php?id=<?= (int) $place['id_pays'] ?>"><?= e((string) $place['pays']) ?></a>
                     </p>
                     <p class="place-note-entete">
                         <?php if ($noteMoy !== null) : ?>
@@ -123,19 +124,26 @@ require __DIR__ . '/../app/Views/partials/head.php';
                     <?php if ($dejaAvisLieu) : ?>
                         <p class="message-vide">Vous avez déjà laissé un avis pour ce lieu.</p>
                     <?php else : ?>
-                        <form class="form-avis-lieu" method="post" action="<?= e($prefixRacine) ?>actions/avis_action.php" novalidate>
-                            <input type="hidden" name="id_lieu" value="<?= (int) $place['id_lieu'] ?>">
+                        <form id="form-avis-lieu" class="form-avis-lieu" method="post" action="<?= e($prefixRacine) ?>actions/review_action.php" novalidate>
+                            <input type="hidden" name="place_id" value="<?= (int) $place['id_lieu'] ?>">
                             <div class="groupe-champ">
-                                <label for="avis-note">Note (1 à 5) *</label>
-                                <select id="avis-note" name="note" required>
-                                    <?php for ($n = 5; $n >= 1; $n--) : ?>
-                                        <option value="<?= $n ?>"><?= $n ?><?= $n === 5 ? ' (le mieux)' : ($n === 1 ? ' (le moins)' : '') ?></option>
+                                <span class="label-like" id="label-stars">Votre note *</span>
+                                <input type="hidden" name="rating" id="rating-value" value="" aria-required="true">
+                                <div class="stars-input" id="stars-input" role="group" aria-labelledby="label-stars">
+                                    <?php for ($s = 1; $s <= 5; $s++) : ?>
+                                    <button type="button" class="star-btn" data-star-value="<?= $s ?>" aria-label="Noter <?= $s ?> sur 5">★</button>
                                     <?php endfor; ?>
-                                </select>
+                                </div>
+                                <p class="field-error" id="err-rating" hidden>Veuillez choisir une note.</p>
                             </div>
                             <div class="groupe-champ">
-                                <label for="avis-desc">Commentaire (optionnel)</label>
-                                <textarea id="avis-desc" name="description" rows="4" maxlength="8000" placeholder="Partagez votre expérience…"></textarea>
+                                <label for="avis-title">Titre (optionnel)</label>
+                                <input type="text" id="avis-title" name="title" maxlength="200" placeholder="Ex. : Très belle visite">
+                            </div>
+                            <div class="groupe-champ">
+                                <label for="avis-comment">Commentaire *</label>
+                                <textarea id="avis-comment" name="comment" rows="4" maxlength="8000" required placeholder="Décrivez votre expérience…"></textarea>
+                                <p class="field-error" id="err-comment" hidden>Le commentaire ne peut pas être vide.</p>
                             </div>
                             <div class="groupe-champ form-avis-vis">
                                 <input type="checkbox" id="avis-prive" name="visibility" value="prive">
@@ -167,12 +175,16 @@ require __DIR__ . '/../app/Views/partials/head.php';
                         ?>
                     <li class="carte-avis-lieu">
                         <div class="carte-avis-lieu-ent">
-                            <strong class="note-badge"><?= (int) $a['note'] ?>/5</strong>
+                            <span class="stars-wrap"><?= starsRatingHtml((int) $a['note']) ?></span>
+                            <span class="note-badge"><?= (int) $a['note'] ?>/5</span>
                             <span class="avis-auteur"><?= e($auteur) ?></span>
                             <?php if ($dt) : ?>
                                 <time class="avis-date" datetime="<?= e($dt->format('c')) ?>"><?= e($dt->format('d/m/Y à H:i')) ?></time>
                             <?php endif; ?>
                         </div>
+                        <?php if (!empty($a['titre'])) : ?>
+                            <p class="avis-titre-lieu"><?= e((string) $a['titre']) ?></p>
+                        <?php endif; ?>
                         <?php if (!empty($a['description'])) : ?>
                             <p class="avis-texte">« <?= nl2br(e((string) $a['description'])) ?> »</p>
                         <?php endif; ?>

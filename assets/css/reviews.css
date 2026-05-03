@@ -1,4 +1,4 @@
-/* Page liste globale des avis (pages/avis.php) */
+/* Pages avis (reviews, country) + filtres / pagination / étoiles */
 
 .conteneur-avis-liste {
   padding-top: 1.25rem;
@@ -64,3 +64,183 @@
 @media (max-width: 32rem) {
   .titre-page-avis { font-size: 1.25rem; }
 }
+
+.stars-readonly {
+  letter-spacing: 0.05em;
+  color: #c9a227;
+  font-size: 1rem;
+}
+
+.stars-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.form-filtres-avis {
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--couleur-bloc, #fffdf8);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+}
+
+.filtres-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1rem;
+}
+
+.filtres-row label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.filtres-row select {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  min-width: 8rem;
+}
+
+.btn-filtre-avis {
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  background: var(--couleur-primaire);
+  color: #fff;
+  border: 1px solid var(--couleur-primaire-fonce);
+  border-radius: var(--rayon);
+  cursor: pointer;
+}
+
+.lien-reset-filtres {
+  font-size: 0.9rem;
+  align-self: center;
+}
+
+.avis-titre-liste {
+  margin: 0.35rem 0 0.15rem;
+  font-weight: 600;
+  font-size: 1.02rem;
+}
+
+.pagination-avis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--couleur-bordure);
+}
+
+.page-nav {
+  font-weight: 600;
+  color: var(--couleur-lien);
+}
+
+.page-nav--disabled {
+  color: #999;
+  font-weight: 400;
+  pointer-events: none;
+}
+
+.page-info {
+  font-size: 0.95rem;
+  color: #444;
+}
+
+/* Fiche pays (country.php) */
+.conteneur-pays {
+  padding: 1.25rem 1.25rem 2.5rem;
+  max-width: var(--max-largeur);
+  margin: 0 auto;
+}
+
+.titre-page-pays {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.6rem;
+}
+
+.intro-pays {
+  margin: 0 0 1.25rem;
+  color: var(--couleur-texte-alt);
+}
+
+.titre-rubrique-pays {
+  font-size: 1.15rem;
+  margin: 1.25rem 0 0.75rem;
+  border-bottom: 1px solid var(--couleur-bordure);
+  padding-bottom: 0.35rem;
+}
+
+.grille-lieux-pays {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+}
+
+.carte-lieu-pays {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--couleur-bloc);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  transition: box-shadow 0.15s ease;
+}
+
+.carte-lieu-pays:hover {
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.carte-lieu-pays-illu {
+  min-height: 7rem;
+  background: linear-gradient(145deg, var(--couleur-primaire), #1a6d75);
+}
+
+.carte-lieu-pays-illu.has-img {
+  min-height: 0;
+  line-height: 0;
+}
+
+.carte-lieu-pays-illu img {
+  width: 100%;
+  height: auto;
+  max-height: 11rem;
+  object-fit: cover;
+  display: block;
+}
+
+.carte-lieu-pays-corps {
+  padding: 0.75rem 0.9rem 1rem;
+}
+
+.carte-lieu-pays-corps h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.carte-lieu-pays-ville {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  color: #555;
+}
+
+.carte-lieu-pays-note {
+  margin: 0;
+  font-size: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.note-chiffre { font-weight: 600; }
+.nb-avis { color: #666; font-size: 0.85rem; }
+.sans-note { color: #777; font-size: 0.9rem; }

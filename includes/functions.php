@@ -52,6 +52,19 @@ function displayErrors(): string
     return $html;
 }
 
+/**
+ * Affichage lecture seule des étoiles 1–5 (Unicode).
+ */
+function starsRatingHtml(int $note): string
+{
+    $note = max(1, min(5, $note));
+    $html = '<span class="stars-readonly" role="img" aria-label="' . e((string) $note) . ' sur 5">';
+    for ($i = 1; $i <= 5; $i++) {
+        $html .= $i <= $note ? '★' : '☆';
+    }
+    return $html . '</span>';
+}
+
 function displaySuccess(): string
 {
     if (!isset($_SESSION['success']) || (string) $_SESSION['success'] === '') {
@@ -60,6 +73,14 @@ function displaySuccess(): string
     $html = '<div class="success">' . htmlspecialchars((string) $_SESSION['success']) . '</div>';
     unset($_SESSION['success']);
     return $html;
+}
+
+/** Query string pour la pagination de la page reviews (filtres + page). */
+function reviews_pagination_query(array $filtres, int $page): string
+{
+    $q = $filtres;
+    $q['page'] = max(1, $page);
+    return http_build_query($q);
 }
 
 /** Préfixe relatif web vers la racine du site (ressources communes) */

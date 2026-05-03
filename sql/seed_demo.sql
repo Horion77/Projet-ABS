@@ -24,12 +24,12 @@ INSERT INTO utilisateur (nom, prenom, email, password_hash, id_role) VALUES
 SET @u = LAST_INSERT_ID();
 
 -- Avis publics sur des lieux (alimente vue_classement_lieux et l’accueil)
-INSERT INTO avis (note, description, visibility, id_utilisateur, id_lieu) VALUES
-(5, 'Super accueil et trés beaux parcours.', 'public', @u, @lieu1);
+INSERT INTO avis (note, titre, description, visibility, id_utilisateur, id_lieu) VALUES
+(5, 'Super moment', 'Super accueil et trés beaux parcours.', 'public', @u, @lieu1);
 SET @avis1 = LAST_INSERT_ID();
 
-INSERT INTO avis (note, description, visibility, id_utilisateur, id_lieu) VALUES
-(4, 'Agréable pour une fin de matinée.', 'public', @u, @lieu2);
+INSERT INTO avis (note, titre, description, visibility, id_utilisateur, id_lieu) VALUES
+(4, NULL, 'Agréable pour une fin de matinée.', 'public', @u, @lieu2);
 
 INSERT INTO photo_avis (url, ordre, id_avis) VALUES
 ('https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=400&q=80', 0, @avis1);

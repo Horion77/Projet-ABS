@@ -149,6 +149,7 @@ CREATE INDEX idx_lieu_coords     ON lieu (latitude, longitude);
 CREATE TABLE avis (
   id_avis         INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   note            TINYINT         NOT NULL,
+  titre           VARCHAR(200)    DEFAULT NULL,
   description     TEXT            DEFAULT NULL,
   visibility      ENUM('public','prive') NOT NULL DEFAULT 'public',
   created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,

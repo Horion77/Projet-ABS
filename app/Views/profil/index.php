@@ -49,6 +49,9 @@ $mesAvis = $mesAvis ?? [];
                     }
                     ?>
                         </span>
+                        <?php if (!empty($a['titre'])) : ?>
+                            <p class="comm-avis comm-avis-titre"><strong><?= e((string) $a['titre']) ?></strong></p>
+                        <?php endif; ?>
                         <?php if (!empty($a['description'])) : ?>
                             <p class="comm-avis"><?= e($a['description']) ?></p>
                         <?php endif; ?>

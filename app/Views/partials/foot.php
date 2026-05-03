@@ -17,5 +17,8 @@
         });
     })();
     </script>
+    <?php if (isset($prefixRacine) && is_string($prefixRacine)) : ?>
+    <script src="<?= e($prefixRacine) ?>assets/js/validation.js" defer></script>
+    <?php endif; ?>
 </body>
 </html>

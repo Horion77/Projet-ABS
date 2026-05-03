@@ -2,4 +2,4 @@
 declare(strict_types=1);
 require __DIR__ . '/../app/bootstrap.php';
 
-redirect('reviews.php');
+(new \App\Controllers\ReviewsController())->index();

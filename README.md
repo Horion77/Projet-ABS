@@ -62,12 +62,15 @@ Projet-ABS/
 │   ├── map.php                # Page carte interactive
 │   ├── place.php              # Détail d'un lieu + avis
 │   ├── pays.php            # Page pays + liste de lieux
-│   ├── avis.php            # Tous les avis (paginés)
+│   ├── reviews.php         # Tous les avis (paginés + filtres)
+│   ├── avis.php            # Redirige vers reviews.php
+│   ├── country.php         # Fiche pays + lieux du pays
 │   └── profil.php            # Profil utilisateur
 ├── actions/
 │   ├── login_action.php       # Traitement formulaire connexion
 │   ├── inscription_action.php    # Traitement formulaire inscription
-│   ├── avis_action.php      # Traitement formulaire avis
+│   ├── review_action.php    # Traitement formulaire avis (plan Sara)
+│   ├── avis_action.php      # Alias → même traitement que review_action
 │   └── logout.php             # Déconnexion
 ├── assets/
 │   ├── css/
@@ -189,6 +192,8 @@ CREATE TABLE avis (
    - Sans `mapbox.php` ni variable d’environnement, le site utilise un jeton de secours intégré au code (pratique pour une démo locale uniquement).
 
    Bases déjà créées avant l’ajout de la colonne `lieu.image_url` : exécuter une fois [`sql/migration_add_image_url_lieu.sql`](sql/migration_add_image_url_lieu.sql).
+
+   Bases créées avant l’ajout du **titre** sur les avis : exécuter [`sql/migration_add_titre_avis.sql`](sql/migration_add_titre_avis.sql).
 
 6. **Lancer le site**
 
