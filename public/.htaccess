@@ -4,11 +4,14 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    RewriteBase /Projet-ABS/public/
+
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    RewriteRule ^ index.php [QSA,L]
+    # On capture tout ce qui suit "public/" et on l'envoie dans une variable "url"
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
 </IfModule>
 
 <IfModule mod_headers.c>
