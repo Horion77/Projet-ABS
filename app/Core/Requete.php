@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Core;
@@ -16,16 +17,10 @@ class Requete
     /** Chemin seul (sans ?query), normalisé : toujours commence par /, sans slash final sauf /. */
     public function chemin(): string
     {
-        $uri    = (string) ($_SERVER['REQUEST_URI'] ?? '/');
-        $chemin = parse_url($uri, PHP_URL_PATH);
-        if (!is_string($chemin) || $chemin === '') {
-            return '/';
-        }
-        $chemin = '/' . ltrim($chemin, '/');
-        if ($chemin !== '/' && str_ends_with($chemin, '/')) {
-            $chemin = rtrim($chemin, '/');
-        }
-        return $chemin;
+        $url = $_GET['url'] ?? '/';
+        // Normalise : ajoute le slash de début, retire celui de fin
+        $chemin = '/' . trim($url, '/');
+        return $chemin === '' ? '/' : $chemin;
     }
 
     public function estPost(): bool

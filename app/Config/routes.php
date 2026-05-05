@@ -18,7 +18,12 @@ use App\Controllers\ProfilController;
  */
 
 return [
-    ['GET',  '/',             [AccueilController::class,     'index']],
+    //['GET',  '/',             [AccueilController::class,     'index']],
+    // ❌ Actuellement (chemin absolu complet, jamais matché par le routeur)
+    //['GET', '/Projet-ABS/public/', [AccueilController::class, 'index']],
+
+    // ✅ Ce que ça devrait être (chemin relatif après public/)
+    ['GET', '/', [AccueilController::class, 'index']],
 
     ['GET',  '/connexion',    [ConnexionController::class,   'afficher']],
     ['POST', '/connexion',    [ConnexionController::class,   'traiterConnexion']],
