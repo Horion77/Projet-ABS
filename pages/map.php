@@ -35,6 +35,9 @@ $countries = $stmtCountries->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
 
+    <!-- Police Inter (moderne, lisible) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Styles carte -->
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/map.css">
@@ -65,16 +68,31 @@ $countries = $stmtCountries->fetchAll(PDO::FETCH_ASSOC);
 
             <!-- Switcher de styles -->
             <div id="style-switcher">
-                <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11" title="Sombre">🌑</button>
-                <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12" title="Satellite">🛰️</button>
-                <button class="style-btn" data-style="mapbox://styles/mapbox/outdoors-v12" title="Terrain">🏔️</button>
-                <button class="style-btn" data-style="mapbox://styles/mapbox/streets-v12" title="Rues">🗺️</button>
+                <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11">Sombre</button>
+                <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12">Satellite</button>
+                <button class="style-btn" data-style="mapbox://styles/mapbox/outdoors-v12">Terrain</button>
+                <button class="style-btn" data-style="mapbox://styles/mapbox/streets-v12">Rues</button>
             </div>
 
             <!-- Compteur de lieux affichés -->
             <div id="places-count">
                 <span id="count-number"><?= count($places) ?></span> lieu<?= count($places) > 1 ? 'x' : '' ?>
             </div>
+        </div>
+    </div>
+
+    <!-- Panneau navigation gauche -->
+    <div id="nav-panel">
+        <button id="nav-world" class="nav-btn nav-world-btn">Monde entier</button>
+
+        <div class="nav-section">
+            <span class="nav-label">Continents</span>
+            <div id="nav-continents"></div>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-label">Pays</span>
+            <div id="nav-countries"></div>
         </div>
     </div>
 

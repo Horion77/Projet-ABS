@@ -4,38 +4,47 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaG9yaW9uNzciLCJhIjoiY21sN3RucGZrMDBldjNoczh0e
 
 // ─── Styles disponibles ────────────────────────────────────────────────────
 const STYLES = {
-    'mapbox://styles/mapbox/dark-v11':             { fog: true,  buildings: false },
-    'mapbox://styles/mapbox/satellite-streets-v12':{ fog: true,  buildings: true  },
-    'mapbox://styles/mapbox/outdoors-v12':         { fog: false, buildings: false },
-    'mapbox://styles/mapbox/streets-v12':          { fog: false, buildings: false },
+    'mapbox://styles/mapbox/dark-v11':             { fog: true,  buildings: true,  terrain: true  },
+    'mapbox://styles/mapbox/satellite-streets-v12':{ fog: true,  buildings: true,  terrain: true  },
+    'mapbox://styles/mapbox/outdoors-v12':         { fog: false, buildings: false, terrain: true  },
+    'mapbox://styles/mapbox/streets-v12':          { fog: false, buildings: false, terrain: false },
 };
+
+// ─── Continents pour le panneau de navigation ──────────────────────────────
+const CONTINENTS = [
+    { name: 'Europe',    lat: 54,   lng: 15,   zoom: 3.2 },
+    { name: 'Asie',      lat: 34,   lng: 100,  zoom: 2.8 },
+    { name: 'Amériques', lat: 10,   lng: -80,  zoom: 2.3 },
+    { name: 'Afrique',   lat: 0,    lng: 20,   zoom: 3.0 },
+    { name: 'Océanie',   lat: -25,  lng: 135,  zoom: 3.2 },
+];
 
 let currentStyle = 'mapbox://styles/mapbox/dark-v11';
 
-// ─── Initialisation de la carte ────────────────────────────────────────────
+// ─── Init carte ─────────────────────────────────────────────────────────────
 const map = new mapboxgl.Map({
     container: 'map',
     style: currentStyle,
     center: [20, 20],
     zoom: 1.8,
+    pitch: 45,        // inclinaison pour voir la 3D
+    bearing: -10,
     projection: 'globe',
     antialias: true,
-    // Désactive la rotation du label pour stabiliser les marqueurs DOM
     renderWorldCopies: false,
 });
 
-// ─── Contrôles de navigation ───────────────────────────────────────────────
 map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
 map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
 
-// ─── Layers atmosphériques + marqueurs au chargement du style ──────────────
+// ─── Au chargement / rechargement du style ─────────────────────────────────
 map.on('style.load', () => {
     applyAtmosphere();
+    applyTerrain();
     renderMarkers();
 });
 
-// Cache les marqueurs pendant le mouvement pour éviter le décalage visuel
-// (la projection globe recalcule les positions en live, c'est moche)
+// Cache les marqueurs pendant le mouvement (évite le décalage dû à la projection globe)
 map.on('movestart', () => {
     document.getElementById('map').classList.add('map-moving');
 });
@@ -71,6 +80,7 @@ function applyAtmosphere() {
         map.setFog(null);
     }
 
+    // Bâtiments 3D (visible à partir de zoom ~14, seulement sur satellite)
     if (cfg.buildings && map.getSource('composite')) {
         if (!map.getLayer('3d-buildings')) {
             map.addLayer({
@@ -89,6 +99,24 @@ function applyAtmosphere() {
             });
         }
     }
+}
+
+// ─── Terrain 3D (relief des montagnes etc.) ────────────────────────────────
+function applyTerrain() {
+    const cfg = STYLES[currentStyle] || {};
+    if (!cfg.terrain) return;
+
+    // Source DEM (Digital Elevation Model) de Mapbox
+    if (!map.getSource('mapbox-dem')) {
+        map.addSource('mapbox-dem', {
+            type: 'raster-dem',
+            url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+            tileSize: 512,
+            maxzoom: 14,
+        });
+    }
+
+    map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
 }
 
 // ─── Marqueurs et popups ───────────────────────────────────────────────────
@@ -158,21 +186,79 @@ document.querySelectorAll('.style-btn').forEach(btn => {
 
         currentStyle = newStyle;
 
-        // Mise à jour UI
         document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
 
-        // Les marqueurs sont supprimés avant le changement de style
-        // car le canvas Mapbox est réinitialisé
+        // On supprime les marqueurs avant car le canvas est réinitialisé
         markers.forEach(m => m.remove());
         markers = [];
 
         map.setStyle(newStyle);
-        // style.load se déclenchera → applyAtmosphere() + renderMarkers()
+        // style.load se déclenchera → applyAtmosphere() + applyTerrain() + renderMarkers()
     });
 });
 
-// ─── Filtre par pays ───────────────────────────────────────────────────────
+// ─── Panneau navigation gauche : continents + pays ─────────────────────────
+(function buildNavPanel() {
+    const contList = document.getElementById('nav-continents');
+    const countryList = document.getElementById('nav-countries');
+
+    if (!contList || !countryList) return;
+
+    // Bouton "monde entier"
+    document.getElementById('nav-world')?.addEventListener('click', () => {
+        setActiveNav(null);
+        map.flyTo({ center: [20, 20], zoom: 1.8, pitch: 45, bearing: -10, duration: 1800, essential: true });
+    });
+
+    // Boutons continents
+    CONTINENTS.forEach(cont => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-btn nav-continent-btn';
+        btn.textContent = cont.name;
+        btn.addEventListener('click', () => {
+            setActiveNav(btn);
+            activeCountryId = null;
+            syncCountryFilter(null);
+            renderMarkers();
+            map.flyTo({ center: [cont.lng, cont.lat], zoom: cont.zoom, pitch: 45, duration: 1800, essential: true });
+        });
+        contList.appendChild(btn);
+    });
+
+    // Boutons pays (depuis la BDD, passés via PHP)
+    countries.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-btn nav-country-btn';
+        btn.dataset.id = c.id;
+        btn.dataset.lat = c.lat;
+        btn.dataset.lng = c.lng;
+        btn.textContent = c.name;
+        btn.addEventListener('click', () => {
+            setActiveNav(btn);
+            activeCountryId = String(c.id);
+            syncCountryFilter(c.id);
+            renderMarkers();
+            map.flyTo({ center: [parseFloat(c.lng), parseFloat(c.lat)], zoom: 5, pitch: 50, duration: 1800, essential: true });
+        });
+        countryList.appendChild(btn);
+    });
+})();
+
+// Met en surbrillance le bouton actif dans le panneau
+function setActiveNav(activeBtn) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if (activeBtn) activeBtn.classList.add('active');
+}
+
+// Synchronise le <select> pays du header avec la nav gauche
+function syncCountryFilter(countryId) {
+    const sel = document.getElementById('country-filter');
+    if (!sel) return;
+    sel.value = countryId ? String(countryId) : '';
+}
+
+// ─── Filtre pays (select header) ──────────────────────────────────────────
 const countryFilter = document.getElementById('country-filter');
 
 if (countryFilter) {
@@ -180,6 +266,11 @@ if (countryFilter) {
         const opt = this.options[this.selectedIndex];
         activeCountryId = this.value || null;
         renderMarkers();
+
+        // Sync panneau gauche
+        document.querySelectorAll('.nav-country-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.id === this.value);
+        });
 
         if (activeCountryId && opt.dataset.lat && opt.dataset.lng) {
             map.flyTo({
