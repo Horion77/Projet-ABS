@@ -21,3 +21,6 @@ Desktop.ini
 # Fichiers uploadés par les utilisateurs (si applicable)
 assets/uploads/*
 !assets/uploads/.gitkeep
+
+# Claude Code (local only — ne pas pousser)
+.claude/
