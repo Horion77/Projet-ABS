@@ -1,6 +1,6 @@
 <?php
 /**
- * Carte interactive Mapbox 3D — variables : $places, $countries, $mapboxToken
+ * Carte 3D Mapbox — variables : $places, $countries, $mapboxToken
  */
 $places      = $places      ?? [];
 $countries   = $countries   ?? [];
@@ -17,34 +17,74 @@ $mapData = [
     'countries' => $countries,
     'placePath' => url('lieu'),
 ];
+$nbLieux = count($places);
 ?>
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css">
+<!-- Font Inter + Mapbox -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
 
-<div class="conteneur conteneur-map">
-    <h1 class="titre-carte">Explorez les lieux sur la carte</h1>
+<!-- Ajoute la classe map-page au body pour les overrides CSS -->
+<script>document.body.classList.add('map-page');</script>
 
-    <div class="map-style-switcher" role="group" aria-label="Choisir le style de la carte">
-        <button class="map-style-btn active" data-style="streets">Carte</button>
-        <button class="map-style-btn" data-style="outdoors">Relief</button>
-        <button class="map-style-btn" data-style="satellite">Satellite</button>
-        <button class="map-style-btn" data-style="dark">Nuit</button>
+<div id="map-wrapper">
+
+    <!-- Barre de contrôles (haut) -->
+    <div id="map-controls">
+        <div id="map-controls-inner">
+            <h1 id="map-title">Explorer le monde</h1>
+
+            <!-- Filtre par pays -->
+            <div id="country-filter-wrap">
+                <label for="country-filter">Filtrer par pays</label>
+                <select id="country-filter">
+                    <option value="">Tous les pays</option>
+                    <?php foreach ($countries as $c) : ?>
+                    <option value="<?= (int) $c['id_pays'] ?>"
+                            data-lat="<?= e((string) ($c['lat'] ?? '0')) ?>"
+                            data-lng="<?= e((string) ($c['lng'] ?? '0')) ?>">
+                        <?= e((string) $c['nom']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Switcher de styles -->
+            <div id="style-switcher">
+                <button class="style-btn active" data-style="dark">Sombre</button>
+                <button class="style-btn" data-style="satellite">Satellite</button>
+                <button class="style-btn" data-style="outdoors">Terrain</button>
+                <button class="style-btn" data-style="streets">Rues</button>
+            </div>
+
+            <!-- Compteur -->
+            <div id="places-count">
+                <span id="count-number"><?= $nbLieux ?></span> lieu<?= $nbLieux > 1 ? 'x' : '' ?>
+            </div>
+        </div>
     </div>
 
-    <div class="map-toolbar" role="region" aria-label="Filtrer la carte par pays">
-        <label for="map-country-filter" class="map-filter-label">Pays</label>
-        <select id="map-country-filter" class="map-country-select">
-            <option value="">Tous les pays</option>
-            <?php foreach ($countries as $c) : ?>
-            <option value="<?= (int) $c['id_pays'] ?>"><?= e((string) $c['nom']) ?></option>
-            <?php endforeach; ?>
-        </select>
+    <!-- Panneau navigation gauche -->
+    <div id="nav-panel">
+        <button id="nav-world" class="nav-btn nav-world-btn">Monde entier</button>
+
+        <div class="nav-section">
+            <span class="nav-label">Continents</span>
+            <div id="nav-continents"></div>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-label">Pays</span>
+            <div id="nav-countries"></div>
+        </div>
     </div>
 
-    <div id="map" class="map-canvas" aria-label="Carte des lieux"></div>
+    <!-- Carte Mapbox -->
+    <div id="map"></div>
+
 </div>
 
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js" defer></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
 <script>
 window.MAP_DATA = <?= json_encode($mapData, $jsonFlags) ?>;
 </script>
-<script src="<?= e(asset('js/map.js')) ?>" defer></script>
+<script src="<?= e(asset('js/map.js')) ?>"></script>
