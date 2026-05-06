@@ -45,6 +45,7 @@ class LieuModel extends Modele
                 l.latitude AS lat,
                 l.longitude AS lng,
                 l.image_url,
+                cl.libelle AS categorie,
                 p.nom AS country_name,
                 p.id_pays,
                 COALESCE(ROUND(AVG(a.note), 2), NULL) AS avg_rating

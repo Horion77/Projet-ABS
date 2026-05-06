@@ -108,6 +108,76 @@ a.map-popup-cta:focus-visible {
   color: #fff;
 }
 
+/* ── Switcher de style ── */
+.map-style-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+.map-style-btn {
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--couleur-bordure, #ccc);
+  border-radius: var(--rayon, 6px);
+  background: #fff;
+  color: var(--couleur-texte, #222);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.map-style-btn:hover,
+.map-style-btn.active {
+  background: var(--couleur-primaire, #0d5c63);
+  color: #fff;
+  border-color: var(--couleur-primaire, #0d5c63);
+}
+
+/* ── Marqueurs typés ── */
+.abs-marker {
+  cursor: pointer;
+  transition: opacity 0.25s ease, transform 0.15s ease;
+}
+.abs-marker:hover { transform: scale(1.08); }
+
+.pin-inner {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.25);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  line-height: 1.2;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.pin-monument .pin-inner {
+  background: rgba(10, 60, 100, 0.92);
+  padding: 5px 11px 5px 9px;
+  font-size: 0.8rem;
+  border-color: rgba(80, 180, 220, 0.4);
+}
+
+.pin-ville .pin-inner {
+  background: rgba(60, 20, 100, 0.92);
+  padding: 4px 10px 4px 8px;
+  font-size: 0.76rem;
+  border-color: rgba(180, 100, 255, 0.4);
+}
+
+.pin-icon { font-size: 1rem; line-height: 1; }
+
+.pin-note {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffd966;
+  margin-left: 2px;
+}
+
 /* Mobile */
 @media (max-width: 32rem) {
   .titre-carte { font-size: 1.2rem; }
