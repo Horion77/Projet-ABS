@@ -6,6 +6,15 @@ Change log du projet A.B.S.
 
 # Versions
 
+## [0.1.2] - 2026-05-06 - Branche d’intégration équipe (MVC unique)
+### Intégration
+* Branche de travail : `integrate/all-team-mvc` (clone d’intégration sous `Projet-ensemble/Projet-ABS-integration`).
+* Documentation : `docs/INTEGRATION_MATRIX.md` (cartographie ancien code → MVC), `docs/TEAM_CONTRIBUTIONS.md` (qui a livré quoi).
+* Normalisation Git : `.gitattributes` (EOL LF) ; `core.filemode=false` recommandé sur le clone pour éviter les diffs de permissions.
+
+### Nettoyage
+* Suppression des reliquats legacy `actions/avis_action.php`, `pages/avis.php`, `pages/pays.php` et du doublon `assets/js/validation.js` (chemins et schéma SQL non alignés avec le MVC actuel ; la logique équivalente est dans `AvisController`, `AvisListeController`, `PaysController` et `public/assets/js/validation.js`).
+
 ## [0.1.1] - 2026-05-06 - Corrections MAMP + compatibilité BDD
 ### Corrections
 * Correction du chargement des assets/CSS en local MAMP avec sous-dossier (`/Projet-ABS/public`) via `base_url`.

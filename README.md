@@ -44,6 +44,8 @@ Navigateur → public/index.php → Routeur → Controller → Model(s) → BDD
 Convention de nommage : dossiers structurels en anglais, fichiers PHP et URLs publiques en français.
 Voir [docs/architecture.md](docs/architecture.md) pour le détail.
 
+Fusion de plusieurs branches / contextes équipe : voir [docs/INTEGRATION_MATRIX.md](docs/INTEGRATION_MATRIX.md), [docs/TEAM_CONTRIBUTIONS.md](docs/TEAM_CONTRIBUTIONS.md) et [docs/MANUAL_CHECKLIST.md](docs/MANUAL_CHECKLIST.md).
+
 ---
 
 ## Fonctionnalités
