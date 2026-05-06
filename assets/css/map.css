@@ -1,373 +1,203 @@
 /* map.css — Styles carte 3D ABS */
 
-/* ── Font ─────────────────────────────────────────────────────────────────── */
-body.map-page,
-body.map-page * {
+/* ── Font ────────────────────────────────────────────────────────────────── */
+body.map-page, body.map-page * {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Layout principal ─────────────────────────────────────────────────────── */
-body.map-page {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: #050514;
-}
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+body.map-page { margin: 0; padding: 0; overflow: hidden; background: #050514; }
 
 #map-wrapper {
     position: relative;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
 }
 
-#map {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-}
+#map { flex: 1; width: 100%; height: 100%; }
 
-/* ── Barre de contrôles ───────────────────────────────────────────────────── */
+/* ── Barre de contrôles ──────────────────────────────────────────────────── */
 #map-controls {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
+    position: absolute; top: 0; left: 0; right: 0; z-index: 10;
     padding: 12px 20px;
-    background: linear-gradient(to bottom, rgba(5, 5, 20, 0.85) 60%, transparent);
-    pointer-events: none; /* laisse passer les clics sur la carte sauf sur les enfants */
+    background: linear-gradient(to bottom, rgba(5,5,20,0.85) 60%, transparent);
+    pointer-events: none;
 }
-
 #map-controls-inner {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    pointer-events: auto;
+    display: flex; align-items: center; gap: 20px; pointer-events: auto;
 }
-
 #map-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-    white-space: nowrap;
-    letter-spacing: 0.01em;
+    font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.9);
+    margin: 0; white-space: nowrap; letter-spacing: 0.01em;
 }
 
-/* ── Filtre pays ──────────────────────────────────────────────────────────── */
-#country-filter-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-#country-filter-wrap label {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
-
+/* ── Filtre pays ─────────────────────────────────────────────────────────── */
+#country-filter-wrap { display: flex; align-items: center; gap: 8px; }
+#country-filter-wrap label { color: rgba(255,255,255,0.7); font-size: 0.85rem; white-space: nowrap; }
 #country-filter {
-    background: rgba(10, 15, 40, 0.85);
-    color: #e0e8ff;
-    border: 1px solid rgba(100, 140, 255, 0.35);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    outline: none;
+    background: rgba(10,15,40,0.85); color: #e0e8ff;
+    border: 1px solid rgba(100,140,255,0.35); border-radius: 8px;
+    padding: 6px 12px; font-size: 0.9rem; cursor: pointer; outline: none;
     transition: border-color 0.2s;
 }
+#country-filter:hover, #country-filter:focus { border-color: rgba(100,160,255,0.7); }
 
-#country-filter:hover,
-#country-filter:focus {
-    border-color: rgba(100, 160, 255, 0.7);
-}
-
-/* ── Switcher de styles ───────────────────────────────────────────────────── */
+/* ── Style switcher ──────────────────────────────────────────────────────── */
 #style-switcher {
-    display: flex;
-    gap: 3px;
-    background: rgba(8, 12, 35, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    padding: 3px;
+    display: flex; gap: 3px;
+    background: rgba(8,12,35,0.8); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 3px;
 }
-
 .style-btn {
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: rgba(255, 255, 255, 0.45);
-    cursor: pointer;
-    transition: color 0.15s, background 0.15s;
-    white-space: nowrap;
+    background: transparent; border: none; border-radius: 6px;
+    padding: 4px 10px; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.45); cursor: pointer;
+    transition: color 0.15s, background 0.15s; white-space: nowrap;
 }
+.style-btn:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.07); }
+.style-btn.active { color: #fff; background: rgba(100,140,255,0.3); }
 
-.style-btn:hover {
-    color: rgba(255, 255, 255, 0.85);
-    background: rgba(255, 255, 255, 0.07);
-}
+/* ── Compteur ────────────────────────────────────────────────────────────── */
+#places-count { margin-left: auto; color: rgba(255,255,255,0.55); font-size: 0.82rem; white-space: nowrap; }
+#places-count #count-number { color: #7eb3ff; font-weight: 600; }
 
-.style-btn.active {
-    color: #fff;
-    background: rgba(100, 140, 255, 0.3);
-}
-
-/* ── Compteur de lieux ────────────────────────────────────────────────────── */
-#places-count {
-    margin-left: auto;
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 0.82rem;
-    white-space: nowrap;
-}
-
-#places-count #count-number {
-    color: #7eb3ff;
-    font-weight: 600;
-}
-
-/* ── Panneau navigation gauche ────────────────────────────────────────────── */
+/* ── Nav panel gauche ────────────────────────────────────────────────────── */
 #nav-panel {
-    position: absolute;
-    top: 56px;
-    left: 0;
-    z-index: 10;
-    width: 148px;
-    max-height: calc(100vh - 70px);
-    overflow-y: auto;
+    position: absolute; top: 56px; left: 0; z-index: 10;
+    width: 148px; max-height: calc(100vh - 70px); overflow-y: auto;
     padding: 12px 6px 16px;
-    background: linear-gradient(to right, rgba(4, 5, 18, 0.92) 75%, transparent);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(100, 140, 255, 0.2) transparent;
+    background: linear-gradient(to right, rgba(4,5,18,0.92) 75%, transparent);
+    display: flex; flex-direction: column; gap: 2px;
+    scrollbar-width: thin; scrollbar-color: rgba(100,140,255,0.2) transparent;
 }
-
-.nav-section {
-    margin-top: 14px;
-}
-
+.nav-section { margin-top: 14px; }
 .nav-label {
-    display: block;
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.2);
-    padding: 0 8px;
-    margin-bottom: 5px;
+    display: block; font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.2); padding: 0 8px; margin-bottom: 5px;
 }
-
 .nav-btn {
-    display: block;
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: none;
-    color: rgba(200, 215, 255, 0.6);
-    font-size: 0.82rem;
-    font-weight: 400;
-    padding: 5px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.12s, color 0.12s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: block; width: 100%; text-align: left;
+    background: transparent; border: none; color: rgba(200,215,255,0.6);
+    font-size: 0.82rem; padding: 5px 8px; border-radius: 6px;
+    cursor: pointer; transition: background 0.12s, color 0.12s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.nav-btn.active { background: rgba(100,140,255,0.2); color: #fff; font-weight: 500; }
+.nav-world-btn { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.75); }
+
+/* ── Masque markers pendant le mouvement ─────────────────────────────────── */
+#map.map-moving .abs-marker { opacity: 0 !important; pointer-events: none !important; }
+
+/* ── Transition de visibilité par zoom ───────────────────────────────────── */
+.abs-marker { transition: opacity 0.25s ease, transform 0.15s ease; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PINS — 3 types
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.abs-marker { cursor: pointer; }
+
+.pin-inner {
+    display: flex; align-items: center; gap: 5px;
+    border-radius: 20px; white-space: nowrap;
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    line-height: 1; user-select: none;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+    border: 1.5px solid rgba(255,255,255,0.15);
 }
 
-.nav-btn:hover {
-    background: rgba(255, 255, 255, 0.07);
-    color: #fff;
-}
+.pin-icon  { font-size: 1em; line-height: 1; flex-shrink: 0; }
+.pin-label { font-size: inherit; color: #fff; }
+.pin-note  { color: #ffd166; font-size: 0.85em; }
 
-.nav-btn.active {
-    background: rgba(100, 140, 255, 0.2);
-    color: #fff;
-    font-weight: 500;
-}
-
-.nav-world-btn {
+/* ── Pays (zoom 0-5.5) ───────────────────────────────────────────────────
+   Grand badge pill : fond bleu indigo, padding généreux */
+.pin-pays .pin-inner {
+    background: rgba(40, 60, 160, 0.92);
+    padding: 7px 13px 7px 10px;
     font-size: 0.85rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.75);
-    letter-spacing: 0.01em;
+    border-color: rgba(120, 160, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(30, 60, 200, 0.45);
+}
+.pin-pays:hover .pin-inner {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(60, 100, 255, 0.6);
 }
 
-@media (max-width: 600px) {
-    #nav-panel { display: none; }
+/* ── Ville (zoom 4-9) ────────────────────────────────────────────────────
+   Badge moyen : fond sombre bleu-vert */
+.pin-ville .pin-inner {
+    background: rgba(10, 35, 70, 0.93);
+    padding: 5px 10px 5px 8px;
+    font-size: 0.78rem;
+    border-color: rgba(80, 180, 220, 0.45);
+    box-shadow: 0 3px 10px rgba(10, 80, 160, 0.5);
+}
+.pin-ville:hover .pin-inner {
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 5px 14px rgba(20, 120, 220, 0.6);
 }
 
-/* ── Cache les marqueurs pendant le mouvement de la carte ────────────────── */
-#map.map-moving .abs-marker {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0s; /* pas de fade-in/out pendant le move */
-}
-
-/* ── Marqueurs personnalisés ──────────────────────────────────────────────── */
-.abs-marker {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(20, 40, 120, 0.9);
-    border: 2px solid rgba(100, 160, 255, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    box-shadow: 0 0 10px rgba(80, 140, 255, 0.4);
-}
-
-.abs-marker:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 18px rgba(100, 170, 255, 0.7);
-}
-
-.marker-rating {
+/* ── Monument (zoom 7.5+) ────────────────────────────────────────────────
+   Badge compact : fond doré foncé */
+.pin-monument .pin-inner {
+    background: rgba(60, 40, 10, 0.93);
+    padding: 4px 9px;
     font-size: 0.75rem;
-    font-weight: 700;
-    color: #ffd166;
-    line-height: 1;
+    border-color: rgba(255, 200, 80, 0.45);
+    box-shadow: 0 3px 10px rgba(180, 120, 0, 0.4);
+}
+.pin-monument:hover .pin-inner {
+    transform: scale(1.12) translateY(-2px);
+    box-shadow: 0 5px 14px rgba(255, 180, 0, 0.5);
 }
 
-.marker-pin {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(160, 200, 255, 0.9);
-}
-
-.abs-marker.has-rating {
-    background: rgba(15, 30, 90, 0.95);
-    border-color: #ffd166;
-    box-shadow: 0 0 10px rgba(255, 209, 102, 0.35);
-}
-
-.abs-marker.has-rating:hover {
-    box-shadow: 0 0 18px rgba(255, 209, 102, 0.65);
-}
-
-/* ── Popups ───────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   POPUPS
+   ══════════════════════════════════════════════════════════════════════════ */
 .mapboxgl-popup.abs-popup .mapboxgl-popup-content {
-    background: rgba(8, 12, 35, 0.96);
-    border: 1px solid rgba(100, 150, 255, 0.25);
-    border-radius: 12px;
-    padding: 0;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 30, 0.6);
-    color: #d0d8ff;
-    max-width: 280px;
+    background: rgba(8,12,35,0.97); border: 1px solid rgba(100,150,255,0.22);
+    border-radius: 12px; padding: 0; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,30,0.65); color: #d0d8ff; max-width: 280px;
 }
-
-.mapboxgl-popup.abs-popup .mapboxgl-popup-tip {
-    border-top-color: rgba(8, 12, 35, 0.96);
-}
-
+.mapboxgl-popup.abs-popup .mapboxgl-popup-tip { border-top-color: rgba(8,12,35,0.97); }
 .mapboxgl-popup.abs-popup .mapboxgl-popup-close-button {
-    color: rgba(200, 210, 255, 0.6);
-    font-size: 1.1rem;
-    padding: 6px 10px;
-    background: transparent;
+    color: rgba(200,210,255,0.6); font-size: 1.1rem; padding: 6px 10px; background: transparent;
 }
+.mapboxgl-popup.abs-popup .mapboxgl-popup-close-button:hover { color: #fff; background: transparent; }
 
-.mapboxgl-popup.abs-popup .mapboxgl-popup-close-button:hover {
-    color: #fff;
-    background: transparent;
-}
+.popup-inner { display: flex; flex-direction: column; }
+.popup-image { width: 100%; height: 130px; object-fit: cover; display: block; }
+.popup-body  { padding: 12px 14px; }
 
-.popup-inner {
-    display: flex;
-    flex-direction: column;
+.popup-type-badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(160,190,255,0.7); margin-bottom: 5px;
 }
+.popup-title   { margin: 0 0 4px; font-size: 1rem; font-weight: 700; color: #fff; }
+.popup-country { margin: 0 0 8px; font-size: 0.78rem; color: rgba(180,200,255,0.55); text-transform: uppercase; letter-spacing: 0.06em; }
 
-.popup-image {
-    width: 100%;
-    height: 130px;
-    object-fit: cover;
-    display: block;
-}
-
-.popup-body {
-    padding: 12px 14px;
-}
-
-.popup-title {
-    margin: 0 0 4px;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #ffffff;
-}
-
-.popup-country {
-    margin: 0 0 8px;
-    font-size: 0.8rem;
-    color: rgba(180, 200, 255, 0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
-.popup-rating {
-    font-size: 0.88rem;
-    color: #ffd166;
-    margin-bottom: 10px;
-}
-
-.popup-rating span {
-    color: #ffffff;
-    font-weight: 600;
-}
-
-.popup-rating small {
-    color: rgba(200, 210, 255, 0.5);
-}
-
-.popup-rating.no-rating {
-    color: rgba(200, 210, 255, 0.4);
-    font-style: italic;
-}
+.popup-rating { font-size: 0.88rem; color: #ffd166; margin-bottom: 10px; }
+.popup-rating span  { color: #fff; font-weight: 600; }
+.popup-rating small { color: rgba(200,210,255,0.5); }
+.popup-rating.no-rating { color: rgba(200,210,255,0.4); font-style: italic; }
 
 .popup-link {
     display: inline-block;
     background: linear-gradient(135deg, #2a52d4, #1a3ab8);
-    color: #fff;
-    text-decoration: none;
-    padding: 7px 14px;
-    border-radius: 7px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: opacity 0.15s;
+    color: #fff; text-decoration: none;
+    padding: 7px 14px; border-radius: 7px;
+    font-size: 0.85rem; font-weight: 600; transition: opacity 0.15s;
 }
+.popup-link:hover { opacity: 0.85; }
 
-.popup-link:hover {
-    opacity: 0.85;
-}
-
-/* ── Responsive ───────────────────────────────────────────────────────────── */
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-    #map-controls-inner {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    #map-title {
-        font-size: 1rem;
-    }
-
-    #country-filter-wrap label {
-        display: none;
-    }
-
-    #places-count {
-        margin-left: 0;
-    }
+    #nav-panel { display: none; }
+    #map-controls-inner { flex-wrap: wrap; gap: 10px; }
+    #country-filter-wrap label { display: none; }
+    #places-count { margin-left: 0; }
 }

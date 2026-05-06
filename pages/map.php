@@ -7,6 +7,7 @@ require_once __DIR__ . '/../config/database.php';
 // Récupération de tous les lieux avec note moyenne et nom du pays
 $stmt = $pdo->query("
     SELECT p.id, p.name, p.description, p.lat, p.lng, p.image_url,
+           p.type, p.icon,
            c.name AS country_name, c.id AS country_id,
            ROUND(AVG(r.rating), 1) AS avg_rating,
            COUNT(r.id) AS review_count
