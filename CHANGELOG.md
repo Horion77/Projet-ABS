@@ -6,6 +6,21 @@ Change log du projet A.B.S.
 
 # Versions
 
+## [0.1.1] - 2026-05-06 - Corrections MAMP + compatibilité BDD
+### Corrections
+* Correction du chargement des assets/CSS en local MAMP avec sous-dossier (`/Projet-ABS/public`) via `base_url`.
+* Helpers d'URL centralisés et fiabilisés (`url()`, `asset()`) pour générer des chemins compatibles sous-dossier.
+* Redirections internes harmonisées pour respecter la base URL de l'application.
+* Suppression d'un reliquat de debug (`var_dump` + `die`) dans `public/index.php`.
+* Mise à jour des vues (liens/formulaires/scripts) pour remplacer les chemins absolus cassants (`/...`) par des helpers.
+
+### Base de données
+* Résolution des erreurs SQL `Unknown column` sur `l.image_url` et `a.titre`.
+* Alignement du schéma avec le code via les migrations :
+  * `2026_04_30_add_image_url_lieu.sql`
+  * `2026_04_30_add_titre_avis.sql`
+* Vérification des colonnes en base : `lieu.image_url` et `avis.titre`.
+
 ## [0.1.0] - 2026-05-03 - Refonte MVC professionnelle
 ### Refonte structurelle
 * Front controller unique : toutes les requêtes passent par `public/index.php`.
