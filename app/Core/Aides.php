@@ -36,6 +36,9 @@ if (!function_exists('isLoggedIn')) {
 if (!function_exists('redirect')) {
     function redirect(string $url): never
     {
+        if (!preg_match('#^https?://#i', $url)) {
+            $url = url($url);
+        }
         header('Location: ' . $url);
         exit;
     }
@@ -116,18 +119,27 @@ if (!function_exists('reviews_pagination_query')) {
 
 if (!function_exists('url')) {
     /**
-     * Helper d'URL absolue — version triviale qui retourne /chemin tel quel.
-     * Centralisé ici pour pouvoir un jour préfixer toutes les URLs (sous-dossier).
+     * Helper d'URL absolue tenant compte d'un éventuel sous-dossier (ex. MAMP).
      */
-    function url(string $chemin): string
+    function url(string $chemin = ''): string
     {
-        return '/' . ltrim($chemin, '/');
+        $base = defined('APP_BASE_URL') ? (string) APP_BASE_URL : '/';
+        $base = '/' . trim($base, '/');
+        if ($base === '//') {
+            $base = '/';
+        }
+
+        $chemin = ltrim($chemin, '/');
+        if ($chemin === '') {
+            return $base;
+        }
+        return rtrim($base, '/') . '/' . $chemin;
     }
 }
 
 if (!function_exists('asset')) {
     function asset(string $chemin): string
     {
-        return '/assets/' . ltrim($chemin, '/');
+        return url('assets/' . ltrim($chemin, '/'));
     }
 }

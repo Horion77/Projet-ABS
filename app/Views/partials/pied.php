@@ -17,6 +17,6 @@
         });
     })();
     </script>
-    <script src="/assets/js/validation.js" defer></script>
+    <script src="<?= e(asset('js/validation.js')) ?>" defer></script>
 </body>
 </html>

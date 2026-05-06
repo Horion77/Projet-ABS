@@ -10,6 +10,9 @@ class Reponse
 {
     public static function rediriger(string $url, int $code = 302): never
     {
+        if (!preg_match('#^https?://#i', $url) && function_exists('url')) {
+            $url = url($url);
+        }
         http_response_code($code);
         header('Location: ' . $url);
         exit;

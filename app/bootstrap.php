@@ -16,6 +16,18 @@ if (!defined('APP_CONFIG')) {
     define('APP_CONFIG', APP_PATH . '/Config');
 }
 
+$appConfig = require APP_CONFIG . '/application.php';
+if (!defined('APP_BASE_URL')) {
+    $baseUrl = '/';
+    if (is_array($appConfig) && isset($appConfig['base_url']) && is_string($appConfig['base_url'])) {
+        $trimmed = trim($appConfig['base_url']);
+        if ($trimmed !== '') {
+            $baseUrl = '/' . trim($trimmed, '/');
+        }
+    }
+    define('APP_BASE_URL', $baseUrl);
+}
+
 require_once APP_PATH . '/Core/Aides.php';
 
 // Autoload PSR-4 simplifié : App\X\Y → app/X/Y.php (pas de Composer dans ce projet).

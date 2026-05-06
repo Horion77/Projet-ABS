@@ -8,7 +8,7 @@ $old = $old ?? [];
     <h1 class="titre-auth">Créer un compte</h1>
     <p class="sous-titre-auth">Renseignez vos identifiants pour participer aux avis.</p>
     <?php require __DIR__ . '/../partials/messages.php'; ?>
-    <form id="form-inscription" class="form-auth" method="post" action="/inscription" novalidate>
+    <form id="form-inscription" class="form-auth" method="post" action="<?= e(url('inscription')) ?>" novalidate>
         <div class="groupe-champ">
             <label for="prenom">Prénom *</label>
             <input type="text" id="prenom" name="prenom" required minlength="2" maxlength="80" autocomplete="given-name"
@@ -36,5 +36,5 @@ $old = $old ?? [];
         </div>
         <button class="btn-auth" type="submit">S’inscrire</button>
     </form>
-    <p class="lien-auth-bas">Déjà inscrit ? <a href="/connexion">Se connecter</a></p>
+    <p class="lien-auth-bas">Déjà inscrit ? <a href="<?= e(url('connexion')) ?>">Se connecter</a></p>
 </div>

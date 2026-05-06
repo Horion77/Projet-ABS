@@ -11,7 +11,7 @@ $dejaAvis = $dejaAvis ?? false;
 <div class="conteneur place-fiche">
     <?php if ($erreur !== null) : ?>
         <p class="message-erreur-place" role="alert"><?= e($erreur) ?></p>
-        <p><a class="btn" href="/carte">Retour à la carte</a></p>
+        <p><a class="btn" href="<?= e(url('carte')) ?>">Retour à la carte</a></p>
     <?php else : ?>
         <article class="place-article">
             <div class="place-entete">
@@ -22,15 +22,15 @@ $dejaAvis = $dejaAvis ?? false;
                 </div>
                 <div class="place-entete-texte">
                     <p class="place-crumbs">
-                        <a href="/">Accueil</a>
+                        <a href="<?= e(url()) ?>">Accueil</a>
                         <span class="place-crumbs-sep" aria-hidden="true"> / </span>
-                        <a href="/carte">Carte</a>
+                        <a href="<?= e(url('carte')) ?>">Carte</a>
                     </p>
                     <h1 class="place-titre"><?= e((string) $lieu['nom']) ?></h1>
                     <p class="place-meta">
                         <?= e((string) $lieu['categorie']) ?>
                         — <?= e((string) $lieu['ville']) ?>,
-                        <a href="/pays?id=<?= (int) $lieu['id_pays'] ?>"><?= e((string) $lieu['pays']) ?></a>
+                        <a href="<?= e(url('pays')) ?>?id=<?= (int) $lieu['id_pays'] ?>"><?= e((string) $lieu['pays']) ?></a>
                     </p>
                     <p class="place-note-entete">
                         <?php if ($noteMoy !== null) : ?>
@@ -63,7 +63,7 @@ $dejaAvis = $dejaAvis ?? false;
                     <?php if ($dejaAvis) : ?>
                         <p class="message-vide">Vous avez déjà laissé un avis pour ce lieu.</p>
                     <?php else : ?>
-                        <form id="form-avis-lieu" class="form-avis-lieu" method="post" action="/avis" novalidate>
+                        <form id="form-avis-lieu" class="form-avis-lieu" method="post" action="<?= e(url('avis')) ?>" novalidate>
                             <input type="hidden" name="place_id" value="<?= (int) $lieu['id_lieu'] ?>">
                             <div class="groupe-champ">
                                 <span class="label-like" id="label-stars">Votre note *</span>
@@ -94,7 +94,7 @@ $dejaAvis = $dejaAvis ?? false;
                 </section>
             <?php else : ?>
                 <section class="place-form-avis place-form-avis--invite" aria-label="Connexion requise">
-                    <p><a href="/connexion">Connectez-vous</a> pour publier un avis sur ce lieu.</p>
+                    <p><a href="<?= e(url('connexion')) ?>">Connectez-vous</a> pour publier un avis sur ce lieu.</p>
                 </section>
             <?php endif; ?>
         </article>

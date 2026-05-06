@@ -23,7 +23,7 @@ if ($filtrePays !== null) {
     <h1 class="titre-page-avis">Tous les avis</h1>
     <p class="intro-avis"><?= (int) $totalAvis ?> avis public<?= $totalAvis > 1 ? 's' : '' ?> sur des lieux.</p>
 
-    <form class="form-filtres-avis" method="get" action="/avis" aria-label="Filtrer la liste">
+    <form class="form-filtres-avis" method="get" action="<?= e(url('avis')) ?>" aria-label="Filtrer la liste">
         <div class="filtres-row">
             <label for="f-rating">Note</label>
             <select id="f-rating" name="rating">
@@ -40,7 +40,7 @@ if ($filtrePays !== null) {
                 <?php endforeach; ?>
             </select>
             <button type="submit" class="btn-filtre-avis">Appliquer</button>
-            <a class="lien-reset-filtres" href="/avis">Réinitialiser</a>
+            <a class="lien-reset-filtres" href="<?= e(url('avis')) ?>">Réinitialiser</a>
         </div>
     </form>
 
@@ -83,7 +83,7 @@ if ($filtrePays !== null) {
                     </p>
                 <?php endif; ?>
                 <?php if ($lieuId > 0) : ?>
-                    <p class="avis-lien-lieu"><a href="/lieu?id=<?= $lieuId ?>">Voir le lieu</a></p>
+                    <p class="avis-lien-lieu"><a href="<?= e(url('lieu')) ?>?id=<?= $lieuId ?>">Voir le lieu</a></p>
                 <?php endif; ?>
             </li>
             <?php endforeach; ?>
@@ -91,13 +91,13 @@ if ($filtrePays !== null) {
 
         <nav class="pagination-avis" aria-label="Pagination">
             <?php if ($page > 1) : ?>
-                <a class="page-nav" href="/avis?<?= e(reviews_pagination_query($qBase, $page - 1)) ?>">Précédent</a>
+                <a class="page-nav" href="<?= e(url('avis')) ?>?<?= e(reviews_pagination_query($qBase, $page - 1)) ?>">Précédent</a>
             <?php else : ?>
                 <span class="page-nav page-nav--disabled">Précédent</span>
             <?php endif; ?>
             <span class="page-info">Page <?= (int) $page ?> / <?= (int) $pagesTotal ?></span>
             <?php if ($page < $pagesTotal) : ?>
-                <a class="page-nav" href="/avis?<?= e(reviews_pagination_query($qBase, $page + 1)) ?>">Suivant</a>
+                <a class="page-nav" href="<?= e(url('avis')) ?>?<?= e(reviews_pagination_query($qBase, $page + 1)) ?>">Suivant</a>
             <?php else : ?>
                 <span class="page-nav page-nav--disabled">Suivant</span>
             <?php endif; ?>

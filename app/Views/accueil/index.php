@@ -11,8 +11,8 @@ $derniersAvis = $derniersAvis ?? [];
         <h1 class="hero-titre">Explorez le monde, partagez vos avis</h1>
         <p class="hero-soustitre">Découvrez des lieux, notez-les et inspirez d’autres voyageurs sur ABS.</p>
         <div class="hero-actions">
-            <a class="btn btn-hero" href="/carte">Explorer la carte</a>
-            <a class="btn btn-hero-sec" href="/inscription">S’inscrire</a>
+            <a class="btn btn-hero" href="<?= e(url('carte')) ?>">Explorer la carte</a>
+            <a class="btn btn-hero-sec" href="<?= e(url('inscription')) ?>">S’inscrire</a>
         </div>
     </div>
 </section>
@@ -26,7 +26,7 @@ $derniersAvis = $derniersAvis ?? [];
     <?php else : ?>
         <div class="grille-cartes-lieux">
             <?php foreach ($lieuxPop as $row) : ?>
-            <a class="carte-lieu" href="/lieu?id=<?= (int) $row['id_lieu'] ?>">
+            <a class="carte-lieu" href="<?= e(url('lieu')) ?>?id=<?= (int) $row['id_lieu'] ?>">
                 <div class="carte-lieu-illu" aria-hidden="true"></div>
                 <div class="carte-lieu-corps">
                     <h3><?= e((string) $row['lieu']) ?></h3>
@@ -55,7 +55,7 @@ $derniersAvis = $derniersAvis ?? [];
             <?php foreach ($derniersAvis as $av) : ?>
             <li>
                 <strong class="rda-note"><?= (int) $av['note'] ?>/5</strong>
-                — <span class="rda-lieu"><a href="/lieu?id=<?= (int) $av['id_lieu'] ?>"><?= e((string) ($av['lieu'] ?? 'Lieu')) ?></a></span>
+                — <span class="rda-lieu"><a href="<?= e(url('lieu')) ?>?id=<?= (int) $av['id_lieu'] ?>"><?= e((string) ($av['lieu'] ?? 'Lieu')) ?></a></span>
                 <span class="rda-auteur">(<?= e((string) $av['prenom']) ?> <?= e((string) ($av['nom'] ?? '')) ?>)</span>
                 <?php if (!empty($av['description'])) : ?>
                     <p class="rda-comm">« <?= tronque_e((string) $av['description'], 160) ?> »</p>

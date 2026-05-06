@@ -9,5 +9,5 @@ declare(strict_types=1);
 return [
     'nom'      => 'ABS',
     'env'      => getenv('APP_ENV') ?: 'dev',
-    'base_url' => '',
+    'base_url' => '/Projet-ABS/public',
 ];

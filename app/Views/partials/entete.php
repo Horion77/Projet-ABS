@@ -12,9 +12,9 @@ $fichierCssPage = $fichierCssPage ?? null;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitre) ?> | ABS</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= e(asset('css/style.css')) ?>">
     <?php if (!empty($fichierCssPage) && is_string($fichierCssPage)) : ?>
-    <link rel="stylesheet" href="/assets/css/<?= e($fichierCssPage) ?>.css">
+    <link rel="stylesheet" href="<?= e(asset('css/' . $fichierCssPage . '.css')) ?>">
     <?php endif; ?>
 </head>
 <body>

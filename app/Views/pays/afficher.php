@@ -9,12 +9,12 @@ $erreur = $erreur ?? null;
 <div class="conteneur conteneur-pays">
     <?php if ($erreur !== null) : ?>
         <p class="message-erreur-place" role="alert"><?= e($erreur) ?></p>
-        <p><a class="btn" href="/">Accueil</a></p>
+        <p><a class="btn" href="<?= e(url()) ?>">Accueil</a></p>
     <?php else : ?>
         <p class="place-crumbs">
-            <a href="/">Accueil</a>
+            <a href="<?= e(url()) ?>">Accueil</a>
             <span class="place-crumbs-sep" aria-hidden="true"> / </span>
-            <a href="/carte">Carte</a>
+            <a href="<?= e(url('carte')) ?>">Carte</a>
         </p>
         <h1 class="titre-page-pays"><?= e((string) $pays['nom']) ?></h1>
         <?php if (!empty($pays['continent'])) : ?>
@@ -31,7 +31,7 @@ $erreur = $erreur ?? null;
                     $avg = $L['avg_rating'] ?? null;
                     $nb  = (int) ($L['nb_avis'] ?? 0);
                     ?>
-                <a class="carte-lieu-pays" href="/lieu?id=<?= $idL ?>">
+                <a class="carte-lieu-pays" href="<?= e(url('lieu')) ?>?id=<?= $idL ?>">
                     <div class="carte-lieu-pays-illu<?= !empty($L['image_url']) ? ' has-img' : '' ?>">
                         <?php if (!empty($L['image_url'])) : ?>
                             <img src="<?= e((string) $L['image_url']) ?>" alt="" loading="lazy" width="400" height="240">

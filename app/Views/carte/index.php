@@ -15,7 +15,7 @@ $mapData = [
     'token'     => $mapboxToken,
     'places'    => $places,
     'countries' => $countries,
-    'placePath' => '/lieu',
+    'placePath' => url('lieu'),
 ];
 ?>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css">
@@ -40,4 +40,4 @@ $mapData = [
 <script>
 window.MAP_DATA = <?= json_encode($mapData, $jsonFlags) ?>;
 </script>
-<script src="/assets/js/map.js" defer></script>
+<script src="<?= e(asset('js/map.js')) ?>" defer></script>
