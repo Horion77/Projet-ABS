@@ -6,6 +6,17 @@ Change log du projet A.B.S.
 
 # Versions
 
+## [0.1.3] - 2026-05-07 - Intégration Sara V2
+### Adaptation Sara vers MVC
+* Branche locale : `integration-v2`.
+* Reprise de `Projet-ABS-Sara/pages/avis.php` dans `app/Views/avis/index.php` : structure `avis-container`, cartes d’avis, messages et pagination conservés, avec routes MVC.
+* Reprise de `Projet-ABS-Sara/pages/pays.php` dans `app/Views/pays/afficher.php` : structure `pays-container`, grille de lieux, note moyenne et lien vers la fiche lieu adaptés au schéma actuel.
+* Reprise de `Projet-ABS-Sara/actions/avis_action.php` dans `AvisController::traiterSoumission` : POST `/avis`, utilisateur connecté, validation, insertion via `AvisModel`, message de succès Sara.
+
+### Conservation des autres apports
+* Carte Mapbox Alan conservée (`CarteController`, `app/Views/carte/`, `public/assets/js/map.js`).
+* BDD, connexion, déconnexion et inscription Basma conservées (`sql/`, `ConnexionController`, `InscriptionController`).
+
 ## [0.1.2] - 2026-05-06 - Branche d’intégration équipe (MVC unique)
 ### Intégration
 * Branche de travail : `integrate/all-team-mvc` (clone d’intégration sous `Projet-ensemble/Projet-ABS-integration`).

@@ -9,23 +9,25 @@ use App\Models\AvisModel;
 use Throwable;
 
 /**
- * Soumission d'un avis sur un lieu (POST /avis).
+ * Traitement formulaire avis adapté depuis `Projet-ABS-Sara/actions/avis_action.php`.
  * Compatible avec les anciens formulaires (place_id/rating/title/comment ET id_lieu/note/description).
  */
 class AvisController extends Controleur
 {
     public function traiterSoumission(): void
     {
+        // Vérifier que la requête est bien un POST (formulaire envoyé).
         if (!$this->requete->estPost()) {
             $this->rediriger('/avis');
         }
 
+        // Utilisateur connecté ou pas.
         if (!Session::estConnecte()) {
             Session::flashErreurs(['Vous devez être connecté pour publier un avis.']);
             $this->rediriger('/connexion');
         }
 
-        // Deux noms de champs possibles (évolution du formulaire / ancien code) : on accepte les deux.
+        // Récupération des champs Sara (place_id/rating/title/comment), avec compatibilité MVC.
         $idLieu = $this->requete->postInt('place_id', $this->requete->postInt('id_lieu'));
         $note   = $this->requete->postInt('rating', $this->requete->postInt('note'));
 
@@ -41,6 +43,7 @@ class AvisController extends Controleur
 
         $retour = $idLieu >= 1 ? '/lieu?id=' . $idLieu : '/carte';
 
+        // Valider les données avant enregistrement.
         if ($idLieu < 1) {
             Session::flashErreurs(['Lieu invalide.']);
             $this->rediriger($retour);
@@ -74,6 +77,7 @@ class AvisController extends Controleur
         }
 
         try {
+            // Enregistre l'avis dans la base de données via le Model MVC (`avis`, pas `reviews`).
             AvisModel::creerPourLieu($uid, $idLieu, $note, $comment, $vis, $titre);
         } catch (Throwable) {
             Session::flashErreurs(['Impossible d’enregistrer l’avis pour le moment.']);
@@ -81,7 +85,7 @@ class AvisController extends Controleur
         }
 
         Session::flashSucces($vis === 'public'
-            ? 'Votre avis a été publié.'
+            ? 'Votre avis a bien été enregistré !'
             : 'Votre avis a été enregistré (privé).');
         $this->rediriger($retour);
     }
