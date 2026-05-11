@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -9,5 +10,5 @@ declare(strict_types=1);
 return [
     'nom'      => 'ABS',
     'env'      => getenv('APP_ENV') ?: 'dev',
-    'base_url' => '/Projet-ABS/public',
+    'base_url' => '/Projet-ABS-integration/public',
 ];
