@@ -39,14 +39,15 @@ class LieuModel extends Modele
     public static function tousAvecNotes(): array
     {
         // LEFT JOIN avis + GROUP BY : une ligne par lieu, AVG sur les avis publics seulement.
+        // Pins carte : constantes tant que la BDD n’inclut pas les colonnes type/icon (migration 2026_05_06_add_type_icon_lieu.sql).
         $sql = "SELECT
                 l.id_lieu,
                 l.nom AS name,
                 l.latitude AS lat,
                 l.longitude AS lng,
                 l.image_url,
-                l.type,
-                l.icon,
+                'monument' AS type,
+                '📍' AS icon,
                 cl.libelle AS categorie,
                 p.nom AS country_name,
                 p.id_pays,
@@ -58,7 +59,7 @@ class LieuModel extends Modele
              JOIN pays p ON p.id_pays = vi.id_pays
              LEFT JOIN avis a ON a.id_lieu = l.id_lieu AND a.visibility = 'public'
              WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL
-             GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, l.image_url, l.type, l.icon, p.nom, p.id_pays, cl.libelle, vi.nom";
+             GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, l.image_url, p.nom, p.id_pays, cl.libelle, vi.nom";
         $q = self::pdo()->query($sql);
         return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
     }

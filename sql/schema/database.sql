@@ -110,6 +110,8 @@ INSERT INTO categorie_lieu (libelle) VALUES
 -- ============================================================
 CREATE TABLE lieu (
   id_lieu         INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  type            ENUM('pays', 'ville', 'monument') NOT NULL DEFAULT 'monument',
+  icon            VARCHAR(10)     NOT NULL DEFAULT '📍',
   nom             VARCHAR(150)    NOT NULL,
   description     TEXT            DEFAULT NULL,
   latitude        DECIMAL(9, 6)   DEFAULT NULL,
