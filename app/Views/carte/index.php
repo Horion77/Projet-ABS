@@ -12,10 +12,12 @@ if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
 }
 
 $mapData = [
-    'token'     => $mapboxToken,
-    'places'    => $places,
-    'countries' => $countries,
-    'placePath' => url('lieu'),
+    'token'       => $mapboxToken,
+    'places'      => $places,
+    'countries'   => $countries,
+    'placePath'   => url('lieu'),
+    'paysPath'    => url('pays'),
+    'regionsPath' => url('assets/data/regions.json'),
 ];
 $nbLieux = count($places);
 ?>
@@ -80,6 +82,19 @@ $nbLieux = count($places);
 
     <!-- Carte Mapbox -->
     <div id="map"></div>
+
+    <!-- Légende couleurs des marqueurs -->
+    <aside id="legende-carte" class="legende-carte" aria-label="Légende des marqueurs">
+        <h4>Types de lieux</h4>
+        <ul>
+            <li><span class="leg-puce leg-pays"></span>Pays</li>
+            <li><span class="leg-puce leg-ville"></span>Ville</li>
+            <li><span class="leg-puce leg-monument"></span>Monument</li>
+        </ul>
+    </aside>
+
+    <!-- Mini-card au survol d'un pays (positionnée par JS) -->
+    <div id="pays-hover-card" class="pays-hover-card" hidden></div>
 
 </div>
 

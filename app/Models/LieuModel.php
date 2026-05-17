@@ -46,8 +46,8 @@ class LieuModel extends Modele
                 l.latitude AS lat,
                 l.longitude AS lng,
                 l.image_url,
-                'monument' AS type,
-                '📍' AS icon,
+                l.type,
+                l.icon,
                 cl.libelle AS categorie,
                 p.nom AS country_name,
                 p.id_pays,
@@ -59,7 +59,7 @@ class LieuModel extends Modele
              JOIN pays p ON p.id_pays = vi.id_pays
              LEFT JOIN avis a ON a.id_lieu = l.id_lieu AND a.visibility = 'public'
              WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL
-             GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, l.image_url, p.nom, p.id_pays, cl.libelle, vi.nom";
+             GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, l.image_url, l.type, l.icon, p.nom, p.id_pays, cl.libelle, vi.nom";
         $q = self::pdo()->query($sql);
         return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
     }
@@ -71,16 +71,21 @@ class LieuModel extends Modele
      */
     public static function paysPourFiltreCarte(): array
     {
+        // On ajoute places_count + avg_rating pour la mini-card au hover sur un pays.
+        // LEFT JOIN avis (publics uniquement) pour ne pas perdre les pays sans avis.
         $q = self::pdo()->query(
-            'SELECT p.id_pays, p.nom,
+            "SELECT p.id_pays, p.nom, p.code_iso,
                     ROUND(AVG(l2.latitude), 4)  AS lat,
-                    ROUND(AVG(l2.longitude), 4) AS lng
+                    ROUND(AVG(l2.longitude), 4) AS lng,
+                    COUNT(DISTINCT l2.id_lieu)  AS places_count,
+                    ROUND(AVG(a.note), 1)       AS avg_rating
              FROM pays p
              JOIN ville v  ON v.id_pays  = p.id_pays
              JOIN lieu l2  ON l2.id_ville = v.id_ville
+             LEFT JOIN avis a ON a.id_lieu = l2.id_lieu AND a.visibility = 'public'
              WHERE l2.latitude IS NOT NULL AND l2.longitude IS NOT NULL
-             GROUP BY p.id_pays, p.nom
-             ORDER BY p.nom'
+             GROUP BY p.id_pays, p.nom, p.code_iso
+             ORDER BY p.nom"
         );
         return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
     }
