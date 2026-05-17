@@ -23,6 +23,9 @@ Desktop.ini
 *.swo
 *~
 
+# Sessions IDE / assistants (local uniquement)
+.claude/
+
 # Fichiers uploadés par les utilisateurs (si applicable)
 public/assets/uploads/*
 !public/assets/uploads/.gitkeep
