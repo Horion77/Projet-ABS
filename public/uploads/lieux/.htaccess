@@ -1,0 +1,27 @@
+# Empêche l'exécution de PHP ou de tout script dans le dossier d'upload :
+# même si un attaquant arrivait à uploader un fichier .php déguisé, Apache
+# refusera de l'interpréter.
+
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+Options -ExecCGI -Indexes
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8
+
+# Force le téléchargement / affichage en image, jamais en HTML/JS exécuté
+<FilesMatch "\.(jpe?g|png|webp|gif)$">
+    Header set X-Content-Type-Options "nosniff"
+</FilesMatch>
+
+# Bloque les fichiers cachés et scripts
+<FilesMatch "\.(php|phtml|phar|pl|py|sh|cgi)$">
+    Require all denied
+</FilesMatch>

@@ -31,6 +31,7 @@ des autres membres de l'équipe.
 | [09-styles-switcher.md](09-styles-switcher.md) | Changement de style de carte |
 | [10-vue-php.md](10-vue-php.md) | La vue PHP `carte/index.php` |
 | [11-css-composants.md](11-css-composants.md) | CSS des composants ajoutés |
+| [12-creation-lieu-et-filtre-avis.md](12-creation-lieu-et-filtre-avis.md) | Création d'un lieu par un utilisateur + filtre par type d'avis |
 
 ## Comment lire cette doc
 

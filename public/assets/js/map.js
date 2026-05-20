@@ -5,11 +5,19 @@
   'use strict';
   if (typeof mapboxgl === 'undefined' || !window.MAP_DATA) return;
 
-  var d         = window.MAP_DATA;
-  var places    = d.places    || [];
-  var countries = d.countries || [];
-  var pathLieu  = d.placePath || '/lieu';
-  var pathPays  = d.paysPath  || '/pays';
+  var d           = window.MAP_DATA;
+  var places      = d.places     || [];
+  var countries   = d.countries  || [];
+  var categories  = d.categories || [];
+  var pathLieu    = d.placePath  || '/lieu';
+  var pathPays    = d.paysPath   || '/pays';
+  var pathCreer   = d.creerPath  || '/lieu/creer';
+  var isLogged    = d.isLoggedIn === true;
+  // Set des id_lieu où l'utilisateur connecté a déjà laissé un avis : utilisé
+  // par le filtre « Mes avis ». Set pour des lookups O(1) au lieu de O(n).
+  var mesAvisSet  = new Set((d.myReviewedLieux || []).map(function (x) { return parseInt(x, 10); }));
+  // Mode courant du filtre avis : 'tous' (par défaut) | 'avecAvis' | 'mesAvis'
+  var avisFilter  = 'tous';
 
   mapboxgl.accessToken = d.token;
 
@@ -416,10 +424,28 @@
   // En dézoom on regroupe les monuments dans des clusters circle pour éviter
   // l'empilement visuel. Au-dessus du clusterMaxZoom les pins DOM individuels
   // prennent le relais (via ZOOM_RANGE.monument).
-  function addMonumentClusters() {
-    if (map.getSource('monuments-source')) return;
+  // Applique le filtre par type d'avis (tous / avec avis / mes avis).
+  // Centralisé ici pour que renderMarkers() ET buildMonumentFeatures() restent
+  // synchronisés (sinon le cluster afficherait des pins que le DOM cache).
+  function appliquerFiltreAvis(liste) {
+    if (avisFilter === 'avecAvis') {
+      return liste.filter(function (p) {
+        return parseInt(p.review_count || 0, 10) > 0;
+      });
+    }
+    if (avisFilter === 'mesAvis') {
+      return liste.filter(function (p) {
+        return mesAvisSet.has(parseInt(p.id_lieu, 10));
+      });
+    }
+    return liste;
+  }
 
-    var features = places
+  // Construit la collection GeoJSON des monuments depuis le tableau `places`.
+  // Extrait dans sa propre fonction pour être appelée à la fois au chargement
+  // (par addMonumentClusters) et après chaque ajout d'un nouveau lieu par un user.
+  function buildMonumentFeatures() {
+    return appliquerFiltreAvis(places)
       .filter(function (p) { return (p.type || 'monument') === 'monument'; })
       .map(function (p) {
         var lat = parseFloat(p.lat);
@@ -436,10 +462,22 @@
         };
       })
       .filter(function (f) { return f !== null; });
+  }
+
+  // Rafraîchit la source GeoJSON existante (= relance le clustering avec les
+  // nouveaux pins). Appelée après création d'un lieu par un utilisateur.
+  function refreshMonumentSource() {
+    var src = map.getSource('monuments-source');
+    if (!src) return;
+    src.setData({ type: 'FeatureCollection', features: buildMonumentFeatures() });
+  }
+
+  function addMonumentClusters() {
+    if (map.getSource('monuments-source')) return;
 
     map.addSource('monuments-source', {
       type:           'geojson',
-      data:           { type: 'FeatureCollection', features: features },
+      data:           { type: 'FeatureCollection', features: buildMonumentFeatures() },
       cluster:        true,
       clusterMaxZoom: 9,   // au-delà : on bascule sur les pins DOM monuments
       clusterRadius:  50,
@@ -607,9 +645,11 @@
     markers.forEach(function (m) { m.marker.remove(); });
     markers = [];
 
+    // On combine les deux filtres : pays (activeCountryId) puis type d'avis.
     var filtered = activeCountryId
       ? places.filter(function (p) { return String(p.id_pays) === String(activeCountryId); })
       : places;
+    filtered = appliquerFiltreAvis(filtered);
 
     updateCount(filtered.length);
 
@@ -781,6 +821,291 @@
       } else {
         map.flyTo({ center: CENTRE_DEFAUT, zoom: ZOOM_DEFAUT, duration: 1800, essential: true });
       }
+    });
+  }
+
+  // Filtre par type d'avis : on change le mode global et on rafraîchit
+  // à la fois les markers DOM et la source GeoJSON du clustering.
+  var avisFilterEl = document.getElementById('avis-filter');
+  if (avisFilterEl) {
+    avisFilterEl.addEventListener('change', function () {
+      avisFilter = avisFilterEl.value || 'tous';
+      refreshMonumentSource();
+      renderMarkers();
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── Barre de recherche d'adresse (composant Mapbox Search Box) ────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // Le token est déjà passé en attribut HTML (access-token="…") pour éviter
+  // que la lib envoie ses premières requêtes sans token. Ici on attend que le
+  // composant soit défini par le navigateur, puis on le branche à la carte
+  // et on écoute l'évènement de sélection pour faire un flyTo.
+  function brancherRecherche() {
+    var box = document.getElementById('recherche-lieu');
+    if (!box) return;
+    box.mapboxgl = mapboxgl;
+    try { box.bindMap(map); } catch (e) { /* la carte se branche au prochain tick */ }
+    box.addEventListener('retrieve', function (ev) {
+      var f = ev.detail && ev.detail.features && ev.detail.features[0];
+      if (!f) return;
+      map.flyTo({ center: f.geometry.coordinates, zoom: 14, essential: true });
+    });
+  }
+  if (window.customElements && customElements.whenDefined) {
+    customElements.whenDefined('mapbox-search-box').then(brancherRecherche);
+  } else {
+    var sjs = document.getElementById('search-js');
+    if (sjs) sjs.addEventListener('load', brancherRecherche);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── Mode « Ajouter un lieu » ──────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // Flux : clic bouton → mode actif → clic carte → marker temp draggable +
+  // popup formulaire pré-rempli par reverse-geocoding → submit → POST /lieu/creer
+  // → ajout du pin permanent à la liste places + re-rendu.
+
+  var addMode    = false;   // état global du mode ajout
+  var markerTemp = null;    // marker jaune temporaire (un seul à la fois)
+  var popupTemp  = null;    // popup du formulaire
+
+  var btnAjouter = document.getElementById('btn-ajouter-lieu');
+  var hintBar    = document.getElementById('add-mode-hint');
+  var hintCancel = document.getElementById('add-mode-cancel');
+
+  function activerAddMode() {
+    if (!isLogged) return;
+    addMode = true;
+    document.body.classList.add('map-add-mode');
+    if (hintBar) hintBar.hidden = false;
+    if (btnAjouter) btnAjouter.classList.add('actif');
+  }
+
+  function desactiverAddMode() {
+    addMode = false;
+    document.body.classList.remove('map-add-mode');
+    if (hintBar) hintBar.hidden = true;
+    if (btnAjouter) btnAjouter.classList.remove('actif');
+  }
+
+  function nettoyerMarkerTemp() {
+    if (popupTemp) { popupTemp.remove(); popupTemp = null; }
+    if (markerTemp) { markerTemp.remove(); markerTemp = null; }
+  }
+
+  if (btnAjouter) {
+    btnAjouter.addEventListener('click', function () {
+      if (addMode) {
+        desactiverAddMode();
+        nettoyerMarkerTemp();
+      } else {
+        activerAddMode();
+      }
+    });
+  }
+  if (hintCancel) {
+    hintCancel.addEventListener('click', function () {
+      desactiverAddMode();
+      nettoyerMarkerTemp();
+    });
+  }
+
+  // Clic sur la carte en mode ajout : on pose un marker temp draggable.
+  map.on('click', function (e) {
+    if (!addMode) return;
+    e.preventDefault();
+    nettoyerMarkerTemp();
+    poserMarkerTemp(e.lngLat.lng, e.lngLat.lat);
+    desactiverAddMode(); // le mode se désactive après le 1er clic (1 lieu à la fois)
+  });
+
+  function poserMarkerTemp(lng, lat) {
+    // Élément DOM du marker (jaune, animé pour signaler qu'il est ajustable)
+    var el = document.createElement('div');
+    el.className = 'marker-temp';
+    el.innerHTML = '<span class="marker-temp-pin">📍</span>';
+
+    markerTemp = new mapboxgl.Marker({ element: el, draggable: true })
+      .setLngLat([lng, lat])
+      .addTo(map);
+
+    // Ouvre la popup du formulaire avec un état de chargement le temps du geocoding inverse.
+    ouvrirPopupForm(lng, lat, null);
+    reverseGeocode(lng, lat).then(function (info) {
+      if (!markerTemp) return; // user a annulé entre-temps
+      remplirInfosFormulaire(info);
+    }).catch(function () {
+      // Échec geocoding : on laisse les champs vides, l'utilisateur peut quand même
+      // remplir manuellement (mais le backend exigera ville_nom + pays_nom).
+    });
+
+    // Quand l'user déplace le marker, on met à jour les coords + re-geocode.
+    markerTemp.on('dragend', function () {
+      var p = markerTemp.getLngLat();
+      mettreAJourCoords(p.lng, p.lat);
+      reverseGeocode(p.lng, p.lat).then(remplirInfosFormulaire).catch(function () {});
+    });
+  }
+
+  // ── Reverse-geocoding (Mapbox Geocoding API v5) ─────────────────────────
+  function reverseGeocode(lng, lat) {
+    var url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
+            + lng + ',' + lat + '.json'
+            + '?access_token=' + d.token
+            + '&types=address,place,locality,country&language=fr&limit=1';
+    return fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+      var f = data.features && data.features[0];
+      if (!f) return { adresse: '', ville: '', pays: '', code_iso: '' };
+
+      var adresse  = f.place_name || '';
+      var ville    = '';
+      var pays     = '';
+      var codeIso  = '';
+
+      // Mapbox renvoie le contexte hiérarchique : on prend le 1er match par type.
+      (f.context || []).forEach(function (c) {
+        if (!c.id) return;
+        if (c.id.indexOf('place.')   === 0 && !ville) ville = c.text || '';
+        if (c.id.indexOf('locality.')=== 0 && !ville) ville = c.text || '';
+        if (c.id.indexOf('country.') === 0) {
+          pays = c.text || '';
+          codeIso = (c.short_code || '').toLowerCase();
+        }
+      });
+      // Si le feature lui-même est un pays
+      if (f.id && f.id.indexOf('country.') === 0) {
+        pays = f.text || pays;
+        codeIso = (f.properties && f.properties.short_code || '').toLowerCase() || codeIso;
+      }
+      return { adresse: adresse, ville: ville, pays: pays, code_iso: codeIso };
+    });
+  }
+
+  // ── Popup formulaire de création ────────────────────────────────────────
+  function ouvrirPopupForm(lng, lat, info) {
+    var optionsCat = categories.map(function (c) {
+      return '<option value="' + c.id_categorie + '">' + escapeHtml(c.libelle) + '</option>';
+    }).join('');
+
+    var html =
+      '<form class="form-creer-lieu" id="form-creer-lieu" enctype="multipart/form-data">' +
+        '<h3>Ajouter ce lieu</h3>' +
+        '<label>Nom *<input name="nom" required maxlength="150" autocomplete="off"></label>' +
+        '<label>Catégorie *' +
+          '<select name="id_categorie" required>' +
+            '<option value="">— choisir —</option>' + optionsCat +
+          '</select>' +
+        '</label>' +
+        '<label>Description<textarea name="description" maxlength="2000" rows="3"></textarea></label>' +
+        '<label>Photo (optionnelle)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label>' +
+        '<div class="loc-preview">' +
+          '<div><strong>Adresse :</strong> <span data-adresse>' + (info ? escapeHtml(info.adresse) : '…') + '</span></div>' +
+          '<div><strong>Ville :</strong> <span data-ville>' + (info ? escapeHtml(info.ville) : '…') + '</span> · ' +
+               '<strong>Pays :</strong> <span data-pays>'  + (info ? escapeHtml(info.pays) : '…')  + '</span></div>' +
+        '</div>' +
+        '<div class="form-error" hidden></div>' +
+        '<input type="hidden" name="latitude"  value="' + lat + '">' +
+        '<input type="hidden" name="longitude" value="' + lng + '">' +
+        '<input type="hidden" name="adresse"   value="' + (info ? escapeHtml(info.adresse) : '') + '">' +
+        '<input type="hidden" name="ville_nom" value="' + (info ? escapeHtml(info.ville) : '') + '">' +
+        '<input type="hidden" name="pays_nom"  value="' + (info ? escapeHtml(info.pays) : '') + '">' +
+        '<input type="hidden" name="pays_code_iso" value="' + (info ? escapeHtml(info.code_iso) : '') + '">' +
+        '<div class="form-actions">' +
+          '<button type="button" id="btn-annuler-creation">Annuler</button>' +
+          '<button type="submit">Créer le lieu</button>' +
+        '</div>' +
+      '</form>';
+
+    popupTemp = new mapboxgl.Popup({ offset: 28, maxWidth: '320px', className: 'abs-popup', closeOnClick: false })
+      .setLngLat([lng, lat])
+      .setHTML(html)
+      .addTo(map);
+
+    // Branche les handlers une fois la popup dans le DOM.
+    setTimeout(function () {
+      var form = document.getElementById('form-creer-lieu');
+      var btnAnnuler = document.getElementById('btn-annuler-creation');
+      if (form) form.addEventListener('submit', soumettreFormulaire);
+      if (btnAnnuler) btnAnnuler.addEventListener('click', function () {
+        nettoyerMarkerTemp();
+      });
+    }, 0);
+  }
+
+  function remplirInfosFormulaire(info) {
+    if (!popupTemp || !info) return;
+    var el = popupTemp.getElement();
+    if (!el) return;
+    var setText = function (sel, txt) {
+      var e = el.querySelector(sel);
+      if (e) e.textContent = txt || '—';
+    };
+    var setHidden = function (name, val) {
+      var e = el.querySelector('[name="' + name + '"]');
+      if (e) e.value = val || '';
+    };
+    setText('[data-adresse]', info.adresse);
+    setText('[data-ville]',   info.ville);
+    setText('[data-pays]',    info.pays);
+    setHidden('adresse',       info.adresse);
+    setHidden('ville_nom',     info.ville);
+    setHidden('pays_nom',      info.pays);
+    setHidden('pays_code_iso', info.code_iso);
+  }
+
+  function mettreAJourCoords(lng, lat) {
+    if (!popupTemp) return;
+    var el = popupTemp.getElement();
+    if (!el) return;
+    var latIn = el.querySelector('[name="latitude"]');
+    var lngIn = el.querySelector('[name="longitude"]');
+    if (latIn) latIn.value = lat;
+    if (lngIn) lngIn.value = lng;
+    popupTemp.setLngLat([lng, lat]);
+  }
+
+  function soumettreFormulaire(ev) {
+    ev.preventDefault();
+    var form = ev.target;
+    var errBox = form.querySelector('.form-error');
+    var btnSubmit = form.querySelector('button[type="submit"]');
+    errBox.hidden = true;
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Envoi…';
+
+    fetch(pathCreer, {
+      method: 'POST',
+      body: new FormData(form),
+      credentials: 'same-origin',
+    })
+    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+    .then(function (res) {
+      if (!res.ok || !res.body.success) {
+        errBox.textContent = res.body.erreur || 'Erreur inconnue.';
+        errBox.hidden = false;
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Créer le lieu';
+        return;
+      }
+      // Succès : on ajoute le lieu à la liste, on rafraîchit le cluster Mapbox
+      // (sinon le nouveau pin ne se regroupe pas avec les autres dans la même
+      // zone et le clic sur la couche unclustered-monuments ne le trouve pas),
+      // puis on re-rend les markers DOM.
+      var nouveau = res.body.lieu;
+      places.push(nouveau);
+      nettoyerMarkerTemp();
+      refreshMonumentSource();
+      if (typeof renderMarkers === 'function') renderMarkers();
+      // Petit zoom sur le nouveau lieu pour confirmer visuellement à l'utilisateur.
+      map.flyTo({ center: [parseFloat(nouveau.lng), parseFloat(nouveau.lat)], zoom: 15, essential: true });
+    })
+    .catch(function () {
+      errBox.textContent = 'Connexion au serveur impossible.';
+      errBox.hidden = false;
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Créer le lieu';
     });
   }
 

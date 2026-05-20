@@ -165,6 +165,24 @@ class AvisModel extends Modele
     }
 
     /**
+     * Liste des id_lieu où l'utilisateur a déjà laissé un avis.
+     * Utilisé par le filtre « Mes avis » de la carte pour n'afficher que les
+     * pins concernés. Renvoie un tableau d'entiers (int), pas de doublons.
+     *
+     * @return list<int>
+     */
+    public static function idsLieuxParUtilisateur(int $idUtilisateur): array
+    {
+        $st = self::pdo()->prepare(
+            'SELECT DISTINCT id_lieu FROM avis
+              WHERE id_utilisateur = :uid AND id_lieu IS NOT NULL'
+        );
+        $st->execute([':uid' => $idUtilisateur]);
+        $ids = $st->fetchAll(PDO::FETCH_COLUMN);
+        return array_map('intval', $ids ?: []);
+    }
+
+    /**
      * Avis publics sur un lieu donné (utilisé par la fiche lieu).
      *
      * @return list<array<string, mixed>>

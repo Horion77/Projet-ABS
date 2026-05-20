@@ -497,7 +497,191 @@ body.map-page .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
     #map-controls { padding: 10px 12px 20px; }
     #map-controls-inner { flex-wrap: wrap; gap: 8px; }
     #country-filter-wrap label { display: none; }
+    #avis-filter-wrap label { display: none; }
     #places-count { margin-left: 0; }
     #nav-panel { display: none; }
     .legende-carte { display: none; }
+}
+
+/* Filtre par type d'avis : même style visuel que le filtre pays pour rester cohérent */
+#avis-filter-wrap { display: flex; align-items: center; gap: 10px; }
+#avis-filter-wrap label {
+    color: var(--carte-text-dim);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+#avis-filter {
+    background: var(--carte-surface);
+    color: var(--carte-text);
+    border: 1px solid var(--carte-border);
+    border-radius: 8px;
+    padding: 7px 28px 7px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* ════════════════════════════════════════════════════════════════════════ */
+/* ── Barre de recherche d'adresse + bouton « Ajouter un lieu » ──────────── */
+/* ════════════════════════════════════════════════════════════════════════ */
+
+#recherche-wrap {
+    min-width: 240px;
+    max-width: 320px;
+}
+mapbox-search-box {
+    width: 100%;
+    --color: #e8eaf2;
+    --background: rgba(20, 25, 40, 0.85);
+    --border: 1px solid rgba(255, 255, 255, 0.1);
+    --border-radius: 8px;
+    --font-family: 'Inter', sans-serif;
+    --box-shadow: none;
+}
+
+.btn-add-pin {
+    background: linear-gradient(135deg, #f0a500, #f06d00);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font: 600 13px 'Inter', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 120ms, box-shadow 120ms;
+    box-shadow: 0 2px 8px rgba(240, 109, 0, 0.35);
+}
+.btn-add-pin:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(240, 109, 0, 0.5); }
+.btn-add-pin.actif {
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.3);
+}
+.btn-add-pin .plus { font-size: 18px; line-height: 1; }
+
+/* Bandeau d'aide affiché au-dessus de la carte pendant l'ajout */
+.add-mode-hint {
+    position: absolute;
+    top: 80px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(240, 109, 0, 0.95);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font: 500 13px 'Inter', sans-serif;
+    z-index: 10;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    display: flex; align-items: center; gap: 12px;
+}
+.add-mode-hint button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #fff;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.add-mode-hint button:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* Curseur croix sur la carte pendant le mode ajout */
+body.map-add-mode .mapboxgl-canvas { cursor: crosshair !important; }
+
+/* ── Marker temporaire jaune (avant validation du formulaire) ─────────── */
+.marker-temp {
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: grab;
+    animation: marker-temp-pulse 1.4s ease-in-out infinite;
+}
+.marker-temp:active { cursor: grabbing; }
+.marker-temp-pin {
+    font-size: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+@keyframes marker-temp-pulse {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+}
+
+/* ── Formulaire de création de lieu (dans la popup Mapbox) ────────────── */
+.form-creer-lieu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font: 13px 'Inter', sans-serif;
+    color: #e8eaf2;
+}
+.form-creer-lieu h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+}
+.form-creer-lieu label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 12px;
+    color: #a8b1c8;
+}
+.form-creer-lieu input[type="text"],
+.form-creer-lieu input:not([type]),
+.form-creer-lieu input[type="file"],
+.form-creer-lieu select,
+.form-creer-lieu textarea {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e8eaf2;
+    padding: 6px 8px;
+    border-radius: 5px;
+    font: 13px 'Inter', sans-serif;
+}
+.form-creer-lieu input:focus,
+.form-creer-lieu select:focus,
+.form-creer-lieu textarea:focus {
+    outline: none;
+    border-color: #f0a500;
+}
+.form-creer-lieu textarea { resize: vertical; min-height: 50px; }
+.form-creer-lieu .loc-preview {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 11.5px;
+    color: #a8b1c8;
+    line-height: 1.5;
+}
+.form-creer-lieu .loc-preview strong { color: #e8eaf2; font-weight: 600; }
+.form-creer-lieu .form-error {
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #ff7a6a;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+.form-creer-lieu .form-actions {
+    display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px;
+}
+.form-creer-lieu .form-actions button {
+    background: linear-gradient(135deg, #f0a500, #f06d00);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 12px;
+    font: 600 12px 'Inter', sans-serif;
+    cursor: pointer;
+}
+.form-creer-lieu .form-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+.form-creer-lieu .form-actions button[type="button"] {
+    background: rgba(255, 255, 255, 0.08);
+    color: #a8b1c8;
+}
+.form-creer-lieu .form-actions button[type="button"]:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
 }

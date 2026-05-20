@@ -29,3 +29,8 @@ Desktop.ini
 # Fichiers uploadés par les utilisateurs (si applicable)
 public/assets/uploads/*
 !public/assets/uploads/.gitkeep
+
+# Photos de lieux uploadées par les utilisateurs (non versionnées)
+public/uploads/lieux/*
+!public/uploads/lieux/.gitkeep
+!public/uploads/lieux/.htaccess

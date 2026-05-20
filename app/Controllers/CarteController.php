@@ -4,6 +4,9 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controleur;
+use App\Core\Session;
+use App\Models\AvisModel;
+use App\Models\CategorieLieuModel;
 use App\Models\LieuModel;
 
 /**
@@ -14,14 +17,24 @@ class CarteController extends Controleur
 {
     public function index(): void
     {
-        $places    = LieuModel::tousAvecNotes();
-        $countries = LieuModel::paysPourFiltreCarte();
+        $places     = LieuModel::tousAvecNotes();
+        $countries  = LieuModel::paysPourFiltreCarte();
+        $categories = CategorieLieuModel::toutes();
+
+        // Pour le filtre « Mes avis » : liste des id_lieu où l'utilisateur connecté
+        // a déjà laissé un avis. Tableau vide si invité (le filtre est alors
+        // simplement inutile, le JS masque l'option).
+        $myReviewedLieux = Session::estConnecte()
+            ? AvisModel::idsLieuxParUtilisateur((int) ($_SESSION['user_id'] ?? 0))
+            : [];
 
         $this->rendre('carte/index', [
-            'places'      => $places,
-            'countries'   => $countries,
-            'mapboxToken' => $this->resoudreTokenMapbox(),
-            'pageTitre'   => 'Carte Interactive',
+            'places'          => $places,
+            'countries'       => $countries,
+            'categories'      => $categories,
+            'myReviewedLieux' => $myReviewedLieux,
+            'mapboxToken'     => $this->resoudreTokenMapbox(),
+            'pageTitre'       => 'Carte Interactive',
         ], 'map');
     }
 

@@ -37,6 +37,7 @@ return [
     ['GET',  '/carte',        [CarteController::class,       'index']],
 
     ['GET',  '/lieu',         [LieuController::class,        'afficher']],
+    ['POST', '/lieu/creer',   [LieuController::class,        'creer']],
 
     ['GET',  '/pays',         [PaysController::class,        'afficher']],
 
