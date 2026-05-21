@@ -1,0 +1,14 @@
+{
+  "name": "projet-abs",
+  "private": true,
+  "scripts": {
+    "build:css": "npm run build:css:app && npm run build:css:map",
+    "build:css:app": "tailwindcss -i resources/css/style.css -o public/assets/css/style.css && tailwindcss -i resources/css/home.css -o public/assets/css/home.css && tailwindcss -i resources/css/auth.css -o public/assets/css/auth.css && tailwindcss -i resources/css/place.css -o public/assets/css/place.css && tailwindcss -i resources/css/reviews.css -o public/assets/css/reviews.css",
+    "build:css:map": "cp resources/css/map.css public/assets/css/map.css",
+    "watch:css": "tailwindcss -i resources/css/style.css -o public/assets/css/style.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "tailwindcss": "^4.1.0"
+  }
+}
