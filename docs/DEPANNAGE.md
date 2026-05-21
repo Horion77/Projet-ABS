@@ -10,6 +10,24 @@ Le serveur web n’est pas démarré.
 
 ---
 
+## `Failed to open stream: bdd.php` (MAMP)
+
+MAMP utilise souvent **`/Applications/MAMP/htdocs/Projet-ABS/`**, pas le dossier sur le Bureau.
+Le fichier `app/Config/bdd.php` n’y est pas versionné : il faut le créer **dans la copie htdocs** :
+
+```bash
+cp app/Config/bdd.exemple.php app/Config/bdd.php
+cp app/Config/mapbox.exemple.php app/Config/mapbox.php
+```
+
+Depuis le projet sur le Bureau, vous pouvez aussi lancer :
+
+```bash
+./scripts/sync-mamp-config.sh
+```
+
+---
+
 ## Erreur MySQL / PDO
 
 1. MySQL doit tourner (MAMP : voyant vert)
