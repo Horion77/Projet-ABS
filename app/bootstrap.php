@@ -16,6 +16,18 @@ if (!defined('APP_CONFIG')) {
     define('APP_CONFIG', APP_PATH . '/Config');
 }
 
+if (!is_file(APP_CONFIG . '/bdd.php')) {
+    http_response_code(503);
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>ABS — configuration</title></head><body style="font-family:sans-serif;max-width:36rem;margin:2rem auto;padding:0 1rem;">';
+    echo '<h1>Configuration manquante</h1>';
+    echo '<p>Le fichier <code>app/Config/bdd.php</code> est absent. Créez-le à partir du modèle :</p>';
+    echo '<pre style="background:#f4f4f4;padding:1rem;">cp app/Config/bdd.exemple.php app/Config/bdd.php</pre>';
+    echo '<p>Puis importez <code>sql/schema/database.sql</code> dans MySQL (base <strong>abs_db</strong>) et adaptez identifiants / port dans <code>bdd.php</code>.</p>';
+    echo '</body></html>';
+    exit;
+}
+
 $appConfig = require APP_CONFIG . '/application.php';
 if (!defined('APP_BASE_URL')) {
     $baseUrl = '/';
@@ -25,7 +37,16 @@ if (!defined('APP_BASE_URL')) {
             $baseUrl = '/' . trim($trimmed, '/');
         }
     }
-    define('APP_BASE_URL', $baseUrl);
+    // Détection automatique du préfixe (MAMP / sous-dossier / php -S)
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $dir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+    if ($dir !== '' && $dir !== '.') {
+        $baseUrl = $dir;
+    }
+    if (php_sapi_name() === 'cli-server') {
+        $baseUrl = '';
+    }
+    define('APP_BASE_URL', $baseUrl === '/' ? '' : $baseUrl);
 }
 
 require_once APP_PATH . '/Core/Aides.php';

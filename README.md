@@ -229,7 +229,20 @@ Données de démonstration dans [`sql/seeds/seed_demo.sql`](sql/seeds/seed_demo.
 
 7. **Lancer le site**
 
-   Accéder à `http://localhost/` (ou l'URL de votre vhost) dans le navigateur.
+   **MAMP** (Apache démarré) :
+
+   - `http://localhost:8888/Projet-ABS/public/` (port 8888 par défaut)
+   - ou `http://localhost/Projet-ABS/public/` si Apache écoute sur le port 80
+
+   **Sans MAMP** (serveur PHP intégré, depuis la racine du projet) :
+
+   ```bash
+   npm run start
+   ```
+
+   Puis ouvrir **`http://localhost:8000/`**
+
+   Les fichiers `app/Config/bdd.php` et `app/Config/mapbox.php` doivent exister (copiés depuis les `.exemple.php`).
 
 ---
 
