@@ -1,33 +1,8 @@
-/*! tailwindcss v4.3.0 | MIT License | https://tailwindcss.com */
-:root, :host {
-  --font-abs-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-abs-serif: "Playfair Display", Georgia, "Times New Roman", serif;
-}
-:root {
-  --abs-bg: #0a0a0f;
-  --abs-bg-elevated: #12121a;
-  --abs-surface: #16161e;
-  --abs-surface-2: #1e1e28;
-  --abs-border: rgba(167, 139, 250, 0.22);
-  --abs-text: #f4f4f5;
-  --abs-text-muted: #a1a1aa;
-  --abs-violet: #8b5cf6;
-  --abs-violet-glow: #a78bfa;
-  --abs-cta: #2dd4bf;
-  --abs-cta-hover: #14b8a6;
-  --abs-gold: #fbbf24;
-  --abs-link: #67e8f9;
-  --couleur-primaire: var(--abs-cta);
-  --couleur-primaire-fonce: var(--abs-cta-hover);
-  --couleur-fond: var(--abs-bg);
-  --couleur-bloc: var(--abs-surface);
-  --couleur-texte: var(--abs-text);
-  --couleur-texte-alt: var(--abs-text-muted);
-  --couleur-lien: var(--abs-link);
-  --couleur-bordure: var(--abs-border);
-  --rayon: 0.75rem;
-  --max-largeur: 68rem;
-}
+/* Login / Inscription — dark cosmic */
+
+@import "tailwindcss/theme" theme(reference);
+@import "./theme.css";
+
 .conteneur-auth {
   max-width: 28rem;
   margin: 2.5rem auto 3rem;
@@ -37,6 +12,7 @@
   border-radius: 1.25rem;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
 }
+
 .titre-auth {
   margin: 0 0 0.25rem;
   font-family: var(--font-abs-serif);
@@ -45,15 +21,18 @@
   line-height: 1.2;
   color: var(--abs-text);
 }
+
 .sous-titre-auth {
   margin: 0 0 1.25rem;
   color: var(--abs-text-muted);
   font-size: 0.95rem;
   font-family: var(--font-abs-sans);
 }
+
 .form-auth {
   margin-top: 0.25rem;
 }
+
 .groupe-champ {
   margin-bottom: 1rem;
 }
@@ -67,6 +46,7 @@
   margin-bottom: 0.35rem;
   font-family: var(--font-abs-sans);
 }
+
 .form-auth input {
   display: block;
   width: 100%;
@@ -86,6 +66,7 @@
   border-color: var(--abs-violet);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
 }
+
 .btn-auth {
   display: block;
   width: 100%;
@@ -106,6 +87,7 @@
   background: var(--abs-cta-hover);
   box-shadow: 0 0 28px rgba(45, 212, 191, 0.35);
 }
+
 .lien-auth-bas {
   text-align: center;
   font-size: 0.9rem;
@@ -117,11 +99,13 @@
   color: var(--abs-cta);
   font-weight: 600;
 }
+
 .field-error {
   color: #fca5a5;
   font-size: 0.88rem;
   margin: 0.35rem 0 0;
 }
+
 @media (min-width: 480px) {
   .conteneur-auth {
     max-width: 32rem;

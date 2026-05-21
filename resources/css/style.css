@@ -1,0 +1,324 @@
+/* ABS — global dark cosmic (Tailwind v4) */
+
+@import "tailwindcss";
+@import "./theme.css";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap");
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+body:not(.map-page) {
+  @apply m-0 min-h-screen flex flex-col;
+  font-family: var(--font-abs-sans);
+  line-height: 1.5;
+  color: var(--abs-text);
+  background-color: var(--abs-bg);
+}
+
+body:not(.map-page) a {
+  color: var(--abs-link);
+  text-decoration: none;
+}
+body:not(.map-page) a:hover {
+  text-decoration: underline;
+  color: var(--abs-cta);
+}
+
+body:not(.map-page) a:focus-visible,
+body:not(.map-page) button:focus-visible,
+body:not(.map-page) input:focus-visible,
+body:not(.map-page) textarea:focus-visible,
+body:not(.map-page) select:focus-visible {
+  outline: 2px solid var(--abs-violet);
+  outline-offset: 2px;
+}
+
+body:not(.map-page) ul {
+  margin: 0;
+}
+body:not(.map-page) img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Skip link ────────────────────────────────────────────────────────── */
+.skip {
+  @apply absolute z-[200] px-4 py-2 text-sm;
+  left: -9999px;
+  background: var(--abs-violet);
+  color: #fff;
+}
+.skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  outline: none;
+}
+
+/* ── Header / nav ─────────────────────────────────────────────────────── */
+body:not(.map-page) .site-header {
+  @apply sticky top-0 z-[100] border-b backdrop-blur-md;
+  background: rgba(10, 10, 15, 0.85);
+  border-color: var(--abs-border);
+}
+
+body:not(.map-page) .header-inner {
+  @apply mx-auto flex flex-wrap items-center justify-between gap-2 px-5 py-3;
+  max-width: var(--max-largeur);
+}
+
+body:not(.map-page) .logo {
+  @apply text-xl font-bold tracking-wide;
+  font-family: var(--font-abs-serif);
+  color: var(--abs-text);
+}
+body:not(.map-page) .logo::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: var(--abs-cta);
+  box-shadow: 0 0 8px var(--abs-cta);
+  vertical-align: middle;
+}
+body:not(.map-page) .logo:hover {
+  text-decoration: none;
+  color: var(--abs-cta);
+}
+
+body:not(.map-page) .nav-toggle {
+  @apply hidden cursor-pointer rounded-lg border px-3 py-1.5 text-sm;
+  background: var(--abs-surface);
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+  font-family: inherit;
+}
+
+body:not(.map-page) .nav-site {
+  @apply flex flex-wrap items-center gap-2;
+}
+body:not(.map-page) .nav-site a {
+  @apply whitespace-nowrap text-sm font-medium;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .nav-site a:hover {
+  color: var(--abs-text);
+  text-decoration: none;
+}
+
+body:not(.map-page) .nav-auth {
+  @apply inline-block rounded-full px-4 py-1.5 text-sm font-semibold no-underline;
+  background: var(--abs-cta);
+  color: #0a0a0f !important;
+}
+body:not(.map-page) .nav-auth:hover {
+  background: var(--abs-cta-hover);
+  text-decoration: none;
+  color: #0a0a0f !important;
+}
+
+body:not(.map-page) .nav-deconnexion-btn {
+  @apply cursor-pointer border-0 font-semibold;
+  background: transparent;
+  color: var(--abs-text-muted) !important;
+  padding: 0;
+}
+body:not(.map-page) .nav-deconnexion-btn:hover {
+  color: var(--abs-cta) !important;
+  background: transparent;
+}
+
+body:not(.map-page) .nav-sep {
+  display: inline-block;
+  width: 0;
+}
+
+@media (max-width: 700px) {
+  body:not(.map-page) .nav-toggle {
+    display: block;
+  }
+  body:not(.map-page) .nav-site {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.5rem;
+  }
+  body:not(.map-page) .nav-site.nav-open {
+    display: flex;
+  }
+}
+
+/* ── Main / footer ────────────────────────────────────────────────────── */
+body:not(.map-page) .site-main {
+  @apply flex-1 relative z-[1];
+}
+
+body:not(.map-page) .site-footer {
+  @apply mt-auto border-t px-4 py-6 text-center text-sm;
+  background: var(--abs-bg-elevated);
+  border-color: var(--abs-border);
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .footer-inner {
+  @apply mx-auto;
+  max-width: var(--max-largeur);
+}
+body:not(.map-page) .site-footer p {
+  margin: 0.25rem 0;
+}
+body:not(.map-page) .footer-mention {
+  @apply text-xs opacity-80;
+}
+
+/* ── Flash messages ───────────────────────────────────────────────────── */
+body:not(.map-page) .errors {
+  @apply mx-auto mb-4 rounded-xl border px-4 py-3;
+  max-width: var(--max-largeur);
+  background: rgba(127, 29, 29, 0.35);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fecaca;
+}
+body:not(.map-page) .errors ul {
+  padding-left: 1.1rem;
+  margin: 0;
+}
+body:not(.map-page) .errors li {
+  margin: 0.15rem 0;
+}
+
+body:not(.map-page) .success {
+  @apply mx-auto mb-4 rounded-xl border px-4 py-3;
+  max-width: var(--max-largeur);
+  background: rgba(6, 78, 59, 0.35);
+  border-color: rgba(45, 212, 191, 0.35);
+  color: #a7f3d0;
+}
+
+/* ── Forms global ─────────────────────────────────────────────────────── */
+body:not(.map-page) form label {
+  @apply mb-1 block text-sm font-medium;
+  color: var(--abs-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+body:not(.map-page) form input,
+body:not(.map-page) form textarea,
+body:not(.map-page) form select {
+  @apply w-full max-w-lg rounded-lg border px-3 py-2 text-base;
+  font-family: var(--font-abs-sans);
+  background: var(--abs-surface);
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+}
+body:not(.map-page) form input::placeholder,
+body:not(.map-page) form textarea::placeholder {
+  color: var(--abs-text-muted);
+  opacity: 0.7;
+}
+
+body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle),
+body:not(.map-page) .btn {
+  @apply cursor-pointer rounded-full border-0 px-5 py-2 font-semibold;
+  font-family: var(--font-abs-sans);
+  background: var(--abs-cta);
+  color: #0a0a0f;
+}
+body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle):hover,
+body:not(.map-page) .btn:hover {
+  background: var(--abs-cta-hover);
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────── */
+body:not(.map-page) .conteneur {
+  @apply mx-auto px-5 pb-10;
+  max-width: var(--max-largeur);
+}
+
+/* ── Profil ───────────────────────────────────────────────────────────── */
+body:not(.map-page) .conteneur-profil {
+  @apply mx-auto px-5 pb-10 pt-6;
+  max-width: var(--max-largeur);
+}
+
+body:not(.map-page) .bloc-profil,
+body:not(.map-page) .bloc-avis {
+  @apply my-6 rounded-2xl border p-6;
+  background: var(--abs-surface);
+  border-color: var(--abs-border);
+}
+
+body:not(.map-page) .bloc-profil h2,
+body:not(.map-page) .bloc-avis h2 {
+  @apply mb-4 border-b pb-2 text-xl;
+  font-family: var(--font-abs-serif);
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+}
+
+body:not(.map-page) .grille-profil {
+  @apply grid gap-1;
+  grid-template-columns: 8rem 1fr;
+}
+body:not(.map-page) .grille-profil dt {
+  @apply text-sm;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .grille-profil dd {
+  margin: 0;
+  color: var(--abs-text);
+}
+
+body:not(.map-page) .message-vide {
+  color: var(--abs-text-muted);
+}
+
+body:not(.map-page) .liste-avis-profil {
+  @apply m-0 mt-2 list-none p-0;
+}
+body:not(.map-page) .liste-avis-profil li {
+  @apply border-b py-4;
+  border-color: var(--abs-border);
+}
+body:not(.map-page) .liste-avis-profil .note-profil {
+  color: var(--abs-cta);
+  font-weight: 600;
+}
+body:not(.map-page) .cible-avis {
+  @apply text-sm;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .comm-avis {
+  @apply my-1 text-sm italic;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .liste-avis-profil time {
+  @apply text-xs;
+  color: var(--abs-text-muted);
+  opacity: 0.8;
+}
+
+body:not(.map-page) .profil-avatar {
+  @apply rounded-full border-2 object-cover;
+  border-color: var(--abs-border);
+}
+body:not(.map-page) .profil-bio-titre {
+  @apply mb-1 text-base font-semibold;
+  color: var(--abs-text);
+}
+body:not(.map-page) .profil-bio-texte {
+  @apply m-0 leading-relaxed;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .liste-avis-profil .avis-photo-thumb {
+  @apply rounded-lg border object-cover;
+  border-color: var(--abs-border);
+}
+
+/* Titres serif globaux (hors carte) */
+body:not(.map-page) h1,
+body:not(.map-page) .titre-page-avis,
+body:not(.map-page) .titre-page-pays {
+  font-family: var(--font-abs-serif);
+}
