@@ -22,7 +22,7 @@ Projet réalisé dans le cadre du cours de Programmation Web (HTML / CSS / PHP /
 | Couche | Technologie |
 |--------|-------------|
 | Structure | HTML5 |
-| Style | CSS3 natif (aucun framework) |
+| Style | CSS3 + [Tailwind CSS v4](https://tailwindcss.com/) (build local, classes via `@apply` sur le HTML existant) |
 | Serveur | PHP 8.1+ (natif, aucun framework) |
 | Base de données | MySQL (PDO) |
 | Carte interactive | Mapbox GL JS |
@@ -210,7 +210,24 @@ Données de démonstration dans [`sql/seeds/seed_demo.sql`](sql/seeds/seed_demo.
 
    Renseigner votre [jeton public Mapbox](https://account.mapbox.com/access-tokens/), ou définir la variable d'environnement `MAPBOX_TOKEN`. Sans configuration, un jeton de secours intégré au code est utilisé pour la démo locale.
 
-6. **Lancer le site**
+6. **Compiler les feuilles de style (Tailwind)**
+
+   Les sources CSS se trouvent dans `resources/css/`. Les fichiers servis par l'application sont générés dans `public/assets/css/`.
+
+   ```bash
+   npm install
+   npm run build:css
+   ```
+
+   Pendant le travail sur le design :
+
+   ```bash
+   npm run watch:css
+   ```
+
+   Ne pas modifier directement les CSS compilés dans `public/assets/css/` : ils sont écrasés à chaque build.
+
+7. **Lancer le site**
 
    Accéder à `http://localhost/` (ou l'URL de votre vhost) dans le navigateur.
 

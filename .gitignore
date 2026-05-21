@@ -6,6 +6,9 @@ app/Config/mapbox.php
 storage/*
 !storage/.gitkeep
 
+# Node / Tailwind build
+node_modules/
+
 # macOS
 .DS_Store
 .AppleDouble
