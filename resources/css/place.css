@@ -1,6 +1,5 @@
 /* Fiche lieu + avis — dark cosmic */
 
-@import "tailwindcss/theme" theme(reference);
 @import "./theme.css";
 
 .place-fiche {

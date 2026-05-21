@@ -1,6 +1,5 @@
 /* Page d'accueil — cosmic violet + étoiles (home.css chargé uniquement ici) */
 
-@import "tailwindcss/theme" theme(reference);
 @import "./theme.css";
 
 /* ── Fond cosmic (body quand home.css est présent) ─────────────────────── */

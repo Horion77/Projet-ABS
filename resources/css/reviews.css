@@ -1,6 +1,5 @@
 /* Pages avis + pays — dark cosmic */
 
-@import "tailwindcss/theme" theme(reference);
 @import "./theme.css";
 
 .conteneur-avis-liste {
