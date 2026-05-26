@@ -52,6 +52,9 @@
   font-family: var(--font-abs-sans);
 }
 .form-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-top: 0.25rem;
 }
 .groupe-champ {
