@@ -383,8 +383,8 @@ body:not(.map-page) img {
   height: 6px;
   margin-right: 0.4rem;
   border-radius: 50%;
-  background: var(--abs-cta);
-  box-shadow: 0 0 8px var(--abs-cta);
+  background: #8b5cf6;
+  box-shadow: 0 0 8px #8b5cf6;
   vertical-align: middle;
 }
 .logo:hover {
@@ -415,15 +415,23 @@ body:not(.map-page) img {
 .nav-site a {
   font-size: var(--text-sm);
   line-height: var(--tw-leading, var(--text-sm--line-height));
-  --tw-font-weight: var(--font-weight-medium);
-  font-weight: var(--font-weight-medium);
+  --tw-font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
-  color: var(--abs-text-muted);
-  text-decoration: none;
+  text-decoration-line: none;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(124,58,237,0.40);
+  transition: transform 0.15s;
 }
 .nav-site a:hover {
-  color: var(--abs-text);
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  color: #fff !important;
   text-decoration: none;
+  transform: translateY(-1px);
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
 }
 .nav-auth {
   display: inline-block;
