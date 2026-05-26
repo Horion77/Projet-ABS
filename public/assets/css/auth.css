@@ -87,24 +87,32 @@
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
 }
 .btn-auth {
-  display: block;
-  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
   margin-top: 1.25rem;
-  padding: 0.7rem 1rem;
+  padding: 0.7rem 2rem;
   font-family: var(--font-abs-sans);
   font-weight: 600;
   font-size: 1rem;
-  background: var(--abs-cta);
-  color: #0a0a0f;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
   border: none;
   border-radius: 9999px;
   cursor: pointer;
-  transition: background 0.15s, box-shadow 0.15s;
-  box-shadow: 0 0 20px rgba(45, 212, 191, 0.2);
+  box-shadow: 0 0 20px rgba(124,58,237,0.45);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 .btn-auth:hover {
-  background: var(--abs-cta-hover);
-  box-shadow: 0 0 28px rgba(176, 45, 212, 0.35);
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  transform: translateY(-1px);
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
+}
+@media (max-width: 480px) {
+  .btn-auth {
+    width: 100%;
+  }
 }
 .lien-auth-bas {
   text-align: center;
