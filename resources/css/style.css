@@ -2,6 +2,11 @@
 
 @import "tailwindcss";
 @import "./theme.css";
+@keyframes abs-btn-pulse {
+  0%   { box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+  50%  { box-shadow: 0 0 50px rgba(139,92,246,0.95), 0 0 80px rgba(139,92,246,0.5); }
+  100% { box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+}
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap");
 
 /* ── Base ─────────────────────────────────────────────────────────────── */
@@ -110,13 +115,16 @@ body:not(.map-page) img {
 
 .nav-auth {
   @apply inline-block rounded-full px-4 py-1.5 text-sm font-semibold no-underline;
-  background: var(--abs-cta);
-  color: #0a0a0f !important;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff !important;
+  box-shadow: 0 0 18px rgba(124,58,237,0.45);
 }
 .nav-auth:hover {
-  background: var(--abs-cta-hover);
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
   text-decoration: none;
-  color: #0a0a0f !important;
+  color: #fff !important;
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
+  transform: translateY(-1px);
 }
 
 .nav-deconnexion-btn {
@@ -224,12 +232,15 @@ body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-tog
 body:not(.map-page) .btn {
   @apply cursor-pointer rounded-full border-0 px-5 py-2 font-semibold;
   font-family: var(--font-abs-sans);
-  background: var(--abs-cta);
-  color: #0a0a0f;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(124,58,237,0.45);
 }
 body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle):hover,
 body:not(.map-page) .btn:hover {
-  background: var(--abs-cta-hover);
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
+  transform: translateY(-1px);
 }
 
 /* ── Layout ───────────────────────────────────────────────────────────── */
