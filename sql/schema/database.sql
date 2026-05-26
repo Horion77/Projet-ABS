@@ -263,6 +263,28 @@ CREATE INDEX idx_like_commentaire ON like_commentaire (id_commentaire);
 
 
 -- ============================================================
+-- 10b. LIKE_AVIS
+--     Un utilisateur ne peut liker un avis qu'une seule fois.
+--     Clé primaire composite (utilisateur + avis) = pas de doublon possible.
+-- ============================================================
+CREATE TABLE like_avis (
+  id_utilisateur  INT UNSIGNED    NOT NULL,
+  id_avis         INT UNSIGNED    NOT NULL,
+  created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id_utilisateur, id_avis),
+  CONSTRAINT fk_like_avis_user
+    FOREIGN KEY (id_utilisateur) REFERENCES utilisateur (id_utilisateur)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_like_avis_avis
+    FOREIGN KEY (id_avis) REFERENCES avis (id_avis)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_like_avis_avis ON like_avis (id_avis);
+
+
+-- ============================================================
 -- 11. VISITE
 --     Journal de voyage : enregistre les lieux visités.
 --     Même logique polymorphique que AVIS (pays / ville / lieu).

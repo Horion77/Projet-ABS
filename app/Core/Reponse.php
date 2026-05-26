@@ -11,7 +11,15 @@ class Reponse
     public static function rediriger(string $url, int $code = 302): never
     {
         if (!preg_match('#^https?://#i', $url) && function_exists('url')) {
-            $url = url($url);
+            // Si l'URL commence déjà par le préfixe de base, on ne la re-traite pas
+            // (évite de doubler le base URL quand on passe url('xxx') directement)
+            $base = defined('APP_BASE_URL') ? (string) APP_BASE_URL : '';
+            $dejaPrefixe = $base !== '' && (
+                str_starts_with($url, $base . '/') || $url === $base
+            );
+            if (!$dejaPrefixe) {
+                $url = url($url);
+            }
         }
         http_response_code($code);
         header('Location: ' . $url);

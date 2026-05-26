@@ -183,7 +183,56 @@ class AvisModel extends Modele
     }
 
     /**
-     * Avis publics sur un lieu donné (utilisé par la fiche lieu).
+     * Les N derniers avis publics par pays (sur des lieux précis).
+     * Utilise une window function MySQL 8 pour limiter par pays.
+     * Retourne un tableau indexé par id_pays : [ id_pays => [avis, ...] ]
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    public static function derniersAvisParPays(int $limite = 3): array
+    {
+        $limite = max(1, min(10, $limite));
+        $sql = "SELECT id_pays, id_avis, note, lieu_nom, prenom, nom_user, description, created_at, photo_thumb
+                FROM (
+                    SELECT
+                        p.id_pays,
+                        a.id_avis,
+                        a.note,
+                        l.nom           AS lieu_nom,
+                        u.prenom,
+                        u.nom           AS nom_user,
+                        a.description,
+                        a.created_at,
+                        (SELECT ph.url FROM photo_avis ph
+                         WHERE ph.id_avis = a.id_avis
+                         ORDER BY ph.ordre ASC, ph.id_photo ASC LIMIT 1) AS photo_thumb,
+                        ROW_NUMBER() OVER (PARTITION BY p.id_pays ORDER BY a.created_at DESC) AS rn
+                    FROM avis a
+                    JOIN lieu     l  ON l.id_lieu    = a.id_lieu
+                    JOIN ville    v  ON v.id_ville   = l.id_ville
+                    JOIN pays     p  ON p.id_pays    = v.id_pays
+                    JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
+                    WHERE a.visibility = 'public'
+                      AND a.id_lieu IS NOT NULL
+                ) AS ranked
+                WHERE rn <= {$limite}
+                ORDER BY id_pays, created_at DESC";
+
+        $rows = self::pdo()->query($sql);
+        if (!$rows) return [];
+
+        // Grouper par id_pays
+        $grouped = [];
+        foreach ($rows->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $idPays = (int) $row['id_pays'];
+            unset($row['rn']); // colonne interne, inutile côté JS
+            $grouped[$idPays][] = $row;
+        }
+        return $grouped;
+    }
+
+    /**
+     * Avis publics sur un lieu, avec nb likes et nb commentaires.
      *
      * @return list<array<string, mixed>>
      */
@@ -192,7 +241,9 @@ class AvisModel extends Modele
         $st = self::pdo()->prepare(
             "SELECT a.id_avis, a.note, a.titre, a.description, a.created_at, u.nom, u.prenom,
                 (SELECT ph.url FROM photo_avis ph WHERE ph.id_avis = a.id_avis
-                 ORDER BY ph.ordre ASC, ph.id_photo ASC LIMIT 1) AS photo_thumb
+                 ORDER BY ph.ordre ASC, ph.id_photo ASC LIMIT 1) AS photo_thumb,
+                (SELECT COUNT(*) FROM like_avis la WHERE la.id_avis = a.id_avis) AS nb_likes,
+                (SELECT COUNT(*) FROM commentaire c WHERE c.id_avis = a.id_avis) AS nb_commentaires
              FROM avis a
              JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
              WHERE a.id_lieu = :id AND a.visibility = 'public'
@@ -203,15 +254,16 @@ class AvisModel extends Modele
     }
 
     /**
-     * Note moyenne et nombre d'avis publics sur un lieu.
+     * Note moyenne et nombre total d'avis sur un lieu.
+     * Les avis privés comptent dans la moyenne (mais ne sont pas affichés).
      *
      * @return array{n:int, moy:string|null}
      */
     public static function statsParLieu(int $idLieu): array
     {
         $st = self::pdo()->prepare(
-            "SELECT COUNT(*) AS n, COALESCE(ROUND(AVG(a.note), 2), NULL) AS moy
-             FROM avis a WHERE a.id_lieu = :id AND a.visibility = 'public'"
+            'SELECT COUNT(*) AS n, COALESCE(ROUND(AVG(a.note), 2), NULL) AS moy
+             FROM avis a WHERE a.id_lieu = :id'
         );
         $st->execute([':id' => $idLieu]);
         $row = $st->fetch(PDO::FETCH_ASSOC);

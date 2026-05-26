@@ -53,24 +53,25 @@ body:not(.map-page) img {
   outline: none;
 }
 
-/* ── Header / nav ─────────────────────────────────────────────────────── */
-body:not(.map-page) .site-header {
+/* ── Header / nav (toutes les pages, y compris la carte) ──────────────── */
+.site-header {
   @apply sticky top-0 z-[100] border-b backdrop-blur-md;
   background: rgba(10, 10, 15, 0.85);
   border-color: var(--abs-border);
 }
 
-body:not(.map-page) .header-inner {
+.header-inner {
   @apply mx-auto flex flex-wrap items-center justify-between gap-2 px-5 py-3;
   max-width: var(--max-largeur);
 }
 
-body:not(.map-page) .logo {
+.logo {
   @apply text-xl font-bold tracking-wide;
   font-family: var(--font-abs-serif);
   color: var(--abs-text);
+  text-decoration: none;
 }
-body:not(.map-page) .logo::before {
+.logo::before {
   content: "";
   display: inline-block;
   width: 6px;
@@ -81,12 +82,12 @@ body:not(.map-page) .logo::before {
   box-shadow: 0 0 8px var(--abs-cta);
   vertical-align: middle;
 }
-body:not(.map-page) .logo:hover {
+.logo:hover {
   text-decoration: none;
   color: var(--abs-cta);
 }
 
-body:not(.map-page) .nav-toggle {
+.nav-toggle {
   @apply hidden cursor-pointer rounded-lg border px-3 py-1.5 text-sm;
   background: var(--abs-surface);
   border-color: var(--abs-border);
@@ -94,57 +95,58 @@ body:not(.map-page) .nav-toggle {
   font-family: inherit;
 }
 
-body:not(.map-page) .nav-site {
+.nav-site {
   @apply flex flex-wrap items-center gap-2;
 }
-body:not(.map-page) .nav-site a {
+.nav-site a {
   @apply whitespace-nowrap text-sm font-medium;
   color: var(--abs-text-muted);
+  text-decoration: none;
 }
-body:not(.map-page) .nav-site a:hover {
+.nav-site a:hover {
   color: var(--abs-text);
   text-decoration: none;
 }
 
-body:not(.map-page) .nav-auth {
+.nav-auth {
   @apply inline-block rounded-full px-4 py-1.5 text-sm font-semibold no-underline;
   background: var(--abs-cta);
   color: #0a0a0f !important;
 }
-body:not(.map-page) .nav-auth:hover {
+.nav-auth:hover {
   background: var(--abs-cta-hover);
   text-decoration: none;
   color: #0a0a0f !important;
 }
 
-body:not(.map-page) .nav-deconnexion-btn {
+.nav-deconnexion-btn {
   @apply cursor-pointer border-0 font-semibold;
   background: transparent;
   color: var(--abs-text-muted) !important;
   padding: 0;
 }
-body:not(.map-page) .nav-deconnexion-btn:hover {
+.nav-deconnexion-btn:hover {
   color: var(--abs-cta) !important;
   background: transparent;
 }
 
-body:not(.map-page) .nav-sep {
+.nav-sep {
   display: inline-block;
   width: 0;
 }
 
 @media (max-width: 700px) {
-  body:not(.map-page) .nav-toggle {
+  .nav-toggle {
     display: block;
   }
-  body:not(.map-page) .nav-site {
+  .nav-site {
     display: none;
     width: 100%;
     flex-direction: column;
     align-items: flex-start;
     padding-top: 0.5rem;
   }
-  body:not(.map-page) .nav-site.nav-open {
+  .nav-site.nav-open {
     display: flex;
   }
 }

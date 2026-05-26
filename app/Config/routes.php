@@ -6,9 +6,12 @@ use App\Controllers\AccueilController;
 use App\Controllers\AvisController;
 use App\Controllers\AvisListeController;
 use App\Controllers\CarteController;
+use App\Controllers\CommentaireController;
 use App\Controllers\ConnexionController;
+use App\Controllers\DecouvrirController;
 use App\Controllers\InscriptionController;
 use App\Controllers\LieuController;
+use App\Controllers\LikeController;
 use App\Controllers\PaysController;
 use App\Controllers\ProfilController;
 
@@ -36,11 +39,17 @@ return [
 
     ['GET',  '/carte',        [CarteController::class,       'index']],
 
+    ['GET',  '/decouvrir',    [DecouvrirController::class,   'index']],
+
     ['GET',  '/lieu',         [LieuController::class,        'afficher']],
     ['POST', '/lieu/creer',   [LieuController::class,        'creer']],
 
     ['GET',  '/pays',         [PaysController::class,        'afficher']],
 
-    ['GET',  '/avis',         [AvisListeController::class,   'index']],
-    ['POST', '/avis',         [AvisController::class,        'traiterSoumission']],
+    ['GET',  '/avis',              [AvisListeController::class,   'index']],
+    ['POST', '/avis',              [AvisController::class,        'traiterSoumission']],
+    ['POST', '/avis/liker',        [LikeController::class,        'likerAvis']],
+
+    ['POST', '/commentaire',       [CommentaireController::class, 'creer']],
+    ['POST', '/commentaire/liker', [CommentaireController::class, 'liker']],
 ];

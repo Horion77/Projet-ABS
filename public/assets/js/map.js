@@ -9,6 +9,7 @@
   var places      = d.places     || [];
   var countries   = d.countries  || [];
   var categories  = d.categories || [];
+  var paysNoms    = d.paysNoms   || {};   // ISO3 → nom FR (tous les pays du monde)
   var pathLieu    = d.placePath  || '/lieu';
   var pathPays    = d.paysPath   || '/pays';
   var pathCreer   = d.creerPath  || '/lieu/creer';
@@ -18,6 +19,9 @@
   var mesAvisSet  = new Set((d.myReviewedLieux || []).map(function (x) { return parseInt(x, 10); }));
   // Mode courant du filtre avis : 'tous' (par défaut) | 'avecAvis' | 'mesAvis'
   var avisFilter  = 'tous';
+  // Filtre par type de lieu : ensemble de libellés de catégories actifs.
+  // Vide = on affiche tout. Sinon on ne garde que les lieux de ces catégories.
+  var categoryFilter = new Set();
 
   mapboxgl.accessToken = d.token;
 
@@ -30,12 +34,42 @@
   };
   var currentStyleKey = 'dark';
 
-  // ── Seuils de zoom par type ─────────────────────────────────────────────
-  // Les monuments commencent à zoom 9 : en dessous c'est le clustering qui prend le relais.
-  var ZOOM_RANGE = {
-    pays:     { min: 0, max: 5.5 },
-    ville:    { min: 4, max: 9   },
-    monument: { min: 9, max: 22  },
+  // Zoom de clustering GL : au-delà de 14, Mapbox affiche les pins individuels.
+  var CLUSTER_MAX_ZOOM = 14;
+
+  // ── Icônes SVG par catégorie ─────────────────────────────────────────────
+  // stroke="currentColor" → hérite de la couleur CSS du parent (.abs-pin--*)
+  var _s = function (d) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"'
+         + ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round"'
+         + ' stroke-linejoin="round">' + d + '</svg>';
+  };
+  // Jeu d'icônes Lucide (https://lucide.dev) — propres, cohérentes, lisibles en petit.
+  var CAT_ICONS = {
+    // image/cadre → galerie / musée
+    'Musée':        _s('<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-3.5-3.5a2 2 0 0 0-2.8 0L6 21"/>'),
+    // utensils → restaurant
+    'Restaurant':   _s('<path d="M3 2v7a2 2 0 0 0 2 2 2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2z"/>'),
+    // umbrella → plage
+    'Plage':        _s('<path d="M22 12a10 10 0 0 0-20 0Z"/><path d="M12 12v8a2 2 0 0 0 4 0"/><path d="M12 2v1"/>'),
+    // landmark → monument
+    'Monument':     _s('<line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/>'),
+    // tree → parc
+    'Parc':         _s('<path d="M8 19a4 4 0 0 1-2.24-7.32A3.5 3.5 0 0 1 9 6.03V6a3 3 0 1 1 6 0v.03a3.5 3.5 0 0 1 3.24 5.65A4 4 0 0 1 16 19Z"/><path d="M12 19v3"/>'),
+    // bed → hôtel
+    'Hôtel':        _s('<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>'),
+    // wine → bar
+    'Bar':          _s('<path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/>'),
+    // shopping-bag → marché
+    'Marché':       _s('<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>'),
+    // mountain → site naturel
+    'Site naturel': _s('<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>'),
+    // map-pin → autre
+    'Autre':        _s('<path d="M20 10c0 5-8 12-8 12s-8-7-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>'),
+    // globe → pays
+    '_pays':        _s('<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>'),
+    // building → ville
+    '_ville':       _s('<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/>'),
   };
 
   // ── Continents ──────────────────────────────────────────────────────────
@@ -48,9 +82,10 @@
   ];
 
   var activeCountryId   = null;
-  var markers           = [];   // [{ marker, type }]
+  var leafMarkers       = {};   // { id_lieu: mapboxgl.Marker } — DOM pins individuels
   var hoveredCountryId  = null; // ISO3 du pays sous le curseur
   var selectedCountryId = null; // ISO3 du pays sélectionné
+  var survolMarker      = false; // true quand la souris est sur un pin DOM (bloque la hover card pays)
 
   // ── URL state : lit ?lng=&lat=&zoom= au chargement pour réouvrir la même vue
   function lireEtatUrl() {
@@ -83,15 +118,24 @@
   map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
   map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
 
+  // Handler clic pays enregistré une seule fois (ne dépend pas du style)
+  initPaysClic();
+
   map.on('style.load', function () {
     applyAtmosphere();
     applyTerrain();
     addCountryLayer();
-    addMonumentClusters();
-    renderMarkers();
-    // Couche régions chargée seulement au premier zoom suffisant (fichier ~37 MB)
+    addLieuxClusters();
+    // Régions chargées au premier zoom suffisant (fichier ~37 MB)
     map.once('zoom', tryLoadRegions);
     tryLoadRegions();
+  });
+
+  // Mise à jour des pins DOM quand les tuiles de la source clusterisée sont chargées
+  map.on('sourcedata', function (e) {
+    if (e.sourceId === 'lieux-source' && e.isSourceLoaded) {
+      updateLeafMarkers();
+    }
   });
 
   function tryLoadRegions() {
@@ -103,8 +147,7 @@
   }
 
   map.on('movestart', function () { document.getElementById('map').classList.add('map-moving'); });
-  map.on('moveend',   function () { document.getElementById('map').classList.remove('map-moving'); updateVisibility(); ecrireEtatUrl(); });
-  map.on('zoom', updateVisibility);
+  map.on('moveend',   function () { document.getElementById('map').classList.remove('map-moving'); updateLeafMarkers(); ecrireEtatUrl(); });
 
   // ── URL state : écrit lng/lat/zoom dans l'URL (debounced, replaceState) ─
   var urlTimer = null;
@@ -237,13 +280,21 @@
       hoveredRegionId = null;
     });
 
-    // Clic région : zoom sur la zone, sans repasser au clic pays
+    // Clic région : zoom sur la zone.
+    // On n'intervient qu'après qu'un pays soit sélectionné (phase 2).
+    // Sans ça, le handler regions-fill intercepte les clics avant pays-fill
+    // et empêche la détection du pays.
     map.on('click', 'regions-fill', function (e) {
       if (!e.features.length) return;
+      if (!selectedCountryId) return;   // laisse pays-fill gérer le clic
+      // On ne recadre sur une région QUE depuis une vue large (pays).
+      // Si on explore déjà une ville (zoom >= 5.5), on ne touche pas la caméra :
+      // sinon un clic qui rate un cluster recadre toute la région → dezoom.
+      if (map.getZoom() >= 5.5) return;
       e.preventDefault();
       var bounds = getFeatureBounds(e.features[0]);
       if (!bounds) return;
-      map.fitBounds(bounds, { padding: 60, pitch: 50, duration: 1500, maxZoom: 9, essential: true });
+      map.fitBounds(bounds, { padding: 60, pitch: 50, duration: 1200, maxZoom: 9, essential: true });
     });
   }
 
@@ -278,7 +329,9 @@
         type:           'fill',
         source:         'pays-source',
         'source-layer': 'country_boundaries',
-        filter:         ['match', ['get', 'worldview'], ['all', 'US'], true, false],
+        filter:         ['any',
+                          ['==', ['get', 'worldview'], 'all'],
+                          ['in', 'US', ['get', 'worldview']]],
         paint: {
           'fill-color':   '#6490ff',
           'fill-opacity': ['case',
@@ -297,7 +350,9 @@
         type:           'line',
         source:         'pays-source',
         'source-layer': 'country_boundaries',
-        filter:         ['match', ['get', 'worldview'], ['all', 'US'], true, false],
+        filter:         ['any',
+                          ['==', ['get', 'worldview'], 'all'],
+                          ['in', 'US', ['get', 'worldview']]],
         paint: {
           'line-color':   '#7eb3ff',
           'line-width':   ['case', ['boolean', ['feature-state', 'selected'], false], 2, 0],
@@ -310,6 +365,7 @@
     var hoverCard = document.getElementById('pays-hover-card');
 
     map.on('mousemove', 'pays-fill', function (e) {
+      if (survolMarker) { if (hoverCard) hoverCard.hidden = true; return; } // souris sur un pin
       if (!e.features.length) return;
       var id = e.features[0].id;
 
@@ -365,12 +421,47 @@
       if (hoverCard) hoverCard.hidden = true;
     });
 
-    // Clic : sélection du pays + zoom + filtre marqueurs
-    map.on('click', 'pays-fill', function (e) {
-      if (e.defaultPrevented) return; // Une région a déjà géré le clic
-      if (!e.features.length) return;
-      var f    = e.features[0];
+  }
+
+  // ── Clic pays (handler générique avec tolérance de bounding-box) ─────────
+  // Remplace map.on('click','pays-fill') pour résoudre le problème des nations
+  // insulaires (Japon, Grèce, Indonésie…) dont les frontières font quelques pixels
+  // à faible zoom et sont impossibles à viser précisément.
+  // La tolérance diminue au fur et à mesure qu'on zoome (plus de précision = moins
+  // de risque de sélectionner le pays voisin).
+  function initPaysClic() {
+    map.on('click', function (e) {
+      if (addMode) return;
+      if (e.defaultPrevented) return; // une région a déjà capturé ce clic
+      if (!map.getLayer('pays-fill')) return; // style pas encore chargé
+
+      // Ignore les clics qui partent d'un pin de lieu (DOM marker) ou de sa popup :
+      // Mapbox gère déjà l'ouverture/le contenu du popup pour ces clics.
+      var tgt = e.originalEvent && e.originalEvent.target;
+      if (tgt && tgt.closest && tgt.closest('.abs-marker, .mapboxgl-popup')) return;
+
+      // Ignore aussi les clics sur une bulle de cluster GL (géré par son propre
+      // handler qui zoome) — sinon on ouvrirait le panneau pays par-dessus.
+      if (map.getLayer('clusters-lieux')) {
+        var clusterHit = map.queryRenderedFeatures(e.point, { layers: ['clusters-lieux'] });
+        if (clusterHit.length) return;
+      }
+
+      var zoom = map.getZoom();
+      var tol  = zoom < 3 ? 10 : zoom < 5 ? 6 : zoom < 7 ? 4 : 3;
+      var bbox = [[e.point.x - tol, e.point.y - tol],
+                  [e.point.x + tol, e.point.y + tol]];
+      var features = map.queryRenderedFeatures(bbox, { layers: ['pays-fill'] });
+      if (!features.length) return;
+
+      var f    = features[0];
       var iso3 = String(f.id);
+      if (!iso3 || iso3 === 'undefined' || iso3 === 'null') return;
+
+      // Clic sur le pays déjà sélectionné → ne rien faire (évite qu'un clic
+      // accidentel près d'un pin désélectionne le pays). La désélection passe
+      // par le bouton ✕ du panneau ou « Monde entier ».
+      if (selectedCountryId === iso3) return;
 
       // Efface l'ancienne sélection visuelle
       if (selectedCountryId) {
@@ -380,129 +471,229 @@
         );
       }
 
-      // Reclic sur le même pays = on désélectionne
-      if (selectedCountryId === iso3) {
-        selectedCountryId = null;
-        deselectionnerPays();
-        return;
-      }
-
       selectedCountryId = iso3;
       map.setFeatureState(
         { source: 'pays-source', sourceLayer: 'country_boundaries', id: iso3 },
         { selected: true }
       );
 
+      // On ne fait un flyTo QUE depuis une vue large (globe / continent).
+      // Si on explore déjà le pays (zoom >= 4.5), on ne touche pas la caméra :
+      // ça évite le dezoom intempestif quand un clic rate un pin et tombe sur
+      // le pays en dessous.
+      var dejaProche = map.getZoom() >= 4.5;
+
       var paysDB = trouverPaysDB(iso3);
       if (paysDB) {
-        // Pays dans notre BDD : popup d'aperçu + filtre marqueurs + zoom
+        // Pays dans notre BDD : filtre marqueurs + zoom + panneau
         activeCountryId = String(paysDB.id_pays);
         syncCountryFilter(paysDB.id_pays);
-        renderMarkers();
-
-        // Popup ancrée au centre du pays (reste visible après le flyTo)
-        new mapboxgl.Popup({ offset: 14, maxWidth: '280px', className: 'abs-popup' })
-          .setLngLat([parseFloat(paysDB.lng), parseFloat(paysDB.lat)])
-          .setHTML(buildPaysPopup(paysDB))
-          .addTo(map);
-
-        map.flyTo({
-          center: [parseFloat(paysDB.lng), parseFloat(paysDB.lat)],
-          zoom: 5, pitch: 50, duration: 1800, essential: true,
-        });
+        refreshLieuxSource();
+        ouvrirPanneauPays(iso3, paysDB);
+        if (!dejaProche) {
+          map.flyTo({
+            center: [parseFloat(paysDB.lng), parseFloat(paysDB.lat)],
+            zoom: 5, pitch: 50, duration: 1800, essential: true,
+          });
+        }
       } else {
-        // Pays hors BDD : zoom simple sans filtre
-        map.flyTo({
-          center: [e.lngLat.lng, e.lngLat.lat],
-          zoom: 5, pitch: 45, duration: 1600, essential: true,
-        });
+        // Pays hors BDD : état vide dans le panneau + zoom simple
+        ouvrirPanneauPays(iso3, null);
+        if (!dejaProche) {
+          map.flyTo({
+            center: [e.lngLat.lng, e.lngLat.lat],
+            zoom: 5, pitch: 45, duration: 1600, essential: true,
+          });
+        }
       }
     });
   }
 
-  // ── Clustering des pins monuments ────────────────────────────────────────
-  // En dézoom on regroupe les monuments dans des clusters circle pour éviter
-  // l'empilement visuel. Au-dessus du clusterMaxZoom les pins DOM individuels
-  // prennent le relais (via ZOOM_RANGE.monument).
-  // Applique le filtre par type d'avis (tous / avec avis / mes avis).
-  // Centralisé ici pour que renderMarkers() ET buildMonumentFeatures() restent
-  // synchronisés (sinon le cluster afficherait des pins que le DOM cache).
-  function appliquerFiltreAvis(liste) {
-    if (avisFilter === 'avecAvis') {
-      return liste.filter(function (p) {
-        return parseInt(p.review_count || 0, 10) > 0;
+  // ── Panneau latéral pays ─────────────────────────────────────────────────
+  // Remplace le popup flottant : slide depuis la droite, ne couvre pas le globe.
+
+  function ouvrirPanneauPays(iso3, paysDB) {
+    var panel   = document.getElementById('pays-panel');
+    var content = document.getElementById('pays-panel-content');
+    if (!panel || !content) return;
+
+    var nomPays = paysDB ? escapeHtml(paysDB.nom)
+                         : escapeHtml(paysNoms[iso3] || iso3);
+
+    var html = '';
+
+    if (paysDB) {
+      // ── Pays avec données ────────────────────────────────────────────────
+      var nb     = parseInt(paysDB.places_count || 0, 10);
+      var note   = paysDB.avg_rating ? parseFloat(paysDB.avg_rating) : null;
+      var link   = pathPays + '?id=' + encodeURIComponent(String(paysDB.id_pays));
+
+      // Image représentative : premier lieu du pays qui en a une
+      var placeImg = places.find(function (p) {
+        return String(p.id_pays) === String(paysDB.id_pays) && p.image_url;
+      });
+      if (placeImg) {
+        html += '<img class="pp-img" src="' + escapeHtml(placeImg.image_url)
+              + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+      }
+
+      // Header : nom + stats
+      var statsHTML = '';
+      if (note) {
+        statsHTML += '<span class="pp-rating">'
+          + renderStars(note)
+          + ' <span class="pp-rating-num">' + note.toFixed(1) + '</span></span>';
+      }
+      statsHTML += '<span>' + nb + ' lieu' + (nb > 1 ? 'x' : '') + '</span>';
+
+      html += '<div class="pp-header">'
+            + '<div class="pp-nom">' + nomPays + '</div>'
+            + '<div class="pp-stats">' + statsHTML + '</div>'
+            + '</div>';
+
+      // Derniers avis
+      var avis = paysDB.derniers_avis || [];
+      if (avis.length > 0) {
+        html += '<h4 class="pp-section-title">Derniers avis</h4>';
+        avis.forEach(function (a) {
+          var stars = '';
+          for (var i = 1; i <= 5; i++) {
+            stars += i <= parseInt(a.note, 10) ? '★' : '☆';
+          }
+          var desc = a.description
+            ? escapeHtml(String(a.description).substring(0, 120)) + (a.description.length > 120 ? '…' : '')
+            : '';
+          html += '<div class="pp-avis-card">'
+                + '<div class="pp-avis-lieu">' + escapeHtml(a.lieu_nom || '') + '</div>'
+                + '<div class="pp-avis-meta">'
+                +   '<span class="pp-avis-note">' + stars + '</span>'
+                +   '<span>· ' + escapeHtml((a.prenom || '') + ' ' + (a.nom_user || '')) + '</span>'
+                + '</div>'
+                + (desc ? '<div class="pp-avis-desc">' + desc + '</div>' : '')
+                + '</div>';
+        });
+      }
+
+      html += '<a class="pp-cta" href="' + escapeHtml(link) + '">Voir tous les avis →</a>';
+
+    } else {
+      // ── Pays sans données ────────────────────────────────────────────────
+      html += '<div class="pp-header"><div class="pp-nom">' + nomPays + '</div></div>'
+            + '<div class="pp-empty">'
+            + '<div class="pp-empty-icon">🌍</div>'
+            + '<p>Aucun avis pour ce pays.</p>'
+            + '<p>Sois le premier à explorer !</p>'
+            + '</div>';
+    }
+
+    content.innerHTML = html;
+    panel.hidden = false;
+    document.body.classList.add('pays-panel-open');
+  }
+
+  function fermerPanneauPays() {
+    var panel = document.getElementById('pays-panel');
+    if (panel) panel.hidden = true;
+    document.body.classList.remove('pays-panel-open');
+  }
+
+  // Bouton fermer du panneau
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('pays-panel-close');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        fermerPanneauPays();
+        deselectionnerPays();
       });
     }
+  });
+
+  // ── Clustering natif unifié (villes + monuments) ─────────────────────────
+  // Une seule source GL clusterisée. Les clusters (groupes) s'affichent en GL.
+  // Les pins individuels (feuilles) sont des DOM markers créés par updateLeafMarkers.
+  // La densité gère automatiquement la visibilité — plus de seuils de zoom rigides.
+
+  // Applique le filtre avis (tous / avecAvis / mesAvis) à une liste de lieux.
+  function appliquerFiltreAvis(liste) {
+    if (avisFilter === 'avecAvis') {
+      return liste.filter(function (p) { return parseInt(p.review_count || 0, 10) > 0; });
+    }
     if (avisFilter === 'mesAvis') {
-      return liste.filter(function (p) {
-        return mesAvisSet.has(parseInt(p.id_lieu, 10));
-      });
+      return liste.filter(function (p) { return mesAvisSet.has(parseInt(p.id_lieu, 10)); });
     }
     return liste;
   }
 
-  // Construit la collection GeoJSON des monuments depuis le tableau `places`.
-  // Extrait dans sa propre fonction pour être appelée à la fois au chargement
-  // (par addMonumentClusters) et après chaque ajout d'un nouveau lieu par un user.
-  function buildMonumentFeatures() {
-    return appliquerFiltreAvis(places)
-      .filter(function (p) { return (p.type || 'monument') === 'monument'; })
+  // Construit le GeoJSON de tous les lieux affichables (ville + monument, pas pays).
+  // Combine les filtres pays actif + filtre avis.
+  function buildLieuxFeatures() {
+    var base = activeCountryId
+      ? places.filter(function (p) { return String(p.id_pays) === String(activeCountryId); })
+      : places;
+    return appliquerFiltreAvis(base)
+      .filter(function (p) { return p.type !== 'pays'; })
+      // Filtre par catégorie (vide = tout afficher)
+      .filter(function (p) {
+        return categoryFilter.size === 0 || categoryFilter.has(p.categorie);
+      })
       .map(function (p) {
         var lat = parseFloat(p.lat);
         var lng = parseFloat(p.lng);
         if (isNaN(lat) || isNaN(lng)) return null;
         return {
           type: 'Feature',
-          properties: {
-            id_lieu: p.id_lieu,
-            name:    p.name,
-            rating:  p.avg_rating || 0,
-          },
-          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: { id_lieu: p.id_lieu },
+          geometry:   { type: 'Point', coordinates: [lng, lat] },
         };
       })
-      .filter(function (f) { return f !== null; });
+      .filter(Boolean);
   }
 
-  // Rafraîchit la source GeoJSON existante (= relance le clustering avec les
-  // nouveaux pins). Appelée après création d'un lieu par un utilisateur.
-  function refreshMonumentSource() {
-    var src = map.getSource('monuments-source');
-    if (!src) return;
-    src.setData({ type: 'FeatureCollection', features: buildMonumentFeatures() });
+  // Met à jour la source GeoJSON et le compteur de lieux.
+  function refreshLieuxSource() {
+    var feats = buildLieuxFeatures();
+    updateCount(feats.length);
+    var src = map.getSource('lieux-source');
+    if (src) src.setData({ type: 'FeatureCollection', features: feats });
   }
 
-  function addMonumentClusters() {
-    if (map.getSource('monuments-source')) return;
+  // Crée la source clusterisée + les couches GL de clusters. Appelée au style.load.
+  function addLieuxClusters() {
+    if (map.getSource('lieux-source')) return;
 
-    map.addSource('monuments-source', {
-      type:           'geojson',
-      data:           { type: 'FeatureCollection', features: buildMonumentFeatures() },
-      cluster:        true,
-      clusterMaxZoom: 9,   // au-delà : on bascule sur les pins DOM monuments
-      clusterRadius:  50,
+    var feats = buildLieuxFeatures();
+    updateCount(feats.length);
+
+    map.addSource('lieux-source', {
+      type:          'geojson',
+      data:          { type: 'FeatureCollection', features: feats },
+      cluster:       true,
+      clusterMaxZoom: 14,   // au-delà : pins DOM individuels (updateLeafMarkers)
+      clusterRadius:  40,
     });
 
-    // Cercle du cluster (taille + couleur selon nombre de points)
+    // Bulle cluster (couleur + taille selon le nombre de points groupés)
     map.addLayer({
-      id:     'clusters-monuments',
+      id:     'clusters-lieux',
       type:   'circle',
-      source: 'monuments-source',
+      source: 'lieux-source',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color':        ['step', ['get', 'point_count'], '#b56a1a', 10, '#d4842a', 30, '#e8a347'],
-        'circle-radius':       ['step', ['get', 'point_count'], 16, 10, 22, 30, 28],
+        'circle-color':        ['step', ['get', 'point_count'],
+                                  '#818cf8', 5, '#6366f1', 20, '#4f46e5'],
+        'circle-radius':       ['step', ['get', 'point_count'],
+                                  18, 5, 24, 20, 30],
         'circle-stroke-width': 2,
-        'circle-stroke-color': 'rgba(255,255,255,0.6)',
+        'circle-stroke-color': 'rgba(255,255,255,0.65)',
         'circle-opacity':      0.92,
       },
     });
 
     // Compteur au centre du cluster
     map.addLayer({
-      id:     'clusters-count',
+      id:     'clusters-lieux-count',
       type:   'symbol',
-      source: 'monuments-source',
+      source: 'lieux-source',
       filter: ['has', 'point_count'],
       layout: {
         'text-field': '{point_count_abbreviated}',
@@ -512,51 +703,66 @@
       paint: { 'text-color': '#fff' },
     });
 
-    // Pin "monument isolé" (pas dans un cluster) — visible en vue ville/région
-    // C'est là qu'avant on n'avait rien : seul le cluster réagissait au clic.
-    map.addLayer({
-      id:     'unclustered-monuments',
-      type:   'circle',
-      source: 'monuments-source',
-      filter: ['!', ['has', 'point_count']],
-      paint: {
-        'circle-color':        '#d4842a',
-        'circle-radius':       8,
-        'circle-stroke-width': 2,
-        'circle-stroke-color': 'rgba(255,255,255,0.7)',
-        'circle-opacity':      0.95,
-      },
-    });
-
-    // Clic sur un cluster → zoom à l'intérieur (Mapbox calcule le zoom pour l'éclater)
-    map.on('click', 'clusters-monuments', function (e) {
-      var f = map.queryRenderedFeatures(e.point, { layers: ['clusters-monuments'] })[0];
+    // Clic sur un cluster → zoom pour l'éclater.
+    // On pousse le zoom au-delà du simple "expansion zoom" (qui sépare tout juste
+    // les points) pour arriver directement à un niveau où on voit les détails.
+    map.on('click', 'clusters-lieux', function (e) {
+      var f = map.queryRenderedFeatures(e.point, { layers: ['clusters-lieux'] })[0];
       if (!f) return;
-      map.getSource('monuments-source').getClusterExpansionZoom(f.properties.cluster_id, function (err, z) {
+      map.getSource('lieux-source').getClusterExpansionZoom(f.properties.cluster_id, function (err, z) {
         if (err) return;
-        map.easeTo({ center: f.geometry.coordinates, zoom: z, duration: 800 });
+        var cible = Math.min(Math.max(z + 2, map.getZoom() + 2.5), 16);
+        map.easeTo({ center: f.geometry.coordinates, zoom: cible, duration: 700, essential: true });
       });
     });
 
-    // Clic sur un monument isolé → popup avec photo + bouton "Voir les avis"
-    // (avant : redirection directe, ce qui sautait l'aperçu)
-    map.on('click', 'unclustered-monuments', function (e) {
-      if (!e.features.length) return;
-      var idLieu = e.features[0].properties.id_lieu;
-      var coords = e.features[0].geometry.coordinates.slice();
-      var place  = trouverLieuParId(idLieu);
-      if (!place) return;
-      new mapboxgl.Popup({ offset: 14, maxWidth: '280px', className: 'abs-popup' })
-        .setLngLat(coords)
-        .setHTML(buildPopup(place))
-        .addTo(map);
+    map.on('mouseenter', 'clusters-lieux', function () { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'clusters-lieux', function () { map.getCanvas().style.cursor = ''; });
+  }
+
+  // Crée / supprime les DOM markers pour les points non-clusterisés dans le viewport.
+  // Appelée sur moveend + sourcedata. Keyed par id_lieu pour éviter les doublons.
+  function updateLeafMarkers() {
+    if (!map.getSource('lieux-source')) return;
+
+    var features = map.querySourceFeatures('lieux-source', {
+      filter: ['!', ['has', 'point_count']],
     });
 
-    // Curseur pointer au survol
-    map.on('mouseenter', 'clusters-monuments',     function () { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', 'clusters-monuments',     function () { map.getCanvas().style.cursor = ''; });
-    map.on('mouseenter', 'unclustered-monuments',  function () { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', 'unclustered-monuments',  function () { map.getCanvas().style.cursor = ''; });
+    // Dédupliquer (un point peut apparaître dans plusieurs tuiles adjacentes)
+    var seen    = {};
+    var unique  = [];
+    features.forEach(function (f) {
+      var id = String(f.properties.id_lieu);
+      if (!seen[id]) { seen[id] = true; unique.push(f); }
+    });
+
+    // Créer les markers manquants
+    var inView = {};
+    unique.forEach(function (f) {
+      var id    = String(f.properties.id_lieu);
+      inView[id] = true;
+      if (!leafMarkers[id]) {
+        var place = trouverLieuParId(id);
+        if (!place) return;
+        var el     = createPinEl(place);
+        var marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat(f.geometry.coordinates.slice())
+          .addTo(map);
+        var popup = new mapboxgl.Popup({ offset: 28, maxWidth: '280px', className: 'abs-popup' })
+          .setHTML(buildPopup(place));
+        marker.setPopup(popup);
+        leafMarkers[id] = marker;
+      }
+    });
+
+    // Supprimer les markers qui ne sont plus dans le viewport
+    Object.keys(leafMarkers).forEach(function (id) {
+      if (!inView[id]) {
+        leafMarkers[id].remove();
+        delete leafMarkers[id];
+      }
+    });
   }
 
   // ── Helpers pays ─────────────────────────────────────────────────────────
@@ -574,31 +780,8 @@
     }) || null;
   }
 
-  // Popup spécifique au clic sur un pays (zone colorée).
-  // Pas de photo (la table pays n'en a pas), juste les stats agrégées.
-  function buildPaysPopup(paysDB) {
-    var nb     = parseInt(paysDB.places_count || 0, 10);
-    var rating = paysDB.avg_rating ? parseFloat(paysDB.avg_rating) : null;
-
-    var ratingHTML = rating
-      ? '<div class="popup-rating">' + renderStars(rating) +
-        ' <span>' + rating.toFixed(1) + '/5</span></div>'
-      : '<div class="popup-rating no-rating">Aucun avis pour l\'instant</div>';
-
-    var lieuxTxt = nb + ' lieu' + (nb > 1 ? 'x' : '') + ' référencé' + (nb > 1 ? 's' : '');
-    var link     = pathPays + '?id=' + encodeURIComponent(String(paysDB.id_pays));
-
-    return '<div class="popup-inner">' +
-      '<div class="popup-body">' +
-        '<div class="popup-type-badge">Pays</div>' +
-        '<h3 class="popup-title">' + escapeHtml(paysDB.nom) + '</h3>' +
-        '<p class="popup-country">' + escapeHtml(lieuxTxt) + '</p>' +
-        ratingHTML +
-        '<a class="popup-link" href="' + escapeHtml(link) + '">Voir les avis →</a>' +
-      '</div>' +
-    '</div>';
-  }
-
+  // Vide la sélection pays (feature-state, panel, filtre) sans changer le zoom.
+  // Le zoom retour au globe est géré en dehors (bouton "Monde entier" uniquement).
   function deselectionnerPays() {
     if (selectedCountryId) {
       try {
@@ -610,71 +793,63 @@
     }
     selectedCountryId = null;
     activeCountryId   = null;
+    fermerPanneauPays();
     syncCountryFilter(null);
-    renderMarkers();
-    map.flyTo({ center: CENTRE_DEFAUT, zoom: ZOOM_DEFAUT, pitch: 45, bearing: -10, duration: 1800, essential: true });
+    refreshLieuxSource();
   }
 
   // ── Création d'un pin HTML ───────────────────────────────────────────────
+  // Petit cercle blanc avec icône SVG catégorisée + badge note optionnel.
+  // Pas de label texte dans le pin → nom visible uniquement dans le popup.
   function createPinEl(place) {
     var el   = document.createElement('div');
     var type = place.type || 'monument';
-    el.className = 'abs-marker pin-' + type;
+    el.className = 'abs-marker abs-pin--' + type;
 
-    var note = place.avg_rating
-      ? '<span class="pin-note">' + parseFloat(place.avg_rating).toFixed(1) + '★</span>'
-      : '';
+    // Icône : pays/ville → générique ; monument → catégorie du lieu
+    var iconKey = type === 'pays'  ? '_pays'
+                : type === 'ville' ? '_ville'
+                : (place.categorie || 'Autre');
+    var icon = CAT_ICONS[iconKey] || CAT_ICONS['Autre'];
 
-    var icon = escapeHtml(place.icon || '📍');
-
-    if (type === 'pays' || type === 'ville') {
-      el.innerHTML = '<div class="pin-inner">' +
-        '<span class="pin-icon">' + icon + '</span>' +
-        '<span class="pin-label">' + escapeHtml(place.name) + '</span>' +
-        note + '</div>';
-    } else {
-      el.innerHTML = '<div class="pin-inner">' +
-        '<span class="pin-icon">' + icon + '</span>' +
-        note + '</div>';
+    // Badge note coloré par palier (vert→ambre→rouge) — seulement si note existante
+    var rating = place.avg_rating ? parseFloat(place.avg_rating) : null;
+    var badge = '';
+    if (rating != null && !isNaN(rating)) {
+      var tier = rating >= 4.5 ? 'exc' : rating >= 4 ? 'good' : rating >= 3 ? 'avg' : 'low';
+      badge = '<div class="abs-pin-badge abs-pin-badge--' + tier + '">' + rating.toFixed(1) + '</div>';
     }
+
+    // Label façon TripAdvisor : nom (gras) + sous-titre catégorie, à droite du pin
+    var nom       = escapeHtml(place.name || '');
+    var sousTitre = type === 'pays'  ? 'Pays'
+                  : type === 'ville' ? 'Ville'
+                  : escapeHtml(place.categorie || '');
+    var label = '<div class="abs-pin-label">'
+              + '<span class="abs-pin-name">' + nom + '</span>'
+              + (sousTitre ? '<span class="abs-pin-cat">' + sousTitre + '</span>' : '')
+              + '</div>';
+
+    el.innerHTML = '<div class="abs-pin-circle">' + icon + '</div>' + badge + label;
+
+    // IMPORTANT : on NE bloque PAS la propagation du click ici.
+    // Mapbox Marker.setPopup() ouvre la popup via map.on('click') en testant
+    // e.originalEvent.target — couper la propagation tuerait l'ouverture du popup.
+    // Le clic pays est filtré côté handler (closest('.abs-marker')).
+    //
+    // Pour la hover card pays : un simple flag survolMarker suffit. Le handler
+    // pays-fill mousemove sort tôt quand la souris est sur un pin.
+    el.addEventListener('mouseenter', function () {
+      survolMarker = true;
+      var card = document.getElementById('pays-hover-card');
+      if (card) card.hidden = true;
+    });
+    el.addEventListener('mouseleave', function () { survolMarker = false; });
+
     return el;
   }
 
-  // ── Rendu des marqueurs ──────────────────────────────────────────────────
-  function renderMarkers() {
-    markers.forEach(function (m) { m.marker.remove(); });
-    markers = [];
-
-    // On combine les deux filtres : pays (activeCountryId) puis type d'avis.
-    var filtered = activeCountryId
-      ? places.filter(function (p) { return String(p.id_pays) === String(activeCountryId); })
-      : places;
-    filtered = appliquerFiltreAvis(filtered);
-
-    updateCount(filtered.length);
-
-    filtered.forEach(function (place) {
-      var lat = parseFloat(place.lat);
-      var lng = parseFloat(place.lng);
-      if (isNaN(lat) || isNaN(lng)) return;
-
-      var type   = place.type || 'monument';
-      var el     = createPinEl(place);
-      var marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
-        .setLngLat([lng, lat])
-        .addTo(map);
-
-      // Tous les types (pays / ville / monument) : popup avec photo + "Voir les avis"
-      // Le bouton dans la popup redirige vers la fiche détaillée.
-      var popup = new mapboxgl.Popup({ offset: 28, maxWidth: '280px', className: 'abs-popup' })
-        .setHTML(buildPopup(place));
-      marker.setPopup(popup);
-
-      markers.push({ marker: marker, type: type });
-    });
-
-    updateVisibility();
-  }
+  // renderMarkers() supprimée — remplacée par refreshLieuxSource() + updateLeafMarkers().
 
   // ── Popup ────────────────────────────────────────────────────────────────
   function buildPopup(place) {
@@ -686,7 +861,7 @@
       : '<div class="popup-rating no-rating">Aucun avis pour l\'instant</div>';
 
     var imgHTML = place.image_url
-      ? '<img class="popup-image" src="' + escapeHtml(place.image_url) + '" alt="' + escapeHtml(place.name) + '">'
+      ? '<img class="popup-image" src="' + escapeHtml(place.image_url) + '" alt="' + escapeHtml(place.name) + '" loading="lazy" onerror="this.style.display=\'none\'">'
       : '';
 
     var typeLabel = { pays: 'Pays', ville: 'Ville', monument: 'Monument' };
@@ -704,17 +879,7 @@
     '</div>';
   }
 
-  // ── Visibilité par zoom ──────────────────────────────────────────────────
-  function updateVisibility() {
-    var z = map.getZoom();
-    markers.forEach(function (m) {
-      var range   = ZOOM_RANGE[m.type] || { min: 0, max: 22 };
-      var visible = z >= range.min && z <= range.max;
-      var el      = m.marker.getElement();
-      el.style.opacity       = visible ? '1' : '0';
-      el.style.pointerEvents = visible ? 'auto' : 'none';
-    });
-  }
+  // updateVisibility() supprimée — le clustering GL gère nativement la densité par zoom.
 
   // ── Style switcher ───────────────────────────────────────────────────────
   document.querySelectorAll('.style-btn').forEach(function (btn) {
@@ -730,8 +895,9 @@
       hoveredCountryId  = null;
       selectedCountryId = null;
 
-      markers.forEach(function (m) { m.marker.remove(); });
-      markers = [];
+      // Supprime les DOM markers individuels avant rechargement du style
+      Object.values(leafMarkers).forEach(function (m) { m.remove(); });
+      leafMarkers = {};
       map.setStyle(STYLES[key].url);
     });
   });
@@ -747,6 +913,8 @@
       worldBtn.addEventListener('click', function () {
         setActiveNav(null);
         deselectionnerPays();
+        // Seul endroit où on repart au globe — les autres désélections gardent le zoom courant
+        map.flyTo({ center: CENTRE_DEFAUT, zoom: ZOOM_DEFAUT, pitch: 45, bearing: -10, duration: 1800, essential: true });
       });
     }
 
@@ -758,22 +926,30 @@
         setActiveNav(btn);
         activeCountryId = null;
         syncCountryFilter(null);
-        renderMarkers();
+        refreshLieuxSource();
         map.flyTo({ center: [cont.lng, cont.lat], zoom: cont.zoom, pitch: 45, duration: 1800, essential: true });
       });
       contList.appendChild(btn);
     });
 
-    countries.forEach(function (c) {
+    // On a beaucoup de pays : on n'affiche dans la nav que les plus actifs
+    // (les plus de lieux référencés). Le filtre déroulant du haut garde la liste
+    // complète pour ceux qui cherchent un pays précis.
+    var paysPopulaires = countries.slice().sort(function (a, b) {
+      return (parseInt(b.places_count || 0, 10)) - (parseInt(a.places_count || 0, 10));
+    }).slice(0, 10);
+
+    paysPopulaires.forEach(function (c) {
       var btn = document.createElement('button');
       btn.className   = 'nav-btn nav-country-btn';
       btn.dataset.id  = c.id_pays;
-      btn.textContent = c.nom;
+      var nb = parseInt(c.places_count || 0, 10);
+      btn.innerHTML = escapeHtml(c.nom) + '<span class="nav-count">' + nb + '</span>';
       btn.addEventListener('click', function () {
         setActiveNav(btn);
         activeCountryId = String(c.id_pays);
         syncCountryFilter(c.id_pays);
-        renderMarkers();
+        refreshLieuxSource();
         // Sélection visuelle sur la carte si l'ISO est dispo
         if (c.code_iso && map.getLayer('pays-fill')) {
           if (selectedCountryId) {
@@ -787,17 +963,50 @@
             { source: 'pays-source', sourceLayer: 'country_boundaries', id: selectedCountryId },
             { selected: true }
           );
+          ouvrirPanneauPays(selectedCountryId, c);
         }
         var lat = parseFloat(c.lat || 0);
         var lng = parseFloat(c.lng || 0);
         map.flyTo({ center: [lng, lat], zoom: 5, pitch: 50, duration: 1800, essential: true });
       });
+
+      // Mini-fiche au survol : aperçu note + image, posée à droite du panneau
+      btn.addEventListener('mouseenter', function () { apercuPaysNav(c, btn); });
+      btn.addEventListener('mouseleave', masquerApercuNav);
+
       countryList.appendChild(btn);
     });
+
+    // ── Filtre par type de lieu (chips à bascule, multi-sélection) ──────────
+    var catList = document.getElementById('nav-categories');
+    if (catList) {
+      categories.forEach(function (cat) {
+        var libelle = cat.libelle || cat.nom || '';
+        if (!libelle) return;
+        var btn = document.createElement('button');
+        btn.className   = 'nav-btn nav-cat-btn';
+        btn.dataset.cat = libelle;
+        var icon = CAT_ICONS[libelle] || CAT_ICONS['Autre'];
+        btn.innerHTML = '<span class="nav-cat-ic">' + icon + '</span>' + escapeHtml(libelle);
+        btn.addEventListener('click', function () {
+          if (categoryFilter.has(libelle)) {
+            categoryFilter.delete(libelle);
+            btn.classList.remove('active');
+          } else {
+            categoryFilter.add(libelle);
+            btn.classList.add('active');
+          }
+          refreshLieuxSource();
+        });
+        catList.appendChild(btn);
+      });
+    }
   }());
 
   function setActiveNav(btn) {
-    document.querySelectorAll('.nav-btn').forEach(function (b) { b.classList.remove('active'); });
+    // On ne touche pas aux chips catégories (.nav-cat-btn) : leur état actif
+    // est géré indépendamment (multi-sélection du filtre par type).
+    document.querySelectorAll('.nav-btn:not(.nav-cat-btn)').forEach(function (b) { b.classList.remove('active'); });
     if (btn) btn.classList.add('active');
   }
 
@@ -806,13 +1015,91 @@
     if (sel) sel.value = id ? String(id) : '';
   }
 
+  // ── Panneau gauche : repli (desktop) / tiroir (mobile) ───────────────────
+  (function navDrawer() {
+    var openBtn  = document.getElementById('nav-open-btn');
+    var closeBtn = document.getElementById('nav-close-btn');
+    var backdrop = document.getElementById('nav-backdrop');
+    var panel    = document.getElementById('nav-panel');
+    if (!panel) return;
+
+    function ouvrir() {
+      document.body.classList.add('map-nav-open');
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+    }
+    function fermer() {
+      document.body.classList.remove('map-nav-open');
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    // État initial : ouvert sur grand écran, replié sinon.
+    if (window.innerWidth > 900) ouvrir(); else fermer();
+
+    if (openBtn)  openBtn.addEventListener('click', ouvrir);
+    if (closeBtn) closeBtn.addEventListener('click', fermer);
+    if (backdrop) backdrop.addEventListener('click', fermer);
+
+    // Sur mobile, sélectionner un continent / pays referme le tiroir
+    // pour laisser voir la carte (les chips catégories, eux, ne ferment pas).
+    panel.addEventListener('click', function (e) {
+      if (window.innerWidth > 900) return;
+      var t = e.target.closest('.nav-continent-btn, .nav-country-btn, .nav-world-btn');
+      if (t) fermer();
+    });
+  }());
+
+  // ── Sections repliables du panneau (clic sur le titre) ───────────────────
+  (function navAccordion() {
+    document.querySelectorAll('#nav-panel .nav-label').forEach(function (label) {
+      label.setAttribute('role', 'button');
+      label.setAttribute('tabindex', '0');
+      label.addEventListener('click', function () {
+        var section = label.closest('.nav-section');
+        if (section) section.classList.toggle('collapsed');
+      });
+    });
+  }());
+
+  // ── Mini-fiche pays au survol dans la nav (réutilise #pays-hover-card) ────
+  function apercuPaysNav(c, btn) {
+    var card = document.getElementById('pays-hover-card');
+    var wrap = document.getElementById('map-wrapper');
+    if (!card || !wrap) return;
+
+    var nb   = parseInt(c.places_count || 0, 10);
+    var note = c.avg_rating ? parseFloat(c.avg_rating) : null;
+    var img  = places.find(function (p) {
+      return String(p.id_pays) === String(c.id_pays) && p.image_url;
+    });
+
+    var stats = nb + ' lieu' + (nb > 1 ? 'x' : '');
+    if (note) stats += ' · ★ ' + note.toFixed(1) + '/5';
+
+    card.innerHTML =
+      (img ? '<img class="phc-img" src="' + escapeHtml(img.image_url) + '" alt="" onerror="this.style.display=\'none\'">' : '') +
+      '<h5>' + escapeHtml(c.nom) + '</h5>' +
+      '<div class="phc-stats">' + stats + '</div>';
+
+    // Position : à droite du bouton, en coordonnées relatives au conteneur carte
+    var b = btn.getBoundingClientRect();
+    var w = wrap.getBoundingClientRect();
+    card.style.left = (b.right - w.left + 10) + 'px';
+    card.style.top  = (b.top - w.top) + 'px';
+    card.hidden = false;
+  }
+
+  function masquerApercuNav() {
+    var card = document.getElementById('pays-hover-card');
+    if (card) card.hidden = true;
+  }
+
   // ── Filtre pays (select du haut) ─────────────────────────────────────────
   var filterEl = document.getElementById('country-filter');
   if (filterEl) {
     filterEl.addEventListener('change', function () {
       var opt = filterEl.options[filterEl.selectedIndex];
       activeCountryId = filterEl.value || null;
-      renderMarkers();
+      refreshLieuxSource();
       document.querySelectorAll('.nav-country-btn').forEach(function (b) {
         b.classList.toggle('active', b.dataset.id === filterEl.value);
       });
@@ -830,8 +1117,7 @@
   if (avisFilterEl) {
     avisFilterEl.addEventListener('change', function () {
       avisFilter = avisFilterEl.value || 'tous';
-      refreshMonumentSource();
-      renderMarkers();
+      refreshLieuxSource();
     });
   }
 
@@ -1096,8 +1382,7 @@
       var nouveau = res.body.lieu;
       places.push(nouveau);
       nettoyerMarkerTemp();
-      refreshMonumentSource();
-      if (typeof renderMarkers === 'function') renderMarkers();
+      refreshLieuxSource();
       // Petit zoom sur le nouveau lieu pour confirmer visuellement à l'utilisateur.
       map.flyTo({ center: [parseFloat(nouveau.lng), parseFloat(nouveau.lat)], zoom: 15, essential: true });
     })

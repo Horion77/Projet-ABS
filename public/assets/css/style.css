@@ -328,7 +328,7 @@ body:not(.map-page) img {
   top: 0.5rem;
   outline: none;
 }
-body:not(.map-page) .site-header {
+.site-header {
   position: sticky;
   top: calc(var(--spacing) * 0);
   z-index: 100;
@@ -340,7 +340,7 @@ body:not(.map-page) .site-header {
   background: rgba(10, 10, 15, 0.85);
   border-color: var(--abs-border);
 }
-body:not(.map-page) .header-inner {
+.header-inner {
   margin-inline: auto;
   display: flex;
   flex-wrap: wrap;
@@ -351,7 +351,7 @@ body:not(.map-page) .header-inner {
   padding-block: calc(var(--spacing) * 3);
   max-width: var(--max-largeur);
 }
-body:not(.map-page) .logo {
+.logo {
   font-size: var(--text-xl);
   line-height: var(--tw-leading, var(--text-xl--line-height));
   --tw-font-weight: var(--font-weight-bold);
@@ -360,8 +360,9 @@ body:not(.map-page) .logo {
   letter-spacing: var(--tracking-wide);
   font-family: var(--font-abs-serif);
   color: var(--abs-text);
+  text-decoration: none;
 }
-body:not(.map-page) .logo::before {
+.logo::before {
   content: "";
   display: inline-block;
   width: 6px;
@@ -372,11 +373,11 @@ body:not(.map-page) .logo::before {
   box-shadow: 0 0 8px var(--abs-cta);
   vertical-align: middle;
 }
-body:not(.map-page) .logo:hover {
+.logo:hover {
   text-decoration: none;
   color: var(--abs-cta);
 }
-body:not(.map-page) .nav-toggle {
+.nav-toggle {
   display: none;
   cursor: pointer;
   border-radius: var(--radius-lg);
@@ -391,25 +392,26 @@ body:not(.map-page) .nav-toggle {
   color: var(--abs-text);
   font-family: inherit;
 }
-body:not(.map-page) .nav-site {
+.nav-site {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: calc(var(--spacing) * 2);
 }
-body:not(.map-page) .nav-site a {
+.nav-site a {
   font-size: var(--text-sm);
   line-height: var(--tw-leading, var(--text-sm--line-height));
   --tw-font-weight: var(--font-weight-medium);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
   color: var(--abs-text-muted);
+  text-decoration: none;
 }
-body:not(.map-page) .nav-site a:hover {
+.nav-site a:hover {
   color: var(--abs-text);
   text-decoration: none;
 }
-body:not(.map-page) .nav-auth {
+.nav-auth {
   display: inline-block;
   border-radius: calc(infinity * 1px);
   padding-inline: calc(var(--spacing) * 4);
@@ -422,12 +424,12 @@ body:not(.map-page) .nav-auth {
   background: var(--abs-cta);
   color: #0a0a0f !important;
 }
-body:not(.map-page) .nav-auth:hover {
+.nav-auth:hover {
   background: var(--abs-cta-hover);
   text-decoration: none;
   color: #0a0a0f !important;
 }
-body:not(.map-page) .nav-deconnexion-btn {
+.nav-deconnexion-btn {
   cursor: pointer;
   border-style: var(--tw-border-style);
   border-width: 0px;
@@ -437,26 +439,26 @@ body:not(.map-page) .nav-deconnexion-btn {
   color: var(--abs-text-muted) !important;
   padding: 0;
 }
-body:not(.map-page) .nav-deconnexion-btn:hover {
+.nav-deconnexion-btn:hover {
   color: var(--abs-cta) !important;
   background: transparent;
 }
-body:not(.map-page) .nav-sep {
+.nav-sep {
   display: inline-block;
   width: 0;
 }
 @media (max-width: 700px) {
-  body:not(.map-page) .nav-toggle {
+  .nav-toggle {
     display: block;
   }
-  body:not(.map-page) .nav-site {
+  .nav-site {
     display: none;
     width: 100%;
     flex-direction: column;
     align-items: flex-start;
     padding-top: 0.5rem;
   }
-  body:not(.map-page) .nav-site.nav-open {
+  .nav-site.nav-open {
     display: flex;
   }
 }

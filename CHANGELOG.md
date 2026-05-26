@@ -10,6 +10,28 @@ Les entrées **commit** renvoient vers `https://github.com/Horion77/Projet-ABS/c
 
 # Versions
 
+## [0.2.0] - 2026-05-26 — Carte interactive, page Découvrir, likes & commentaires
+
+### Carte (`public/assets/js/map.js`, `resources/css/map.css`)
+* **Clustering natif Mapbox** : les lieux proches sont regroupés en bulles ; le clic sur une bulle zoome pour l'éclater. Remplace l'ancien système de pins par seuils de zoom.
+* **Détection des pays par leurs frontières réelles** (tileset `country-boundaries-v1`) au lieu de pins centrés sur la moyenne des avis ; clic → panneau latéral (note moyenne, derniers avis). Tolérance de clic pour les nations insulaires.
+* **Pins style TripAdvisor** : cercle à icône de catégorie, badge note coloré (vert → rouge), label nom + catégorie.
+* **Panneau gauche** repliable (desktop) / en tiroir (mobile) : continents, pays populaires (top 10), filtre par type de lieu, sections repliables, mini-fiche au survol.
+* Barre de contrôles compacte et défilable sur mobile ; correction de chevauchements (légende, panneau).
+
+### Page Découvrir (`DecouvrirController`, `app/Views/decouvrir/`)
+* Nouveau formulaire de recherche de lieux par type, note minimale, continent, pays et ville ; résultats triés par note. Remplace l'ancienne liste brute d'avis dans la navigation.
+
+### Avis : likes & commentaires
+* Likes sur les avis (`LikeController`, `LikeModel`, table `like_avis`) en AJAX.
+* Commentaires et réponses sur les avis (`CommentaireController`, `CommentaireModel`).
+* `AvisModel::statsParLieu()` : les avis privés comptent désormais dans la note moyenne.
+
+### Base de données
+* `sql/schema/database.sql` complété avec la table `like_avis`.
+* Nouveaux jeux de données : `seed_avis_complet.sql` et `seed_monde_vivant.sql` (généré par `_generate_monde_vivant.js`) — ~90 utilisateurs, 29 pays, 90+ lieux, 270+ avis.
+* `_fix_encoding.sql` : réparation des accents corrompus lors d'imports sans `--default-character-set=utf8mb4`.
+
 ## [0.1.4] - 2026-05-11 à 2026-05-13 — Clone d’intégration, rewrite & schéma lieu
 
 ### Configuration (2026-05-11)

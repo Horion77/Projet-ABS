@@ -384,3 +384,140 @@
     margin-left: 0;
   }
 }
+.avis-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+.like-toggle {
+  display: none;
+}
+.like-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--abs-border);
+  border-radius: 2rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: var(--abs-text-muted);
+  user-select: none;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  font-family: var(--font-abs-sans);
+}
+.like-label--sm {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.76rem;
+}
+.like-label:hover {
+  color: #e84393;
+  border-color: rgba(232, 67, 147, 0.5);
+}
+.like-toggle:checked + .like-label {
+  color: #e84393;
+  border-color: rgba(232, 67, 147, 0.6);
+  background: rgba(232, 67, 147, 0.07);
+}
+.like-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.btn-toggle-com {
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  color: var(--abs-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+.btn-toggle-com:hover {
+  color: var(--abs-cta);
+}
+.section-commentaires {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--abs-border);
+}
+.commentaire {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--abs-border);
+}
+.commentaire:last-of-type {
+  border-bottom: none;
+}
+.commentaire--reponse {
+  margin-left: 1.5rem;
+  border-left: 2px solid var(--abs-border);
+  padding-left: 0.75rem;
+}
+.com-ent {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+.com-auteur {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.com-date {
+  font-size: 0.75rem;
+  color: var(--abs-muted);
+}
+.com-texte {
+  font-size: 0.9rem;
+  margin: 0 0 0.4rem;
+}
+.com-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.3rem;
+}
+.btn-toggle-reponse {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--abs-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+.btn-toggle-reponse:hover {
+  color: var(--abs-cta);
+}
+.form-commentaire, .form-reponse {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.form-reponse {
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+}
+.form-commentaire textarea, .form-reponse textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 3.5rem;
+}
+.btn--sm {
+  align-self: flex-end;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+}
+.com-vide, .com-login {
+  font-size: 0.85rem;
+  color: var(--abs-muted);
+  margin: 0.5rem 0;
+}

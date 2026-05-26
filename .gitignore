@@ -26,7 +26,7 @@ Desktop.ini
 *.swo
 *~
 
-# Sessions IDE / assistants (local uniquement)
+# Fichiers temporaires d'outils locaux (non versionnés)
 .claude/
 
 # Fichiers uploadés par les utilisateurs (si applicable)

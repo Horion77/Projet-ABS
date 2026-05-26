@@ -128,6 +128,104 @@ class LieuModel extends Modele
     }
 
     /**
+     * Continents distincts présents en base — pour le formulaire « Découvrir ».
+     *
+     * @return list<string>
+     */
+    public static function continentsDisponibles(): array
+    {
+        $q = self::pdo()->query(
+            "SELECT DISTINCT continent FROM pays
+              WHERE continent IS NOT NULL AND continent <> ''
+              ORDER BY continent ASC"
+        );
+        return $q ? array_map('strval', $q->fetchAll(PDO::FETCH_COLUMN)) : [];
+    }
+
+    /**
+     * Villes (avec leur pays) ayant au moins un lieu — pour le filtre « Découvrir ».
+     *
+     * @return list<array{id_ville:int|string, nom:string, pays:string}>
+     */
+    public static function villesPourFiltre(): array
+    {
+        $q = self::pdo()->query(
+            "SELECT v.id_ville, v.nom, p.nom AS pays
+             FROM ville v
+             JOIN pays p ON p.id_pays = v.id_pays
+             JOIN lieu l ON l.id_ville = v.id_ville
+             GROUP BY v.id_ville, v.nom, p.nom
+             ORDER BY p.nom ASC, v.nom ASC"
+        );
+        return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
+    }
+
+    /**
+     * Recherche « Découvrir » : lieux filtrés par catégorie / note mini /
+     * continent / pays / ville, triés par note moyenne puis popularité.
+     * La note et le nombre d'avis sont calculés sur les avis publics.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function rechercheDecouverte(
+        ?string $categorie,
+        int $noteMin,
+        ?string $continent,
+        ?int $idPays,
+        ?int $idVille,
+        int $limite = 60
+    ): array {
+        $limite = max(1, min(120, $limite));
+
+        $sql = "SELECT l.id_lieu, l.nom, l.image_url, l.latitude, l.longitude,
+                    cl.libelle AS categorie,
+                    vi.nom AS ville, p.nom AS pays, p.continent, p.id_pays,
+                    COUNT(a.id_avis)        AS nb_avis,
+                    ROUND(AVG(a.note), 1)   AS note_moy
+                FROM lieu l
+                JOIN categorie_lieu cl ON cl.id_categorie = l.id_categorie
+                JOIN ville vi          ON vi.id_ville     = l.id_ville
+                JOIN pays p            ON p.id_pays       = vi.id_pays
+                LEFT JOIN avis a       ON a.id_lieu = l.id_lieu AND a.visibility = 'public'
+                WHERE l.type <> 'pays'";
+        $params = [];
+
+        if ($categorie !== null && $categorie !== '') {
+            $sql .= ' AND cl.libelle = :cat';
+            $params[':cat'] = $categorie;
+        }
+        if ($continent !== null && $continent !== '') {
+            $sql .= ' AND p.continent = :cont';
+            $params[':cont'] = $continent;
+        }
+        if ($idPays !== null && $idPays > 0) {
+            $sql .= ' AND p.id_pays = :pays';
+            $params[':pays'] = $idPays;
+        }
+        if ($idVille !== null && $idVille > 0) {
+            $sql .= ' AND vi.id_ville = :ville';
+            $params[':ville'] = $idVille;
+        }
+
+        $sql .= ' GROUP BY l.id_lieu, l.nom, l.image_url, l.latitude, l.longitude,
+                           cl.libelle, vi.nom, p.nom, p.continent, p.id_pays';
+
+        // Note minimale : exclut aussi les lieux sans avis (AVG NULL).
+        if ($noteMin >= 1 && $noteMin <= 5) {
+            $sql .= ' HAVING AVG(a.note) >= :noteMin';
+            $params[':noteMin'] = $noteMin;
+        }
+
+        // Les mieux notés d'abord ; les lieux sans note passent en fin de liste.
+        $sql .= ' ORDER BY (note_moy IS NULL) ASC, note_moy DESC, nb_avis DESC, l.nom ASC';
+        $sql .= ' LIMIT ' . (int) $limite;
+
+        $st = self::pdo()->prepare($sql);
+        $st->execute($params);
+        return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
      * Pays distincts ayant au moins un lieu géolocalisé — pour le filtre de la carte.
      *
      * @return list<array{id_pays:int|string, nom:string}>

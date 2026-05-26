@@ -52,11 +52,17 @@ Fusion de plusieurs branches / contextes équipe : voir [docs/INTEGRATION_MATRIX
 
 - Page d'accueil avec présentation du site et aperçu des lieux populaires
 - Inscription et connexion sécurisées (`password_hash`, sessions PHP)
-- Carte interactive Mapbox avec marqueurs cliquables
-- Fiche détaillée par lieu (description, image, pays, note moyenne)
-- Système d'avis : note 1–5 étoiles + commentaire pour utilisateurs connectés
+- Carte interactive Mapbox (globe 3D) avec :
+  - regroupement automatique des lieux proches (clustering natif Mapbox)
+  - marqueurs « pins » colorés selon la note (style TripAdvisor) avec nom + catégorie
+  - détection du pays au clic sur ses frontières réelles → panneau latéral (note moyenne, derniers avis)
+  - panneau de navigation repliable (continents, pays populaires, filtre par type de lieu), en tiroir sur mobile
+  - ajout d'un lieu directement depuis la carte (clic + géocodage inverse)
+- Fiche détaillée par lieu (description, image, pays, note moyenne, avis, commentaires, likes)
+- Système d'avis : note 1–5 étoiles + titre + commentaire pour utilisateurs connectés
+- Likes sur les avis et commentaires (réponses imbriquées)
+- Page **Découvrir** : formulaire de critères (type de lieu, note minimale, continent, pays, ville) → liste de lieux recommandés triés par note
 - Page pays avec liste des lieux et notes moyennes
-- Page globale de tous les avis avec pagination et filtres (note, pays)
 - Profil utilisateur affichant ses propres avis
 - Validation côté serveur (PHP) et côté client (JavaScript)
 
@@ -102,15 +108,21 @@ Projet-ABS/
 │   │   ├── InscriptionController.php
 │   │   ├── ProfilController.php
 │   │   ├── CarteController.php
+│   │   ├── DecouvrirController.php     # GET page « Découvrir » (recherche de lieux)
 │   │   ├── LieuController.php
 │   │   ├── PaysController.php
 │   │   ├── AvisController.php          # POST création
-│   │   └── AvisListeController.php     # GET liste paginée
+│   │   ├── AvisListeController.php     # GET liste paginée
+│   │   ├── CommentaireController.php   # commentaires + likes commentaire
+│   │   └── LikeController.php          # like d'un avis (AJAX)
 │   ├── Models/
 │   │   ├── UtilisateurModel.php
 │   │   ├── PaysModel.php
 │   │   ├── AvisModel.php
 │   │   ├── LieuModel.php
+│   │   ├── CategorieLieuModel.php
+│   │   ├── CommentaireModel.php
+│   │   ├── LikeModel.php
 │   │   └── AccueilModel.php
 │   └── Views/
 │       ├── layouts/principal.php
@@ -120,16 +132,24 @@ Projet-ABS/
 │       ├── inscription/(index)
 │       ├── profil/     (index)
 │       ├── carte/      (index)
+│       ├── decouvrir/  (index)
 │       ├── lieu/       (afficher)
 │       ├── pays/       (afficher)
 │       ├── avis/       (index)
 │       └── erreurs/    (404)
 ├── sql/
-│   ├── schema/database.sql
-│   ├── seeds/seed_demo.sql
+│   ├── schema/database.sql             # crée toute la base (schéma complet)
+│   ├── seeds/
+│   │   ├── seed_demo.sql
+│   │   ├── seed_avis_complet.sql
+│   │   ├── seed_monde_vivant.sql       # gros jeu de données (généré)
+│   │   ├── _generate_monde_vivant.js   # générateur du seed ci-dessus
+│   │   └── _fix_encoding.sql           # répare les accents corrompus à l'import
 │   └── migrations/
 │       ├── 2026_04_30_add_image_url_lieu.sql
-│       └── 2026_04_30_add_titre_avis.sql
+│       ├── 2026_04_30_add_titre_avis.sql
+│       ├── 2026_05_06_add_type_icon_lieu.sql
+│       └── 2026_05_20_add_like_avis.sql
 ├── storage/                       # logs, uploads (hors doc-root)
 └── docs/
     └── architecture.md
@@ -149,17 +169,41 @@ Projet-ABS/
 | POST    | `/inscription`      | `InscriptionController::traiterInscription`    |
 | GET     | `/profil`           | `ProfilController::afficher`                   |
 | GET     | `/carte`            | `CarteController::index`                       |
+| GET     | `/decouvrir`        | `DecouvrirController::index`                   |
 | GET     | `/lieu?id=…`        | `LieuController::afficher`                     |
+| POST    | `/lieu/creer`       | `LieuController::creer`                         |
 | GET     | `/pays?id=…`        | `PaysController::afficher`                     |
 | GET     | `/avis`             | `AvisListeController::index`                   |
 | POST    | `/avis`             | `AvisController::traiterSoumission`            |
+| POST    | `/avis/liker`       | `LikeController::likerAvis`                     |
+| POST    | `/commentaire`      | `CommentaireController::creer`                 |
+| POST    | `/commentaire/liker`| `CommentaireController::liker`                 |
 
 ---
 
 ## Base de données
 
-Voir [`sql/schema/database.sql`](sql/schema/database.sql) pour le schéma complet.
-Données de démonstration dans [`sql/seeds/seed_demo.sql`](sql/seeds/seed_demo.sql).
+Le schéma complet (toutes les tables, y compris `like_avis` et `like_commentaire`) est dans
+[`sql/schema/database.sql`](sql/schema/database.sql) — ce fichier crée la base de zéro
+(`DROP` + `CREATE` + toutes les tables et vues).
+
+Jeux de données :
+
+| Fichier | Contenu |
+|---------|---------|
+| `sql/seeds/seed_demo.sql` | petit jeu de démonstration |
+| `sql/seeds/seed_avis_complet.sql` | utilisateurs + lieux + ~55 avis cohérents |
+| `sql/seeds/seed_monde_vivant.sql` | gros jeu : ~90 utilisateurs, 29 pays (dont îles), 90+ lieux, 270+ avis, commentaires, likes |
+
+> Le fichier `seed_monde_vivant.sql` est **généré** par `sql/seeds/_generate_monde_vivant.js`
+> (lancer `node sql/seeds/_generate_monde_vivant.js` pour le régénérer).
+
+> ⚠️ **Encodage** : toujours importer les `.sql` en forçant l'UTF-8, sinon les accents
+> sont corrompus sur Windows :
+> ```bash
+> mysql --default-character-set=utf8mb4 -u root -p abs_db < sql/schema/database.sql
+> ```
+> En cas d'accents déjà cassés, `sql/seeds/_fix_encoding.sql` répare les données en place.
 
 ---
 
@@ -189,10 +233,17 @@ Données de démonstration dans [`sql/seeds/seed_demo.sql`](sql/seeds/seed_demo.
 
 3. **Créer la base de données**
 
-   - Ouvrir phpMyAdmin (`http://localhost/phpmyadmin`)
-   - Créer une base nommée `abs_db`
-   - Importer `sql/schema/database.sql`
-   - (optionnel) Importer `sql/seeds/seed_demo.sql` pour les données de démo
+   En ligne de commande (recommandé — force l'UTF-8) :
+
+   ```bash
+   mysql --default-character-set=utf8mb4 -u root -p < sql/schema/database.sql
+   mysql --default-character-set=utf8mb4 -u root -p abs_db < sql/seeds/seed_avis_complet.sql
+   mysql --default-character-set=utf8mb4 -u root -p abs_db < sql/seeds/seed_monde_vivant.sql
+   ```
+
+   `database.sql` crée la base `abs_db` et toutes ses tables ; les deux seeds remplissent
+   les données. Via phpMyAdmin, importer ces fichiers dans le même ordre (l'import gère
+   l'encodage UTF-8 automatiquement).
 
 4. **Configurer la connexion BDD**
 

@@ -7,6 +7,7 @@ $countries       = $countries       ?? [];
 $categories      = $categories      ?? [];
 $myReviewedLieux = $myReviewedLieux ?? [];
 $mapboxToken     = $mapboxToken     ?? '';
+$paysNoms        = $paysNoms        ?? [];
 
 $jsonFlags = JSON_UNESCAPED_UNICODE;
 if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
@@ -19,6 +20,7 @@ $mapData = [
     'countries'       => $countries,
     'categories'      => $categories,
     'myReviewedLieux' => $myReviewedLieux,
+    'paysNoms'        => $paysNoms,
     'placePath'       => url('lieu'),
     'paysPath'        => url('pays'),
     'regionsPath'     => url('assets/data/regions.json'),
@@ -108,8 +110,21 @@ $nbLieux = count($places);
         <button type="button" id="add-mode-cancel">Annuler</button>
     </div>
 
+    <!-- Bouton d'ouverture du panneau (visible quand le panneau est replié / sur mobile) -->
+    <button id="nav-open-btn" class="nav-open-btn" type="button" aria-label="Afficher les filtres">
+        <span class="nav-open-ic" aria-hidden="true"></span> Filtres
+    </button>
+
+    <!-- Fond semi-transparent derrière le tiroir sur mobile -->
+    <div id="nav-backdrop" class="nav-backdrop"></div>
+
     <!-- Panneau navigation gauche -->
     <div id="nav-panel">
+        <div class="nav-panel-head">
+            <span class="nav-panel-title">Explorer</span>
+            <button id="nav-close-btn" class="nav-close-btn" type="button" aria-label="Masquer le panneau">×</button>
+        </div>
+
         <button id="nav-world" class="nav-btn nav-world-btn">Monde entier</button>
 
         <div class="nav-section">
@@ -118,8 +133,13 @@ $nbLieux = count($places);
         </div>
 
         <div class="nav-section">
-            <span class="nav-label">Pays</span>
+            <span class="nav-label">Pays populaires</span>
             <div id="nav-countries"></div>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-label">Types de lieu</span>
+            <div id="nav-categories"></div>
         </div>
     </div>
 
@@ -138,6 +158,12 @@ $nbLieux = count($places);
 
     <!-- Mini-card au survol d'un pays (positionnée par JS) -->
     <div id="pays-hover-card" class="pays-hover-card" hidden></div>
+
+    <!-- Panneau latéral droite : info pays au clic -->
+    <aside id="pays-panel" class="pays-panel" hidden aria-label="Informations du pays">
+        <button id="pays-panel-close" class="pays-panel-close" aria-label="Fermer le panneau">×</button>
+        <div id="pays-panel-content"></div>
+    </aside>
 
 </div>
 

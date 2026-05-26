@@ -21,6 +21,14 @@ class CarteController extends Controleur
         $countries  = LieuModel::paysPourFiltreCarte();
         $categories = CategorieLieuModel::toutes();
 
+        // Fusionner les derniers avis dans chaque pays (pré-chargé → panneau instantané)
+        $derniersAvisParPays = AvisModel::derniersAvisParPays(3);
+        foreach ($countries as &$pays) {
+            $idPays = (int) $pays['id_pays'];
+            $pays['derniers_avis'] = $derniersAvisParPays[$idPays] ?? [];
+        }
+        unset($pays);
+
         // Pour le filtre « Mes avis » : liste des id_lieu où l'utilisateur connecté
         // a déjà laissé un avis. Tableau vide si invité (le filtre est alors
         // simplement inutile, le JS masque l'option).
@@ -28,11 +36,15 @@ class CarteController extends Controleur
             ? AvisModel::idsLieuxParUtilisateur((int) ($_SESSION['user_id'] ?? 0))
             : [];
 
+        // Noms FR de tous les pays (fallback pour pays sans avis dans la BDD)
+        $paysNoms = require APP_CONFIG . '/pays_iso_noms.php';
+
         $this->rendre('carte/index', [
             'places'          => $places,
             'countries'       => $countries,
             'categories'      => $categories,
             'myReviewedLieux' => $myReviewedLieux,
+            'paysNoms'        => $paysNoms,
             'mapboxToken'     => $this->resoudreTokenMapbox(),
             'pageTitre'       => 'Carte Interactive',
         ], 'map');

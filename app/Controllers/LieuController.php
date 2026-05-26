@@ -7,6 +7,8 @@ use App\Core\Controleur;
 use App\Core\Session;
 use App\Models\AvisModel;
 use App\Models\CategorieLieuModel;
+use App\Models\CommentaireModel;
+use App\Models\LikeModel;
 use App\Models\LieuModel;
 use App\Models\PaysModel;
 use Throwable;
@@ -24,40 +26,54 @@ class LieuController extends Controleur
     {
         $id = $this->requete->getInt('id');
 
-        $lieu       = null;
-        $avis       = [];
-        $noteMoy    = null;
-        $erreur     = null;
-        $dejaAvis   = false;
+        $lieu          = null;
+        $avis          = [];
+        $commentaires  = [];  // commentaires groupés par id_avis
+        $likesAvis     = [];  // id_avis => bool (l'user a-t-il liké ?)
+        $noteMoy       = null;
+        $erreur        = null;
+        $dejaAvis      = false;
 
         if ($id < 1) {
             $erreur = 'Identifiant de lieu invalide.';
         } else {
             $lieu = LieuModel::trouverParIdAvecLocalisation($id);
             if (!$lieu) {
-                $erreur = 'Ce lieu n’existe pas ou n’est plus disponible.';
+                $erreur = "Ce lieu n'existe pas ou n'est plus disponible.";
             } else {
-                $avis = AvisModel::publicsParLieu($id);
-                // Moyenne = null si aucun avis public (évite d'afficher « 0/5 » trompeur).
-                $stats   = AvisModel::statsParLieu($id);
+                $avis  = AvisModel::publicsParLieu($id);
+                $stats = AvisModel::statsParLieu($id);
+                // null si aucun avis (évite d'afficher 0/5)
                 $noteMoy = $stats['n'] > 0 ? $stats['moy'] : null;
 
+                // Commentaires + likes par avis
+                $userId = Session::estConnecte() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
+
+                foreach ($avis as $a) {
+                    $idAvis = (int) $a['id_avis'];
+                    // Commentaires de cet avis (racines + réponses)
+                    $commentaires[$idAvis] = CommentaireModel::parAvis($idAvis);
+                    // L'utilisateur connecté a-t-il liké cet avis ?
+                    $likesAvis[$idAvis] = $userId > 0
+                        ? LikeModel::userALikeAvis($userId, $idAvis)
+                        : false;
+                }
+
                 if (Session::estConnecte()) {
-                    $dejaAvis = AvisModel::utilisateurADejaAvisSurLieu(
-                        (int) ($_SESSION['user_id'] ?? 0),
-                        $id
-                    );
+                    $dejaAvis = AvisModel::utilisateurADejaAvisSurLieu($userId, $id);
                 }
             }
         }
 
         $this->rendre('lieu/afficher', [
-            'lieu'      => $lieu,
-            'avis'      => $avis,
-            'noteMoy'   => $noteMoy,
-            'erreur'    => $erreur,
-            'dejaAvis'  => $dejaAvis,
-            'pageTitre' => $lieu['nom'] ?? 'Lieu',
+            'lieu'         => $lieu,
+            'avis'         => $avis,
+            'commentaires' => $commentaires,
+            'likesAvis'    => $likesAvis,
+            'noteMoy'      => $noteMoy,
+            'erreur'       => $erreur,
+            'dejaAvis'     => $dejaAvis,
+            'pageTitre'    => $lieu['nom'] ?? 'Lieu',
         ], 'place');
     }
 
@@ -179,7 +195,7 @@ class LieuController extends Controleur
     private function traiterUploadPhoto(array $file): string
     {
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            throw new \RuntimeException('Erreur d’upload (code ' . $file['error'] . ').');
+            throw new \RuntimeException("Erreur d'upload (code " . $file['error'] . ").");
         }
         if ($file['size'] > 5 * 1024 * 1024) {
             throw new \RuntimeException('Photo trop lourde (5 Mo max).');
@@ -199,7 +215,7 @@ class LieuController extends Controleur
 
         $dossier = dirname(__DIR__, 2) . '/public/uploads/lieux';
         if (!is_dir($dossier) && !mkdir($dossier, 0775, true) && !is_dir($dossier)) {
-            throw new \RuntimeException('Dossier d’upload indisponible.');
+            throw new \RuntimeException("Dossier d'upload indisponible.");
         }
 
         $nomFichier = uniqid('lieu_', true) . '.' . $ext;

@@ -10,7 +10,7 @@
             <nav id="nav-site" class="nav-site" aria-label="Principale">
                 <a href="<?= e(url()) ?>">Accueil</a>
                 <a href="<?= e(url('carte')) ?>">Carte</a>
-                <a href="<?= e(url('avis')) ?>">Avis</a>
+                <a href="<?= e(url('decouvrir')) ?>">Découvrir</a>
                 <?php if (isLoggedIn()) : ?>
                     <span class="nav-sep" aria-hidden="true"></span>
                     <?php
