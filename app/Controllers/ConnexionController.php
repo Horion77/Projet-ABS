@@ -17,6 +17,7 @@ class ConnexionController extends Controleur
         $this->rendre('connexion/index', [
             'old'       => Session::recupererAncien('old_login'),
             'pageTitre' => 'Connexion',
+            'bodyClass' => 'page-stars page-auth',
         ], 'auth');
     }
 

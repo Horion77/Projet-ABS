@@ -17,6 +17,7 @@ class InscriptionController extends Controleur
         $this->rendre('inscription/index', [
             'old'       => Session::recupererAncien('old_inscription'),
             'pageTitre' => 'Inscription',
+            'bodyClass' => 'page-stars page-auth',
         ], 'auth');
     }
 

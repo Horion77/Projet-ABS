@@ -17,6 +17,7 @@ class AccueilController extends Controleur
             'lieuxPop'     => AccueilModel::classementLieux(6),
             'derniersAvis' => AccueilModel::derniersAvisLieux(5),
             'pageTitre'    => 'Accueil',
+            'bodyClass' => 'page-stars',
         ], 'home');
     }
 }

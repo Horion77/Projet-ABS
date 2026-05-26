@@ -18,5 +18,8 @@
     })();
     </script>
     <script src="<?= e(asset('js/validation.js')) ?>" defer></script>
+    <?php if (!empty($bodyClass) && str_contains($bodyClass, 'page-stars')) : ?>
+<script src="<?= e(asset('js/stars.js')) ?>" defer></script>
+<?php endif; ?>
 </body>
 </html>
