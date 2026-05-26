@@ -324,3 +324,57 @@ body:not(.map-page) .titre-page-avis,
 body:not(.map-page) .titre-page-pays {
   font-family: var(--font-abs-serif);
 }
+
+/* ── Boutons violet + scintillement au hover ─── */
+@keyframes abs-btn-pulse {
+  0%   { box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+  50%  { box-shadow: 0 0 50px rgba(139,92,246,0.95), 0 0 80px rgba(139,92,246,0.5); }
+  100% { box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+}
+body:not(.map-page) .btn,
+body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle) {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 0 20px rgba(124,58,237,0.45) !important;
+}
+body:not(.map-page) .btn:hover,
+body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle):hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%) !important;
+  animation: abs-btn-pulse 1.5s ease-in-out infinite !important;
+  transform: translateY(-1px) !important;
+}
+body:not(.map-page) .nav-auth {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 0 20px rgba(124,58,237,0.45) !important;
+}
+body:not(.map-page) .nav-auth:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%) !important;
+  animation: abs-btn-pulse 1.5s ease-in-out infinite !important;
+  transform: translateY(-1px) !important;
+}
+body:not(.map-page) .btn-hero,
+.btn-hero {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 0 20px rgba(124,58,237,0.45) !important;
+}
+body:not(.map-page) .btn-hero:hover,
+.btn-hero:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%) !important;
+  animation: abs-btn-pulse 1.5s ease-in-out infinite !important;
+  transform: translateY(-2px) !important;
+}
+body:not(.map-page) .btn-auth,
+.btn-auth {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 0 20px rgba(124,58,237,0.45) !important;
+}
+body:not(.map-page) .btn-auth:hover,
+.btn-auth:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%) !important;
+  animation: abs-btn-pulse 1.5s ease-in-out infinite !important;
+}
