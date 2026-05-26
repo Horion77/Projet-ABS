@@ -460,18 +460,22 @@ body:not(.map-page) img {
   transform: translateY(-1px);
 }
 .nav-deconnexion-btn {
-  cursor: pointer;
-  border-style: var(--tw-border-style);
-  border-width: 0px;
-  --tw-font-weight: var(--font-weight-semibold);
-  font-weight: var(--font-weight-semibold);
-  background: transparent;
-  color: var(--abs-text-muted) !important;
-  padding: 0;
+  @apply cursor-pointer font-semibold;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  border: none;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(124,58,237,0.40);
+  font-family: var(--font-abs-sans);
+  font-size: 0.875rem;
+  transition: transform 0.15s;
 }
 .nav-deconnexion-btn:hover {
-  color: var(--abs-cta) !important;
-  background: transparent;
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  color: #fff !important;
+  transform: translateY(-1px);
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
 }
 .nav-sep {
   display: inline-block;
