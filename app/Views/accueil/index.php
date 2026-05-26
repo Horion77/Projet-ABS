@@ -12,7 +12,9 @@ $derniersAvis = $derniersAvis ?? [];
         <p class="hero-soustitre">Découvrez des lieux, notez-les et inspirez d’autres voyageurs sur ABS.</p>
         <div class="hero-actions">
             <a class="btn btn-hero" href="<?= e(url('carte')) ?>">Explorer la carte</a>
-            <a class="btn btn-hero-sec" href="<?= e(url('inscription')) ?>">S’inscrire</a>
+            <?php if (!isLoggedIn()) : ?>
+            <a class="btn btn-hero-sec" href="<?= e(url('inscription')) ?>">S'inscrire</a>
+            <?php endif; ?>
         </div>
     </div>
 </section>
