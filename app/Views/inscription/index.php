@@ -45,10 +45,10 @@ $old = $old ?? [];
             <!-- CGU -->
             <div class="cgu-wrap">
                 <div class="cgu-ligne">
-                    <input type="checkbox" id="cgu" name="cgu" required>
-                    <label for="cgu">J'accepte les <button type="button" class="cgu-lien" id="ouvrir-cgu">conditions générales d'utilisation</button></label>
+                    <input type="checkbox" id="cgu" name="cgu" class="cgu-checkbox" required>
+                    <label class="cgu-texte" for="cgu">J'accepte les <button type="button" class="cgu-lien" id="ouvrir-cgu">conditions générales d'utilisation</button></label>
                 </div>
-                <p class="field-error" id="err-cgu" hidden>Vous devez accepter les CGU pour continuer.</p>
+                <p class="field-error" id="err-cgu" hidden>Vous devez accepter les CGU.</p>
             </div>
 
             <button class="btn-auth" type="submit" id="btn-inscrire" disabled>Créer mon compte</button>
