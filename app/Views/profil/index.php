@@ -3,6 +3,7 @@
  * Profil utilisateur — variables : $util, $mesAvis
  */
 $mesAvis = $mesAvis ?? [];
+$util = $util ?? [];
 ?>
 <div class="conteneur conteneur-profil">
     <h1>Profil</h1>
@@ -32,7 +33,7 @@ $mesAvis = $mesAvis ?? [];
     <!-- ─── Modifier mes informations ─────────────────────────────────── -->
     <details class="details-profil">
         <summary>✏️ Modifier mes informations</summary>
-        <form method="POST" action="/profil/modifier-infos" class="form-profil" novalidate>
+        <form method="POST" action="<?= e(url('profil/modifier-infos')) ?>" class="form-profil" novalidate>
             <div class="champ-profil">
                 <label for="prenom">Prénom</label>
                 <input type="text" id="prenom" name="prenom"
@@ -58,7 +59,7 @@ $mesAvis = $mesAvis ?? [];
     <!-- ─── Changer mon mot de passe ───────────────────────────────────── -->
     <details class="details-profil">
         <summary>🔒 Changer mon mot de passe</summary>
-        <form method="POST" action="/profil/modifier-password" class="form-profil" novalidate>
+        <form method="POST" action="<?= e(url('profil/modifier-password')) ?>" class="form-profil" novalidate>
             <div class="champ-profil">
                 <label for="password">Nouveau mot de passe</label>
                 <input type="password" id="password" name="password" minlength="6" required>
@@ -74,7 +75,7 @@ $mesAvis = $mesAvis ?? [];
     <!-- ─── Photo de profil ─────────────────────────────────────────────── -->
     <details class="details-profil">
         <summary>📷 Photo de profil</summary>
-        <form method="POST" action="/profil/modifier-avatar" class="form-profil"
+        <form method="POST" action="<?= e(url('profil/modifier-avatar')) ?>" class="form-profil"
               enctype="multipart/form-data" novalidate>
             <?php
             $avatarSrc = !empty($util['avatar'])
