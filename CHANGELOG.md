@@ -10,6 +10,27 @@ Les entrées **commit** renvoient vers `https://github.com/Horion77/Projet-ABS/c
 
 # Versions
 
+## [0.2.1] - 2026-05-27 — Refonte UI globale, Profil interactif et correctif BDD
+
+### Profil Utilisateur (`app/Views/profil/index.php`, `resources/css/style.css`)
+* Ajout de formulaires interactifs dans des sections dépliables (`<details>`) pour modifier ses informations personnelles, changer son mot de passe et uploader une photo de profil.
+* Correction du bug d'affichage de la photo de profil via l'utilisation dynamique du helper `url()`.
+* Création d'un avatar par défaut (initiales générées dynamiquement sur fond dégradé violet) pour les utilisateurs sans image.
+* Amélioration visuelle de la liste d'informations avec l'intégration d'icônes (👤, ✉️, 📅).
+* Formatage naturel des dates d'inscription (`d/m/Y`) et de publication des avis (`d/m/Y à H\hi`).
+* Remplacement de la note textuelle (X / 5) par un système visuel dynamique d'étoiles pleines et vides (⭐⭐⭐⭐☆).
+
+### Style Global & Authentification (`resources/css/style.css`, `resources/css/auth.css`, `public/assets/js/stars.js`)
+* Uniformisation du style de tous les boutons du site et des éléments de navigation : application d'un dégradé violet (de `#7c3aed` à `#a855f7`) avec une animation de pulsation/scintillement au survol.
+* Refonte complète des pages **Connexion** et **Inscription** : intégration d'une "card" sombre opaque centrée.
+* Création d'un moteur d'arrière-plan étoilé (CSS + JavaScript générant des étoiles statiques scintillantes et des étoiles flottantes) appliqué sur l'Accueil et les pages d'authentification.
+* Correction de l'alignement du formulaire d'inscription (case à cocher des CGU parfaitement alignée avec le texte).
+* Masquage du bouton "S'inscrire" sur la page d'accueil lorsque l'utilisateur est déjà connecté.
+* Mise en place du "cache busting" sur le helper `asset()` pour forcer l'effacement du cache navigateur à chaque modification CSS.
+
+### Base de données
+* Création et configuration de la table `like_avis` manquante pour résoudre de manière définitive l'erreur fatale `PDOException` (Table doesn't exist) lors de la consultation des lieux et des avis.
+
 ## [0.2.0] - 2026-05-26 — Carte interactive, page Découvrir, likes & commentaires
 
 ### Carte (`public/assets/js/map.js`, `resources/css/map.css`)
