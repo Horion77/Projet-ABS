@@ -2,7 +2,7 @@
   'use strict';
 
   var CFG = {
-    staticCount:   350,
+    staticCount:   200,
     staticMinSize: 1.5,
     staticMaxSize: 5.0,
     staticMinDur:  1.5,
@@ -59,7 +59,7 @@
     var sz  = rand(CFG.staticMinSize, CFG.staticMaxSize);
     var dur = rand(CFG.staticMinDur,  CFG.staticMaxDur).toFixed(2);
     var del = rand(CFG.staticMinDelay, CFG.staticMaxDelay).toFixed(2);
-    var s1  = rand(0.70, 1.00).toFixed(2);
+    var s1  = rand(0.40, 0.65).toFixed(2);
     var s0  = (parseFloat(s1) * rand(0.05, 0.15)).toFixed(2);
     var col = color(parseFloat(s1));
     var glow = (sz * 3).toFixed(1);
@@ -71,7 +71,7 @@
       'top:'    + rand(0,100).toFixed(3) + '%;' +
       'left:'   + rand(0,100).toFixed(3) + '%;' +
       'background:' + col + ';' +
-      'box-shadow:0 0 ' + glow + 'px ' + col + ',0 0 ' + (sz*1.5).toFixed(1) + 'px rgba(255,255,255,0.5);' +
+      'box-shadow:0 0 ' + glow + 'px ' + col + ',0 0 ' + (sz*1.5).toFixed(1) + 'px rgba(255,255,255,0.25);' +
       '--s0:' + s0 + ';--s1:' + s1 + ';' +
       'animation:abs-twinkle ' + dur + 's ' + del + 's ease-in-out infinite;';
     return el;
@@ -82,7 +82,7 @@
     var dur = rand(CFG.floatMinDur,  CFG.floatMaxDur).toFixed(2);
     var del = rand(CFG.floatMinDelay, CFG.floatMaxDelay).toFixed(2);
     var dir = randInt(0, 7);
-    var opa = rand(0.45, 0.85).toFixed(2);
+    var opa = rand(0.20, 0.50).toFixed(2);
     var col = color(parseFloat(opa));
     var glow = (sz * 3.5).toFixed(1);
     var el = document.createElement('span');
