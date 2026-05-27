@@ -43,7 +43,7 @@ $old = $old ?? [];
             </div>
 
             <!-- CGU -->
-            <div class="groupe-champ cgu-wrap">
+            <div class="cgu-wrap">
                 <label class="cgu-label" for="cgu">
                     <input type="checkbox" id="cgu" name="cgu" required>
                     <span>J'accepte les <button type="button" class="cgu-lien" id="ouvrir-cgu">conditions générales d'utilisation</button></span>

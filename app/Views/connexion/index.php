@@ -1,24 +1,25 @@
 <?php
-/**
- * Vue : formulaire de connexion. Variables : $old
- */
 $old = $old ?? [];
 ?>
-<div class="conteneur conteneur-auth">
-    <h1 class="titre-auth">Se connecter</h1>
-    <p class="sous-titre-auth">Entrez l’e-mail et le mot de passe de votre compte.</p>
-    <?php require __DIR__ . '/../partials/messages.php'; ?>
-    <form class="form-auth" method="post" action="<?= e(url('connexion')) ?>" novalidate>
-        <div class="groupe-champ">
-            <label for="email">E-mail *</label>
-            <input type="email" id="email" name="email" required autocomplete="email"
-                   value="<?= e((string) ($old['email'] ?? '')) ?>">
-        </div>
-        <div class="groupe-champ">
-            <label for="password">Mot de passe *</label>
-            <input type="password" id="password" name="password" required autocomplete="current-password">
-        </div>
-        <button class="btn-auth" type="submit">Se connecter</button>
-    </form>
-    <p class="lien-auth-bas">Pas encore inscrit ? <a href="<?= e(url('inscription')) ?>">Créer un compte</a></p>
+<div class="conteneur-auth">
+    <div class="card-auth">
+        <h1 class="titre-auth">Se connecter</h1>
+        <p class="sous-titre-auth">Entrez l'e-mail et le mot de passe de votre compte.</p>
+        <?php require __DIR__ . '/../partials/messages.php'; ?>
+        <form class="form-auth" method="post" action="<?= e(url('connexion')) ?>" novalidate>
+            <div class="groupe-champ">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" required autocomplete="email"
+                       placeholder="votre@email.com"
+                       value="<?= e((string) ($old['email'] ?? '')) ?>">
+            </div>
+            <div class="groupe-champ">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required
+                       autocomplete="current-password" placeholder="••••••••">
+            </div>
+            <button class="btn-auth" type="submit">Se connecter</button>
+        </form>
+        <p class="lien-auth-bas">Pas encore inscrit ? <a href="<?= e(url('inscription')) ?>">Créer un compte</a></p>
+    </div>
 </div>
