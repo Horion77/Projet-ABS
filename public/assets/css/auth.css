@@ -157,14 +157,29 @@
   min-height: 60vh;
 }
 
-.card-auth {
-  width: 100%;
-  max-width: 28rem;
-  padding: 2.5rem 2rem;
-  background: rgba(10, 10, 20, 0.85);
-  border: 1px solid rgba(139, 92, 246, 0.30);
-  border-radius: 1.25rem;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 24px 64px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04);
+.conteneur-auth {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.25rem 3rem;
+  min-height: 70vh;
+  position: relative;
+  z-index: 10;
+}
+
+.titre-auth {
+  font-family: var(--font-abs-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--abs-text);
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.sous-titre-auth {
+  font-size: 0.92rem;
+  color: var(--abs-text-muted);
+  margin: 0 0 1.75rem;
+  line-height: 1.5;
 }
