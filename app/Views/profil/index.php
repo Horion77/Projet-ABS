@@ -46,10 +46,10 @@ $util = $util ?? [];
             </div>
         <?php endif; ?>
         <dl class="grille-profil">
-            <dt>Prénom</dt><dd><?= e((string) $util['prenom']) ?></dd>
-            <dt>Nom</dt><dd><?= e((string) $util['nom']) ?></dd>
-            <dt>E-mail</dt><dd><?= e((string) $util['email']) ?></dd>
-            <dt>Inscription</dt><dd><?= e((string) $util['created_at']) ?></dd>
+            <dt>👤 Prénom</dt><dd><?= e((string) $util['prenom']) ?></dd>
+            <dt>👤 Nom</dt><dd><?= e((string) $util['nom']) ?></dd>
+            <dt>✉️ E-mail</dt><dd><?= e((string) $util['email']) ?></dd>
+            <dt>📅 Inscription</dt><dd><?= e(date('d/m/Y', strtotime((string) $util['created_at']))) ?></dd>
         </dl>
         <?php if (!empty($util['bio'])) : ?>
             <div class="profil-bio">
@@ -179,7 +179,7 @@ $util = $util ?? [];
                             <img class="avis-photo-thumb" src="<?= e((string) $a['photo_thumb']) ?>" alt="" width="100" height="100" loading="lazy">
                         </p>
                     <?php endif; ?>
-                    <time datetime="<?= e((string) $a['created_at']) ?>"><?= e((string) $a['created_at']) ?></time>
+                    <time datetime="<?= e((string) $a['created_at']) ?>">Le <?= e(date('d/m/Y à H\hi', strtotime((string) $a['created_at']))) ?></time>
                 </li>
                 <?php endforeach; ?>
             </ul>
