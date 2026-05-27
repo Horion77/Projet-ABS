@@ -350,3 +350,113 @@ body:not(.map-page) .titre-page-avis,
 body:not(.map-page) .titre-page-pays {
   font-family: var(--font-abs-serif);
 }
+
+/* ── Profil — sections dépliables ─────────────────────────────────────── */
+body:not(.map-page) .details-profil {
+  @apply rounded-xl border mb-3 overflow-hidden;
+  background-color: var(--abs-card-bg, rgba(255,255,255,0.04));
+  border-color: var(--abs-border);
+  transition: border-color 0.2s ease;
+}
+
+body:not(.map-page) .details-profil[open] {
+  border-color: rgba(139, 92, 246, 0.45);
+}
+
+body:not(.map-page) .details-profil summary {
+  @apply px-5 py-4 font-semibold cursor-pointer select-none;
+  color: var(--abs-text);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+body:not(.map-page) .details-profil summary::-webkit-details-marker {
+  display: none;
+}
+
+body:not(.map-page) .details-profil summary::after {
+  content: '▸';
+  margin-left: auto;
+  font-size: 0.85em;
+  opacity: 0.5;
+  transition: transform 0.25s ease;
+}
+
+body:not(.map-page) .details-profil[open] summary::after {
+  transform: rotate(90deg);
+  opacity: 1;
+}
+
+body:not(.map-page) .details-profil summary:hover {
+  background-color: rgba(139, 92, 246, 0.07);
+}
+
+body:not(.map-page) .details-profil[open] summary {
+  color: var(--abs-violet);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* Formulaires dans les sections dépliables */
+body:not(.map-page) .form-profil {
+  @apply flex flex-col gap-4 px-5 py-5;
+}
+
+body:not(.map-page) .champ-profil {
+  @apply flex flex-col gap-1;
+}
+
+body:not(.map-page) .champ-profil label {
+  @apply text-sm font-medium;
+  color: var(--abs-text-muted);
+}
+
+body:not(.map-page) .champ-profil input[type="text"],
+body:not(.map-page) .champ-profil input[type="email"],
+body:not(.map-page) .champ-profil input[type="password"] {
+  @apply px-4 py-2 rounded-lg border text-sm w-full;
+  background-color: var(--abs-input-bg, rgba(255,255,255,0.07));
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+  transition: border-color 0.2s ease;
+}
+
+body:not(.map-page) .champ-profil input:focus {
+  border-color: var(--abs-violet);
+  outline: none;
+}
+
+body:not(.map-page) .champ-profil input[type="file"] {
+  @apply text-sm py-2;
+  color: var(--abs-text-muted);
+}
+
+body:not(.map-page) .btn-profil-violet {
+  @apply self-start px-6 py-2 rounded-xl text-sm font-semibold cursor-pointer;
+  background-color: var(--abs-violet);
+  color: #fff;
+  border: none;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+body:not(.map-page) .btn-profil-violet:hover {
+  opacity: 0.88;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.45);
+}
+
+/* Aperçu avatar */
+body:not(.map-page) .apercu-avatar-wrap {
+  @apply mb-2;
+}
+body:not(.map-page) .apercu-avatar {
+  @apply rounded-full object-cover border;
+  border-color: rgba(139, 92, 246, 0.4);
+  width: 80px;
+  height: 80px;
+}
+body:not(.map-page) .apercu-avatar-vide {
+  @apply text-sm italic mb-2;
+  color: var(--abs-text-muted);
+}

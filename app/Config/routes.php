@@ -35,7 +35,10 @@ return [
     ['GET',  '/inscription',  [InscriptionController::class, 'afficher']],
     ['POST', '/inscription',  [InscriptionController::class, 'traiterInscription']],
 
-    ['GET',  '/profil',       [ProfilController::class,      'afficher']],
+    ['GET',  '/profil',                [ProfilController::class,      'afficher']],
+    ['POST', '/profil/modifier-infos',     [ProfilController::class,      'modifierInfos']],
+    ['POST', '/profil/modifier-password',  [ProfilController::class,      'modifierPassword']],
+    ['POST', '/profil/modifier-avatar',    [ProfilController::class,      'modifierAvatar']],
 
     ['GET',  '/carte',        [CarteController::class,       'index']],
 

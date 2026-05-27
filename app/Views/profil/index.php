@@ -29,6 +29,76 @@ $mesAvis = $mesAvis ?? [];
         <?php endif; ?>
     </section>
 
+    <!-- ─── Modifier mes informations ─────────────────────────────────── -->
+    <details class="details-profil">
+        <summary>✏️ Modifier mes informations</summary>
+        <form method="POST" action="/profil/modifier-infos" class="form-profil" novalidate>
+            <div class="champ-profil">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom"
+                       value="<?= e((string) $util['prenom']) ?>"
+                       minlength="2" maxlength="80" required>
+            </div>
+            <div class="champ-profil">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom"
+                       value="<?= e((string) $util['nom']) ?>"
+                       minlength="2" maxlength="80" required>
+            </div>
+            <div class="champ-profil">
+                <label for="email">Adresse e-mail</label>
+                <input type="email" id="email" name="email"
+                       value="<?= e((string) $util['email']) ?>"
+                       required>
+            </div>
+            <button type="submit" class="btn-profil-violet">Enregistrer</button>
+        </form>
+    </details>
+
+    <!-- ─── Changer mon mot de passe ───────────────────────────────────── -->
+    <details class="details-profil">
+        <summary>🔒 Changer mon mot de passe</summary>
+        <form method="POST" action="/profil/modifier-password" class="form-profil" novalidate>
+            <div class="champ-profil">
+                <label for="password">Nouveau mot de passe</label>
+                <input type="password" id="password" name="password" minlength="6" required>
+            </div>
+            <div class="champ-profil">
+                <label for="password_confirm">Confirmer le mot de passe</label>
+                <input type="password" id="password_confirm" name="password_confirm" minlength="6" required>
+            </div>
+            <button type="submit" class="btn-profil-violet">Changer le mot de passe</button>
+        </form>
+    </details>
+
+    <!-- ─── Photo de profil ─────────────────────────────────────────────── -->
+    <details class="details-profil">
+        <summary>📷 Photo de profil</summary>
+        <form method="POST" action="/profil/modifier-avatar" class="form-profil"
+              enctype="multipart/form-data" novalidate>
+            <?php
+            $avatarSrc = !empty($util['avatar'])
+                ? e((string) $util['avatar'])
+                : (!empty($util['avatar_url']) ? e((string) $util['avatar_url']) : null);
+            ?>
+            <?php if ($avatarSrc) : ?>
+                <p class="apercu-avatar-wrap">
+                    <img class="apercu-avatar"
+                         src="<?= $avatarSrc ?>"
+                         alt="Avatar actuel" width="80" height="80" loading="lazy">
+                </p>
+            <?php else : ?>
+                <p class="apercu-avatar-vide">Aucune photo de profil pour le moment.</p>
+            <?php endif; ?>
+            <div class="champ-profil">
+                <label for="avatar">Choisir une image (JPG ou PNG, max 2 Mo)</label>
+                <input type="file" id="avatar" name="avatar"
+                       accept="image/jpeg,image/png" required>
+            </div>
+            <button type="submit" class="btn-profil-violet">Mettre à jour la photo</button>
+        </form>
+    </details>
+
     <section class="bloc-avis" aria-labelledby="titre-mes-avis">
         <h2 id="titre-mes-avis">Vos avis (<?= count($mesAvis) ?>)</h2>
         <?php if (count($mesAvis) === 0) : ?>
