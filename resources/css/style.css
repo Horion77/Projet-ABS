@@ -460,3 +460,36 @@ body:not(.map-page) .apercu-avatar-vide {
   @apply text-sm italic mb-2;
   color: var(--abs-text-muted);
 }
+
+.profil-avatar-wrap {
+    margin-bottom: 1.25rem;
+}
+
+.profil-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(139,92,246,0.45);
+    box-shadow: 0 0 16px rgba(124,58,237,0.25);
+}
+
+.profil-avatar-vide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: 2px solid rgba(139,92,246,0.45);
+    box-shadow: 0 0 16px rgba(124,58,237,0.25);
+}
+
+.profil-avatar-initiales {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.05em;
+    font-family: var(--font-abs-serif);
+}

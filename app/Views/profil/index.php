@@ -11,10 +11,26 @@ $util = $util ?? [];
 
     <section class="bloc-profil" aria-labelledby="titre-infos">
         <h2 id="titre-infos">Vos informations</h2>
-        <?php if (!empty($util['avatar_url'])) : ?>
-            <p class="profil-avatar-wrap">
-                <img class="profil-avatar" src="<?= e((string) $util['avatar_url']) ?>" alt="" width="96" height="96" loading="lazy">
-            </p>
+<?php 
+        $avatarAffiche = !empty($util['avatar']) 
+            ? e((string) $util['avatar']) 
+            : (!empty($util['avatar_url']) ? e((string) $util['avatar_url']) : null);
+        ?>
+        <?php if ($avatarAffiche) : ?>
+            <div class="profil-avatar-wrap">
+                <img class="profil-avatar" 
+                     src="<?= $avatarAffiche ?>" 
+                     alt="Photo de profil" 
+                     width="80" height="80" 
+                     loading="lazy">
+            </div>
+        <?php else : ?>
+            <div class="profil-avatar-wrap profil-avatar-vide">
+                <span class="profil-avatar-initiales">
+                    <?= mb_strtoupper(mb_substr((string)($util['prenom'] ?? ''), 0, 1)) ?>
+                    <?= mb_strtoupper(mb_substr((string)($util['nom'] ?? ''), 0, 1)) ?>
+                </span>
+            </div>
         <?php endif; ?>
         <dl class="grille-profil">
             <dt>Prénom</dt><dd><?= e((string) $util['prenom']) ?></dd>
