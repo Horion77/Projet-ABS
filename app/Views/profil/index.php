@@ -19,10 +19,11 @@ $util = $util ?? [];
         $valAvatarUrl = trim((string)($util['avatar_url'] ?? ''));
         if (strtolower($valAvatarUrl) === 'null') $valAvatarUrl = '';
 
-        // 2. Sélection de la bonne source (le chemin est déjà complet en BDD !)
+        // 2. Sélection de la bonne source avec url()
         $avatarAffiche = null;
         if ($valAvatar !== '') {
-            $avatarAffiche = e($valAvatar); 
+            // On enlève le slash du début et on génère l'URL complète
+            $avatarAffiche = e(url(ltrim($valAvatar, '/'))); 
         } elseif ($valAvatarUrl !== '') {
             $avatarAffiche = e($valAvatarUrl);
         }
@@ -113,9 +114,10 @@ $util = $util ?? [];
             $valAvatarUrlForm = trim((string)($util['avatar_url'] ?? ''));
             if (strtolower($valAvatarUrlForm) === 'null') $valAvatarUrlForm = '';
 
+            // 2. Sélection de la bonne source avec url()
             $avatarSrc = null;
             if ($valAvatarForm !== '') {
-                $avatarSrc = e($valAvatarForm); 
+                $avatarSrc = e(url(ltrim($valAvatarForm, '/'))); 
             } elseif ($valAvatarUrlForm !== '') {
                 $avatarSrc = e($valAvatarUrlForm);
             }
