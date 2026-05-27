@@ -136,12 +136,18 @@ body.page-auth .site-main {
   white-space: nowrap;
   transform: none !important;
   animation: none !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
 }
 .cgu-lien:hover {
   color: #fff !important;
   animation: none !important;
   transform: none !important;
   box-shadow: none !important;
+  background: none !important;
 }
 .btn-auth {
   display: block;
