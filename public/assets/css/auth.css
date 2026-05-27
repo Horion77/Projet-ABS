@@ -22,27 +22,23 @@
   cursor: pointer;
 }
 .cgu-lien {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #a78bfa;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  color: #a78bfa !important;
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
   text-decoration: underline;
   font-family: var(--font-abs-sans);
+  display: inline;
+  border-radius: 0 !important;
 }
-.cgu-lien:hover { color: #fff; }
-
-/* Bouton désactivé */
-.btn-auth:disabled,
-.btn-auth.btn-disabled {
-  background: rgba(139,92,246,0.25) !important;
-  color: rgba(255,255,255,0.4) !important;
-  box-shadow: none !important;
-  cursor: not-allowed !important;
-  transform: none !important;
+.cgu-lien:hover {
+  color: #fff !important;
   animation: none !important;
+  transform: none !important;
 }
 
 /* ── Modal CGU ──────────────────────────────────────────────────────────── */
@@ -151,3 +147,24 @@
   transition: color 0.15s;
 }
 .cgu-refuser:hover { color: var(--abs-text); }
+
+.conteneur-auth {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem 3rem;
+  min-height: 60vh;
+}
+
+.card-auth {
+  width: 100%;
+  max-width: 28rem;
+  padding: 2.5rem 2rem;
+  background: rgba(10, 10, 20, 0.85);
+  border: 1px solid rgba(139, 92, 246, 0.30);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04);
+}
