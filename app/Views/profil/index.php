@@ -12,10 +12,22 @@ $util = $util ?? [];
     <section class="bloc-profil" aria-labelledby="titre-infos">
         <h2 id="titre-infos">Vos informations</h2>
 <?php 
-        $avatarAffiche = !empty($util['avatar']) 
-            ? e((string) $util['avatar']) 
-            : (!empty($util['avatar_url']) ? e((string) $util['avatar_url']) : null);
+        // 1. Nettoyage des données
+        $valAvatar = trim((string)($util['avatar'] ?? ''));
+        if (strtolower($valAvatar) === 'null') $valAvatar = '';
+        
+        $valAvatarUrl = trim((string)($util['avatar_url'] ?? ''));
+        if (strtolower($valAvatarUrl) === 'null') $valAvatarUrl = '';
+
+        // 2. Sélection de la bonne source (le chemin est déjà complet en BDD !)
+        $avatarAffiche = null;
+        if ($valAvatar !== '') {
+            $avatarAffiche = e($valAvatar); 
+        } elseif ($valAvatarUrl !== '') {
+            $avatarAffiche = e($valAvatarUrl);
+        }
         ?>
+
         <?php if ($avatarAffiche) : ?>
             <div class="profil-avatar-wrap">
                 <img class="profil-avatar" 
@@ -94,18 +106,34 @@ $util = $util ?? [];
         <form method="POST" action="<?= e(url('profil/modifier-avatar')) ?>" class="form-profil"
               enctype="multipart/form-data" novalidate>
             <?php
-            $avatarSrc = !empty($util['avatar'])
-                ? e((string) $util['avatar'])
-                : (!empty($util['avatar_url']) ? e((string) $util['avatar_url']) : null);
+            // Même logique de nettoyage
+            $valAvatarForm = trim((string)($util['avatar'] ?? ''));
+            if (strtolower($valAvatarForm) === 'null') $valAvatarForm = '';
+            
+            $valAvatarUrlForm = trim((string)($util['avatar_url'] ?? ''));
+            if (strtolower($valAvatarUrlForm) === 'null') $valAvatarUrlForm = '';
+
+            $avatarSrc = null;
+            if ($valAvatarForm !== '') {
+                $avatarSrc = e($valAvatarForm); 
+            } elseif ($valAvatarUrlForm !== '') {
+                $avatarSrc = e($valAvatarUrlForm);
+            }
             ?>
+            
             <?php if ($avatarSrc) : ?>
                 <p class="apercu-avatar-wrap">
-                    <img class="apercu-avatar"
+                    <img class="profil-avatar"
                          src="<?= $avatarSrc ?>"
                          alt="Avatar actuel" width="80" height="80" loading="lazy">
                 </p>
             <?php else : ?>
-                <p class="apercu-avatar-vide">Aucune photo de profil pour le moment.</p>
+                <div class="profil-avatar-wrap profil-avatar-vide" style="margin: 0 auto 1rem auto;">
+                    <span class="profil-avatar-initiales">
+                        <?= mb_strtoupper(mb_substr((string)($util['prenom'] ?? ''), 0, 1)) ?>
+                        <?= mb_strtoupper(mb_substr((string)($util['nom'] ?? ''), 0, 1)) ?>
+                    </span>
+                </div>
             <?php endif; ?>
             <div class="champ-profil">
                 <label for="avatar">Choisir une image (JPG ou PNG, max 2 Mo)</label>
