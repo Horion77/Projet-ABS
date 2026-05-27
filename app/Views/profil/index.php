@@ -154,7 +154,9 @@ $util = $util ?? [];
             <ul class="liste-avis-profil">
                 <?php foreach ($mesAvis as $a) : ?>
                 <li>
-                    <strong class="note-profil">Note : <?= (int) $a['note'] ?> / 5</strong>
+                    <strong class="note-profil" title="Note de <?= (int) $a['note'] ?> sur 5" aria-label="Note de <?= (int) $a['note'] ?> sur 5">
+                        <?= str_repeat('⭐', (int) $a['note']) . str_repeat('☆', 5 - (int) $a['note']) ?>
+                    </strong>
                     <span class="cible-avis"> —
                         <?php
                         if (!empty($a['id_lieu'])) {
