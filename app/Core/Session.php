@@ -55,6 +55,7 @@ class Session
 
     public static function connecter(int $id, string $prenom, string $nom, int $idRole = 3): void
     {
+        session_regenerate_id(true);
         $_SESSION['user_id']     = $id;
         $_SESSION['user_prenom'] = $prenom;
         $_SESSION['user_nom']    = $nom;
