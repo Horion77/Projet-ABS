@@ -197,6 +197,27 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
                                 <?= $nbCom ?> commentaire<?= $nbCom !== 1 ? 's' : '' ?>
                             </button>
 
+                            <!-- Signaler l'avis (utilisateurs connectés seulement) -->
+                            <?php if (isLoggedIn()) : ?>
+                                <details class="signaler-wrap">
+                                    <summary class="btn-signaler" title="Signaler cet avis">⚑ Signaler</summary>
+                                    <form class="form-signaler" data-type="avis" data-id-cible="<?= $idAvis ?>">
+                                        <label>Motif
+                                            <select name="motif" required>
+                                                <option value="spam">Spam</option>
+                                                <option value="insulte">Insulte / haine</option>
+                                                <option value="inapproprie">Contenu inapproprié</option>
+                                                <option value="hors_sujet">Hors sujet</option>
+                                                <option value="autre">Autre</option>
+                                            </select>
+                                        </label>
+                                        <textarea name="details" maxlength="500" rows="2" placeholder="Détails (optionnel)"></textarea>
+                                        <button type="submit" class="btn btn--sm">Envoyer le signalement</button>
+                                        <span class="signaler-msg" hidden></span>
+                                    </form>
+                                </details>
+                            <?php endif; ?>
+
                         </div>
 
 
@@ -251,6 +272,25 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
                                         <!-- Toggle réponse -->
                                         <?php if (isLoggedIn()) : ?>
                                             <button class="btn-toggle-reponse" data-target="rep-<?= $idCom ?>">Répondre</button>
+
+                                            <!-- Signaler le commentaire -->
+                                            <details class="signaler-wrap signaler-wrap--sm">
+                                                <summary class="btn-signaler" title="Signaler ce commentaire">⚑ Signaler</summary>
+                                                <form class="form-signaler" data-type="commentaire" data-id-cible="<?= $idCom ?>">
+                                                    <label>Motif
+                                                        <select name="motif" required>
+                                                            <option value="spam">Spam</option>
+                                                            <option value="insulte">Insulte / haine</option>
+                                                            <option value="inapproprie">Contenu inapproprié</option>
+                                                            <option value="hors_sujet">Hors sujet</option>
+                                                            <option value="autre">Autre</option>
+                                                        </select>
+                                                    </label>
+                                                    <textarea name="details" maxlength="500" rows="2" placeholder="Détails (optionnel)"></textarea>
+                                                    <button type="submit" class="btn btn--sm">Envoyer le signalement</button>
+                                                    <span class="signaler-msg" hidden></span>
+                                                </form>
+                                            </details>
                                         <?php endif; ?>
                                     </div>
 
@@ -325,8 +365,9 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
 <script>
 (function () {
 
-    const URL_LIKE_AVIS = <?= json_encode(url('avis/liker')) ?>;
-    const URL_LIKE_COM  = <?= json_encode(url('commentaire/liker')) ?>;
+    const URL_LIKE_AVIS    = <?= json_encode(url('avis/liker')) ?>;
+    const URL_LIKE_COM     = <?= json_encode(url('commentaire/liker')) ?>;
+    const URL_SIGNALEMENT  = <?= json_encode(url('signalement')) ?>;
 
 
     /* ---- Toggle section commentaires ---- */
@@ -397,6 +438,51 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
             } catch (e) {
                 cb.checked = !cb.checked;
                 console.error('Erreur like commentaire', e);
+            }
+        });
+    });
+
+
+    /* ---- Signalement avis / commentaire (formulaire AJAX) ---- */
+    document.querySelectorAll('.form-signaler').forEach(form => {
+        const msg = form.querySelector('.signaler-msg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type    = form.dataset.type;
+            const idCible = form.dataset.idCible;
+            const motif   = form.querySelector('[name="motif"]').value;
+            const details = form.querySelector('[name="details"]').value;
+
+            const params = new URLSearchParams();
+            params.set('type', type);
+            params.set('id_cible', idCible);
+            params.set('motif', motif);
+            if (details) params.set('details', details);
+
+            try {
+                const res  = await fetch(URL_SIGNALEMENT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString(),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.hidden = false;
+                    msg.textContent = data.deja
+                        ? 'Vous aviez déjà signalé ce contenu.'
+                        : 'Signalement envoyé, merci !';
+                    msg.classList.add('signaler-msg--ok');
+                    form.querySelector('button[type="submit"]').disabled = true;
+                } else {
+                    msg.hidden = false;
+                    msg.textContent = data.erreur || 'Erreur lors du signalement.';
+                    msg.classList.add('signaler-msg--err');
+                }
+            } catch (err) {
+                msg.hidden = false;
+                msg.textContent = 'Connexion impossible.';
+                console.error('Erreur signalement', err);
             }
         });
     });

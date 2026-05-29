@@ -14,6 +14,7 @@ use App\Controllers\LieuController;
 use App\Controllers\LikeController;
 use App\Controllers\PaysController;
 use App\Controllers\ProfilController;
+use App\Controllers\SignalementController;
 
 /**
  * Table de routage : [METHODE_HTTP, CHEMIN, [Controleur::class, 'methode']].
@@ -55,4 +56,9 @@ return [
 
     ['POST', '/commentaire',       [CommentaireController::class, 'creer']],
     ['POST', '/commentaire/liker', [CommentaireController::class, 'liker']],
+
+    // Signalements (utilisateur connecté) + modération (admin)
+    ['POST', '/signalement',              [SignalementController::class, 'creer']],
+    ['GET',  '/admin/signalements',       [SignalementController::class, 'index']],
+    ['POST', '/admin/signalements/traiter',[SignalementController::class, 'traiter']],
 ];

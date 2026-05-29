@@ -583,3 +583,67 @@
   color: var(--abs-muted);
   margin: 0.5rem 0;
 }
+
+
+/* ── Signalement (utilisateur signale un avis ou commentaire) ─────────────── */
+.signaler-wrap {
+  display: inline-block;
+  margin-left: auto;
+}
+.signaler-wrap--sm { margin-left: 0.4rem; }
+.btn-signaler {
+  cursor: pointer;
+  list-style: none;
+  background: transparent;
+  border: 1px solid var(--abs-border);
+  color: var(--abs-muted, var(--abs-text-muted));
+  font-size: 0.78rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.btn-signaler::-webkit-details-marker { display: none; } /* cache la flèche par défaut */
+.btn-signaler:hover {
+  color: #fda4af;
+  border-color: rgba(253, 164, 175, 0.5);
+  background: rgba(253, 164, 175, 0.08);
+}
+.signaler-wrap[open] .btn-signaler {
+  color: #fda4af;
+  border-color: rgba(253, 164, 175, 0.6);
+}
+.form-signaler {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--abs-bg-elevated, rgba(255,255,255,0.04));
+  border: 1px solid var(--abs-border);
+  border-radius: 8px;
+  padding: 0.7rem;
+  margin-top: 0.4rem;
+  max-width: 360px;
+}
+.form-signaler label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--abs-muted, var(--abs-text-muted));
+}
+.form-signaler select,
+.form-signaler textarea {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--abs-border);
+  border-radius: 5px;
+  color: var(--abs-text);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+.form-signaler textarea { resize: vertical; min-height: 2.2rem; }
+.signaler-msg {
+  font-size: 0.78rem;
+  margin-top: 0.2rem;
+}
+.signaler-msg--ok  { color: #34d399; }
+.signaler-msg--err { color: #fca5a5; }

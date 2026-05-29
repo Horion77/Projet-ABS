@@ -44,6 +44,7 @@ class ConnexionController extends Controleur
             (int) $user['id_utilisateur'],
             (string) $user['prenom'],
             (string) $user['nom'],
+            (int) ($user['id_role'] ?? 3),
         );
         Session::flashSucces('Connexion réussie, bonne navigation.');
 

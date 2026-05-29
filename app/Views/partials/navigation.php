@@ -11,6 +11,9 @@
                 <a href="<?= e(url()) ?>">Accueil</a>
                 <a href="<?= e(url('carte')) ?>">Carte</a>
                 <a href="<?= e(url('decouvrir')) ?>">Découvrir</a>
+                <?php if (isModerateur()) : ?>
+                    <a href="<?= e(url('admin/signalements')) ?>" class="nav-admin">Modération</a>
+                <?php endif; ?>
                 <?php if (isLoggedIn()) : ?>
                     <span class="nav-sep" aria-hidden="true"></span>
                     <?php

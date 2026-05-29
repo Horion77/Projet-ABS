@@ -26,17 +26,39 @@ class Session
             return null;
         }
         return [
-            'id'     => (int) $_SESSION['user_id'],
-            'prenom' => (string) ($_SESSION['user_prenom'] ?? ''),
-            'nom'    => (string) ($_SESSION['user_nom'] ?? ''),
+            'id'      => (int) $_SESSION['user_id'],
+            'prenom'  => (string) ($_SESSION['user_prenom'] ?? ''),
+            'nom'     => (string) ($_SESSION['user_nom'] ?? ''),
+            'id_role' => (int)    ($_SESSION['user_role'] ?? 3),
         ];
     }
 
-    public static function connecter(int $id, string $prenom, string $nom): void
+    /**
+     * Vrai si l'utilisateur courant a le rôle admin (id_role = 1).
+     * Une session déjà ouverte avant cette évolution renverra false ;
+     * l'utilisateur doit alors se reconnecter pour récupérer son rôle.
+     */
+    public static function estAdmin(): bool
+    {
+        return self::estConnecte() && (int) ($_SESSION['user_role'] ?? 0) === 1;
+    }
+
+    /**
+     * Vrai si l'utilisateur peut modérer le contenu : admin (1) OU
+     * modérateur (2). Sert à gater la page « Modération des signalements ».
+     */
+    public static function estModerateur(): bool
+    {
+        $role = (int) ($_SESSION['user_role'] ?? 0);
+        return self::estConnecte() && ($role === 1 || $role === 2);
+    }
+
+    public static function connecter(int $id, string $prenom, string $nom, int $idRole = 3): void
     {
         $_SESSION['user_id']     = $id;
         $_SESSION['user_prenom'] = $prenom;
         $_SESSION['user_nom']    = $nom;
+        $_SESSION['user_role']   = $idRole;
     }
 
     public static function deconnecter(): void

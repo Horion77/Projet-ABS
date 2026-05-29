@@ -1,0 +1,167 @@
+/* Page admin — Modération des signalements */
+
+@import "./theme.css";
+
+.admin-mod {
+    max-width: var(--max-largeur);
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+}
+
+.adm-hero { margin-bottom: 1.5rem; }
+.adm-hero h1 {
+    font-family: var(--font-abs-serif);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: var(--abs-text);
+    margin: 0 0 0.4rem;
+}
+.adm-hero p { color: var(--abs-text-muted); margin: 0; }
+
+/* Onglets statut */
+.adm-tabs {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--abs-border);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+}
+.adm-tab {
+    text-decoration: none;
+    color: var(--abs-text-muted);
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    background: var(--abs-surface);
+    border: 1px solid var(--abs-border);
+    transition: color 0.15s, background 0.15s;
+}
+.adm-tab:hover { color: var(--abs-text); }
+.adm-tab--actif {
+    background: linear-gradient(135deg, var(--abs-violet), #6d28d9);
+    color: #fff;
+    border-color: transparent;
+}
+.adm-tab-nb {
+    font-size: 0.74rem;
+    font-weight: 700;
+    margin-left: 0.3rem;
+    opacity: 0.85;
+}
+
+/* Liste */
+.adm-liste { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+.adm-card {
+    background: var(--abs-surface);
+    border: 1px solid var(--abs-border);
+    border-radius: var(--radius-abs, 0.75rem);
+    padding: 1rem 1.1rem;
+}
+.adm-card--commentaire { border-left: 3px solid var(--abs-violet-glow); }
+.adm-card--avis        { border-left: 3px solid var(--abs-gold); }
+
+.adm-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+.adm-badge {
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(139, 92, 246, 0.18);
+    color: var(--abs-violet-glow);
+}
+.adm-badge--avis { background: rgba(251, 191, 36, 0.18); color: var(--abs-gold); }
+.adm-motif {
+    font-weight: 700;
+    color: var(--abs-text);
+}
+.adm-date {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: var(--abs-text-muted);
+}
+
+.adm-meta {
+    font-size: 0.85rem;
+    color: var(--abs-text-muted);
+    margin: 0 0 0.45rem;
+}
+.adm-meta strong { color: var(--abs-text); font-weight: 600; }
+
+.adm-details {
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 2px solid var(--abs-border);
+    padding: 0.5rem 0.7rem;
+    border-radius: 0 6px 6px 0;
+    color: var(--abs-text-muted);
+    font-size: 0.85rem;
+    margin: 0 0 0.6rem;
+    font-style: italic;
+}
+
+.adm-extrait {
+    background: var(--abs-bg-elevated);
+    border: 1px solid var(--abs-border);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    color: var(--abs-text);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 0.7rem;
+    quotes: "« " " »";
+}
+.adm-extrait--vide {
+    color: var(--abs-text-muted);
+    font-style: italic;
+}
+
+.adm-lien { margin: 0 0 0.7rem; font-size: 0.85rem; }
+.adm-lien a { color: var(--abs-link); text-decoration: none; }
+.adm-lien a:hover { text-decoration: underline; }
+
+/* Actions */
+.adm-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+.adm-actions .btn,
+.adm-actions .btn-sm {
+    background: linear-gradient(135deg, var(--abs-violet), #6d28d9);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.12s;
+}
+.adm-actions .btn:hover { transform: translateY(-1px); }
+.adm-actions .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--abs-border);
+    color: var(--abs-text-muted);
+}
+.adm-actions .btn-ghost:hover { color: var(--abs-text); }
+.adm-actions .btn-danger {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+}
+
+/* État vide */
+.adm-vide {
+    text-align: center;
+    color: var(--abs-text-muted);
+    padding: 3rem 1rem;
+    background: var(--abs-surface);
+    border: 1px dashed var(--abs-border);
+    border-radius: var(--radius-abs);
+}

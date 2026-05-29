@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build:css": "npm run build:css:app && npm run build:css:map",
-    "build:css:app": "tailwindcss -i resources/css/style.css -o public/assets/css/style.css && tailwindcss -i resources/css/home.css -o public/assets/css/home.css && tailwindcss -i resources/css/auth.css -o public/assets/css/auth.css && tailwindcss -i resources/css/place.css -o public/assets/css/place.css && tailwindcss -i resources/css/reviews.css -o public/assets/css/reviews.css && tailwindcss -i resources/css/decouvrir.css -o public/assets/css/decouvrir.css",
+    "build:css:app": "tailwindcss -i resources/css/style.css -o public/assets/css/style.css && tailwindcss -i resources/css/home.css -o public/assets/css/home.css && tailwindcss -i resources/css/auth.css -o public/assets/css/auth.css && tailwindcss -i resources/css/place.css -o public/assets/css/place.css && tailwindcss -i resources/css/reviews.css -o public/assets/css/reviews.css && tailwindcss -i resources/css/decouvrir.css -o public/assets/css/decouvrir.css && tailwindcss -i resources/css/admin.css -o public/assets/css/admin.css",
     "build:css:map": "node -e \"require('fs').copyFileSync('resources/css/map.css','public/assets/css/map.css')\"",
     "watch:css": "tailwindcss -i resources/css/style.css -o public/assets/css/style.css --watch",
     "start": "php -S localhost:8000 -t public public/router.php"

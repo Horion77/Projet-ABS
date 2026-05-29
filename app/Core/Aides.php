@@ -33,6 +33,26 @@ if (!function_exists('isLoggedIn')) {
     }
 }
 
+if (!function_exists('isAdmin')) {
+    /** Vrai si l'utilisateur courant a le rôle admin (id_role = 1). */
+    function isAdmin(): bool
+    {
+        return isset($_SESSION['user_role']) && (int) $_SESSION['user_role'] === 1;
+    }
+}
+
+if (!function_exists('isModerateur')) {
+    /** Vrai pour admin (1) ou modérateur (2) : accès aux outils de modération. */
+    function isModerateur(): bool
+    {
+        if (!isset($_SESSION['user_role'])) {
+            return false;
+        }
+        $r = (int) $_SESSION['user_role'];
+        return $r === 1 || $r === 2;
+    }
+}
+
 if (!function_exists('redirect')) {
     function redirect(string $url): never
     {

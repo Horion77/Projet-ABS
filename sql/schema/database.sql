@@ -285,6 +285,36 @@ CREATE INDEX idx_like_avis_avis ON like_avis (id_avis);
 
 
 -- ============================================================
+-- 10c. SIGNALEMENT
+--      Un utilisateur signale un avis ou un commentaire ; un admin
+--      consulte la file et traite (marquer, rejeter, supprimer le contenu).
+--      Table polymorphe : cible_type ('avis'|'commentaire') + cible_id.
+--      Pas de FK sur cible_id : on accepte les orphelins si le contenu
+--      visé est supprimé entretemps.
+-- ============================================================
+CREATE TABLE signalement (
+  id_signalement   INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  cible_type       ENUM('avis','commentaire') NOT NULL,
+  cible_id         INT UNSIGNED    NOT NULL,
+  motif            VARCHAR(60)     NOT NULL,
+  details          VARCHAR(500)    DEFAULT NULL,
+  statut           ENUM('en_attente','traite','rejete') NOT NULL DEFAULT 'en_attente',
+  created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  id_utilisateur   INT UNSIGNED    NOT NULL,
+
+  PRIMARY KEY (id_signalement),
+  -- Un utilisateur ne peut signaler la même cible qu'une fois
+  UNIQUE KEY uq_sig_user_cible (id_utilisateur, cible_type, cible_id),
+
+  CONSTRAINT fk_sig_utilisateur
+    FOREIGN KEY (id_utilisateur) REFERENCES utilisateur (id_utilisateur)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_sig_statut ON signalement (statut, created_at);
+
+
+-- ============================================================
 -- 11. VISITE
 --     Journal de voyage : enregistre les lieux visités.
 --     Même logique polymorphique que AVIS (pays / ville / lieu).
