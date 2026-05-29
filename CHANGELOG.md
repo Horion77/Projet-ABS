@@ -9,6 +9,21 @@ Les entrées **commit** renvoient vers `https://github.com/Horion77/Projet-ABS/c
 ---
 
 # Versions
+## [0.2.2] - 2026-05-29 — Audit sécurité & durcissement
+
+### Sécurité — Sessions
+* Ajout de `session_regenerate_id(true)` dans `Session::connecter()` (`app/Core/Session.php`) pour prévenir les attaques de fixation de session.
+
+### Sécurité — Hachage des mots de passe
+* Remplacement de `PASSWORD_DEFAULT` (BCrypt) par `PASSWORD_ARGON2ID` avec paramètres renforcés (`memory_cost=65536`, `time_cost=4`) dans `InscriptionController::traiterInscription()` et `ProfilController::modifierPassword()`.
+
+### Sécurité — Validation mot de passe
+* Durcissement des règles dans `InscriptionController` et `ProfilController` : minimum porté à 12 caractères, majuscule obligatoire, chiffre obligatoire — règles désormais cohérentes entre inscription et changement de mot de passe.
+
+### Sécurité — Base de données
+* Suppression des comptes de données de test (IDs 5 à 14) partageant le hash BCrypt du mot de passe `password` (`abs_security_patch.sql`).
+* Suppression de la colonne redondante `avatar_url` dans la table `utilisateur` (doublon de `avatar`).
+* Ajout de la contrainte `CHECK (note BETWEEN 1 AND 5)` sur la table `avis`.
 
 ## [0.2.1] - 2026-05-27 — Refonte UI globale, Profil interactif et correctif BDD
 
