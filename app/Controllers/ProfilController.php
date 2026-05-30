@@ -87,9 +87,16 @@ class ProfilController extends Controleur
 
         $erreurs = [];
 
-        if (mb_strlen($password) < 6) {
+        if (mb_strlen($password) < 12) {
             $erreurs[] = 'Le mot de passe doit contenir au moins 6 caractères.';
         }
+        if (!preg_match('/[A-Z]/', $password)) { 
+            $erreurs[] = 'Majuscule requise.'; 
+            }
+        if (!preg_match('/[0-9]/', $password)) { 
+            $erreurs[] = 'Chiffre requis.';
+            }
+            
         if ($password !== $passwordConfirm) {
             $erreurs[] = 'Les deux mots de passe ne correspondent pas.';
         }
@@ -99,7 +106,7 @@ class ProfilController extends Controleur
             $this->rediriger('/profil');
         }
 
-        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $hash = password_hash($password, PASSWORD_ARGON2ID);
 
         if (ProfilModel::modifierPassword($id, $hash)) {
             Session::flashSucces('Votre mot de passe a été changé avec succès.');
