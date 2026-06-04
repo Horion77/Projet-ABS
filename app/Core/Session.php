@@ -10,6 +10,9 @@ class Session
 {
     public static function demarrer(): void
     {
+        // PHP_SESSION_NONE = pas encore démarrée. La vérification évite l'erreur
+        // "Cannot start session - headers already sent" si demarrer() est appelé
+        // plusieurs fois (ex. bootstrap + un require de vue qui appelle demarrer()).
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -55,6 +58,10 @@ class Session
 
     public static function connecter(int $id, string $prenom, string $nom, int $idRole = 3): void
     {
+        // session_regenerate_id(true) : génère un nouvel identifiant de session ET supprime
+        // l'ancien fichier de session côté serveur. Protège contre la fixation de session :
+        // un attaquant qui aurait injecté un PHPSESSID avant la connexion se retrouve
+        // avec un identifiant invalide après l'authentification.
         session_regenerate_id(true);
         $_SESSION['user_id']     = $id;
         $_SESSION['user_prenom'] = $prenom;
@@ -64,6 +71,10 @@ class Session
 
     public static function deconnecter(): void
     {
+        // On vide le tableau superglobal AVANT de détruire la session :
+        // session_destroy() supprime le fichier côté serveur mais ne réinitialise pas
+        // $_SESSION en mémoire. Sans ce vidage préalable, les données resteraient
+        // accessibles dans le même script jusqu'à la fin de l'exécution.
         $_SESSION = [];
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();

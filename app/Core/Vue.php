@@ -31,16 +31,23 @@ class Vue
         $fichierCssPage = $css ?? ($donnees['fichierCssPage'] ?? null);
         $donnees['fichierCssPage'] = $fichierCssPage;
 
-        // EXTR_SKIP : ne pas écraser une variable déjà existante (ex. $contenu) par accident.
+        // EXTR_SKIP : si une clé de $donnees a le même nom qu'une variable déjà
+        // définie dans cette portée (ex. $contenu, $cheminVue), on la conserve.
+        // Sans ce flag, extract() écraserait silencieusement nos variables locales.
         extract($donnees, EXTR_SKIP);
 
-        // Buffer : on capture la vue seule, puis le layout l'injecte dans $contenu.
+        // Pattern Output Buffering : ob_start() intercepte tout echo/print de la vue,
+        // ob_get_clean() récupère ce texte dans $contenu et arrête le buffer.
+        // Le layout affiche $contenu à l'endroit approprié via echo $contenu.
+        // Cela permet d'envelopper n'importe quelle vue dans le même layout HTML
+        // sans que la vue ait besoin de connaître le layout.
         ob_start();
         require $cheminVue;
         $contenu = ob_get_clean();
 
         $layout = APP_ROOT . '/app/Views/layouts/principal.php';
         if (!is_file($layout)) {
+            // Fallback : si le layout est absent (ex. tests), on affiche la vue brute.
             echo $contenu;
             return;
         }

@@ -28,7 +28,11 @@ class Routeur
         $methode = $req->methode();
         $chemin  = $req->chemin();
 
-        // Si le chemin existe dans la table mais pas la méthode → 405 ; sinon chemin inconnu → 404.
+        // $cheminAutorise sert à distinguer deux cas d'échec :
+        //   - chemin trouvé mais mauvaise méthode → 405 Method Not Allowed
+        //   - chemin inconnu → 404 Not Found
+        // On ne peut pas faire les deux en un seul parcours car HTTP exige
+        // que 405 inclue le header "Allow:" avec les méthodes valides.
         $cheminAutorise = false;
         foreach ($this->routes as [$mRoute, $cRoute, $action]) {
             if ($cRoute !== $chemin) {
@@ -39,12 +43,15 @@ class Routeur
                 continue;
             }
             [$classe, $methodeCtrl] = $action;
+            // Instanciation dynamique du contrôleur + appel de la méthode par son nom.
+            // Équivaut à : $ctrl = new AccueilController(); $ctrl->index();
             (new $classe())->{$methodeCtrl}();
             return;
         }
 
         if ($cheminAutorise) {
             http_response_code(405);
+            // Le header Allow liste les méthodes acceptées pour ce chemin (ex. "GET, POST").
             header('Allow: ' . implode(', ', $this->methodesPour($chemin)));
             echo '<h1>405 — Méthode non autorisée</h1>';
             return;

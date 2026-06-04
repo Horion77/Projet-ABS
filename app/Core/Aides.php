@@ -11,7 +11,10 @@ declare(strict_types=1);
  * if (!function_exists(...)) : évite une erreur fatale si le fichier est inclus deux fois.
  */
 
-// e() : toujours utiliser pour afficher du texte utilisateur/BDD dans le HTML (protection XSS).
+// e() : échappement seul, sans trim. À utiliser pour tout texte affiché dans le HTML.
+// Différence avec sanitize() : sanitize() appelle trim() avant d'échapper.
+// On préfère e() dans les vues (ne modifie pas la valeur) et sanitize() pour
+// les valeurs qui viennent de champs texte libres (supprime les espaces parasites).
 if (!function_exists('e')) {
     function e(string $s): string
     {
@@ -26,6 +29,9 @@ if (!function_exists('sanitize')) {
     }
 }
 
+// isLoggedIn() / isAdmin() / isModerateur() : fonctions globales conservées pour
+// compatibilité avec les vues PHP qui n'utilisent pas Session:: directement.
+// Préférer Session::estConnecte() / estAdmin() / estModerateur() dans le code MVC.
 if (!function_exists('isLoggedIn')) {
     function isLoggedIn(): bool
     {
@@ -53,6 +59,8 @@ if (!function_exists('isModerateur')) {
     }
 }
 
+// redirect() : fonction globale pour compatibilité vues legacy. Préférer Reponse::rediriger()
+// dans les contrôleurs (qui gère aussi la déduplication du base URL).
 if (!function_exists('redirect')) {
     function redirect(string $url): never
     {
@@ -67,6 +75,9 @@ if (!function_exists('redirect')) {
 if (!function_exists('tronque_e')) {
     /**
      * Raccourcit un texte (ex. extraits d'avis sur l'accueil) en l'échappant pour l'affichage.
+     * mb_strimwidth() est multibyte-safe : coupe sur des caractères complets (pas des octets)
+     * et ajoute le suffixe '…' dans la limite de $max. Fallback sur substr() si l'extension
+     * mbstring n'est pas disponible (rare en PHP moderne mais par précaution).
      */
     function tronque_e(string $texte, int $max = 160): string
     {
@@ -80,6 +91,9 @@ if (!function_exists('tronque_e')) {
     }
 }
 
+// Pattern "flash read-once" : le message est stocké en session par le contrôleur,
+// puis lu ET supprimé dans la même requête suivante (POST → redirect → GET).
+// Un appel à displayErrors() consomme les erreurs ; un second appel retourne ''.
 if (!function_exists('displayErrors')) {
     function displayErrors(): string
     {
@@ -91,7 +105,7 @@ if (!function_exists('displayErrors')) {
             $html .= '<li>' . e((string) $err) . '</li>';
         }
         $html .= '</ul></div>';
-        unset($_SESSION['errors']);
+        unset($_SESSION['errors']); // consommé : ne réapparaît pas au rechargement
         return $html;
     }
 }
@@ -103,7 +117,7 @@ if (!function_exists('displaySuccess')) {
             return '';
         }
         $html = '<div class="success">' . e((string) $_SESSION['success']) . '</div>';
-        unset($_SESSION['success']);
+        unset($_SESSION['success']); // idem : consommé à la première lecture
         return $html;
     }
 }
@@ -139,12 +153,17 @@ if (!function_exists('reviews_pagination_query')) {
 
 if (!function_exists('url')) {
     /**
-     * Helper d'URL absolue tenant compte d'un éventuel sous-dossier (ex. MAMP).
+     * Construit une URL absolue à partir d'un chemin relatif, en préfixant APP_BASE_URL.
+     * Gère le cas où APP_BASE_URL est '/' (racine) : '/' . trim('/', '/') = '//'
+     * qu'on normalise en '/' pour éviter des doubles slashes dans les liens.
      */
     function url(string $chemin = ''): string
     {
         $base = defined('APP_BASE_URL') ? (string) APP_BASE_URL : '/';
         $base = '/' . trim($base, '/');
+        // trim('/') renvoie '' → '/' . '' = '/' : cas racine, pas de double-slash.
+        // Mais si APP_BASE_URL = '/', trim donne '' et on obtient '/' → OK.
+        // Si APP_BASE_URL = '/foo', on obtient '/foo' → OK.
         if ($base === '//') {
             $base = '/';
         }
