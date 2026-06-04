@@ -1,8 +1,19 @@
 <?php
 /**
  * Table statique ISO 3166-1 alpha-3 → nom français.
- * Utilisée par la carte pour afficher le nom d'un pays même sans avis.
+ * Utilisée par map.js (injectée via window.MAP_DATA.paysNoms) pour afficher le nom
+ * d'un pays au survol même s'il n'a aucun avis dans la base (fallback sur ce tableau).
  * Source : ISO 3166 / Nations Unies (translittération française).
+ *
+ * ⚠️  Quelques codes non officiels sont inclus pour couvrir les entités que Mapbox
+ *     retourne dans son tileset country-boundaries-v1 :
+ *       XKX → Kosovo (code officieux, non reconnu par l'ISO)
+ *       CYN → Chypre du Nord (entité non reconnue par l'ONU)
+ *
+ * ⚠️  Certaines clés sont définies deux fois dans ce tableau (ARM, SOM, MNE) car
+ *     PHP ne lève pas d'erreur sur les doublons de clés — la dernière occurrence
+ *     l'emporte. Ces doublons sont sans conséquence fonctionnelle car les deux
+ *     valeurs sont identiques, mais ils mériteraient d'être nettoyés.
  */
 return [
     // Europe

@@ -17,16 +17,25 @@ use App\Controllers\ProfilController;
 use App\Controllers\SignalementController;
 
 /**
- * Table de routage : [METHODE_HTTP, CHEMIN, [Controleur::class, 'methode']].
- * Le chemin est comparé tel quel (ex. /lieu) ; les paramètres passent en ?id=… dans la requête.
+ * Table de routage de l'application.
+ *
+ * Format : [METHODE_HTTP, CHEMIN, [Controleur::class, 'methode']]
+ *
+ * Conventions importantes :
+ *   - Le chemin est comparé après suppression du préfixe base_url (ex. /Projet-ABS/public).
+ *     On déclare donc '/lieu' et non '/Projet-ABS/public/lieu'.
+ *   - Les paramètres dynamiques (id, filtres) ne sont PAS dans le chemin (pas de :id).
+ *     Ils transitent par la query string (?id=…) et sont lus via $_GET dans le contrôleur.
+ *   - La vérification d'authentification et des droits (admin, connecté…) est faite
+ *     dans le contrôleur, pas dans ce fichier.
  */
 
 return [
     //['GET',  '/',             [AccueilController::class,     'index']],
-    // ❌ Actuellement (chemin absolu complet, jamais matché par le routeur)
+    // ❌ Ce chemin absolu n'est jamais matché par le routeur (inclut le préfixe MAMP)
     //['GET', '/Projet-ABS/public/', [AccueilController::class, 'index']],
 
-    // ✅ Ce que ça devrait être (chemin relatif après public/)
+    // ✅ Chemin relatif correct après suppression de base_url
     ['GET', '/', [AccueilController::class, 'index']],
 
     ['GET',  '/connexion',    [ConnexionController::class,   'afficher']],
@@ -50,6 +59,9 @@ return [
 
     ['GET',  '/pays',         [PaysController::class,        'afficher']],
 
+    // GET /avis  → liste paginée des avis (AvisListeController)
+    // POST /avis → soumission d'un nouvel avis (AvisController)
+    // Même chemin, deux contrôleurs distincts selon la méthode HTTP.
     ['GET',  '/avis',              [AvisListeController::class,   'index']],
     ['POST', '/avis',              [AvisController::class,        'traiterSoumission']],
     ['POST', '/avis/liker',        [LikeController::class,        'likerAvis']],
@@ -57,7 +69,10 @@ return [
     ['POST', '/commentaire',       [CommentaireController::class, 'creer']],
     ['POST', '/commentaire/liker', [CommentaireController::class, 'liker']],
 
-    // Signalements (utilisateur connecté) + modération (admin)
+    // Signalements (utilisateur connecté) + modération (admin).
+    // Le préfixe /admin/ est une convention de nommage : il n'y a pas de middleware
+    // d'authentification au niveau du routeur. C'est SignalementController qui vérifie
+    // que l'utilisateur est admin avant d'afficher ou de traiter les signalements.
     ['POST', '/signalement',              [SignalementController::class, 'creer']],
     ['GET',  '/admin/signalements',       [SignalementController::class, 'index']],
     ['POST', '/admin/signalements/traiter',[SignalementController::class, 'traiter']],
