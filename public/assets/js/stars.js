@@ -1,6 +1,16 @@
+// stars.js — Champ d'étoiles animé en pur JS/CSS
+// Génère deux couches de particules dans le DOM :
+//   1. Étoiles statiques (scintillement opacity + scale via abs-twinkle)
+//   2. Étoiles flottantes (dérive spatiale via abs-d0…abs-d7)
+// Le CSS est injecté dynamiquement (pas de fichier .css séparé) pour que le
+// script reste autonome et ne dépende pas de l'ordre de chargement des assets.
+// Ne s'exécute pas si prefers-reduced-motion est activé (accessibilité).
+
 (function () {
   'use strict';
 
+  // Paramètres séparés pour les deux couches : modifier ici pour ajuster la densité,
+  // la taille et la vitesse des étoiles sans toucher au code de génération.
   var CFG = {
     staticCount:   200,
     staticMinSize: 1.5,
@@ -30,6 +40,8 @@
     return CFG.colors[randInt(0, CFG.colors.length - 1)].replace('{a}', a.toFixed(2));
   }
 
+  // Injecte une balise <style> unique (gardée par son id pour éviter les doublons
+  // si le script est chargé plusieurs fois ou que la page est rechargée en SPA).
   function injectCSS() {
     if (document.getElementById('abs-stars-css')) return;
     var css = [
@@ -38,6 +50,7 @@
       '  50%  { opacity: var(--s1, 1.00); transform: scale(1.50); }',
       '  100% { opacity: var(--s0, 0.08); transform: scale(0.85); }',
       '}',
+      // 8 directions de dérive distinctes pour que les étoiles flottantes ne bougent pas toutes dans le même sens.
       '@keyframes abs-d0{0%,100%{transform:translate(0,0)}50%{transform:translate(24px,-22px)}}',
       '@keyframes abs-d1{0%,100%{transform:translate(0,0)}50%{transform:translate(-26px,18px)}}',
       '@keyframes abs-d2{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,24px)}}',
@@ -55,12 +68,16 @@
     document.head.appendChild(el);
   }
 
+  // Crée une étoile statique scintillante.
+  // --s0 et --s1 sont des propriétés CSS custom per-élément : abs-twinkle les lit
+  // comme opacités min/max. Cela donne à chaque étoile sa propre plage de brillance
+  // sans avoir à générer une keyframe unique par élément.
   function mkStatic() {
     var sz  = rand(CFG.staticMinSize, CFG.staticMaxSize);
     var dur = rand(CFG.staticMinDur,  CFG.staticMaxDur).toFixed(2);
     var del = rand(CFG.staticMinDelay, CFG.staticMaxDelay).toFixed(2);
     var s1  = rand(0.40, 0.65).toFixed(2);
-    var s0  = (parseFloat(s1) * rand(0.05, 0.15)).toFixed(2);
+    var s0  = (parseFloat(s1) * rand(0.05, 0.15)).toFixed(2); // opacité min = fraction de s1 → scintillement naturel
     var col = color(parseFloat(s1));
     var glow = (sz * 3).toFixed(1);
     var el = document.createElement('span');
@@ -99,6 +116,11 @@
     return el;
   }
 
+  // Construit les deux couches et les insère en tête de <body>.
+  // aria-hidden='true' sur chaque couche : les étoiles sont purement décoratives,
+  // les lecteurs d'écran n'ont pas à les traverser.
+  // DocumentFragment : toutes les étoiles sont d'abord assemblées en mémoire puis
+  // insérées en un seul reflow, ce qui évite 200+ reflows individuels.
   function build() {
     var l1 = document.createElement('div');
     l1.className = 'abs-sl'; l1.id = 'abs-stars-static';
@@ -119,6 +141,9 @@
     body.insertBefore(l1, body.firstChild);
   }
 
+  // Vérifie prefers-reduced-motion avant tout : si l'utilisateur a activé cette
+  // préférence système, on n'insère rien — les animations peuvent déclencher des
+  // crises chez les personnes sensibles aux mouvements à l'écran.
   function init() {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
     injectCSS();

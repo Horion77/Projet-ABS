@@ -7,13 +7,17 @@ const {
 } = require("docx");
 
 // ---- Helpers ----------------------------------------------------------------
-const CONTENT_W = 9360;            // US Letter, marges 1"
+// Les dimensions sont en twips (twentieth of a point) : 1440 twips = 1 pouce.
+// US Letter = 12240 twips de large. Avec marges 1" de chaque côté (1440×2) :
+// zone utile = 12240 - 2880 = 9360 twips.
+const CONTENT_W = 9360;
 const border = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
 const borders = { top: border, bottom: border, left: border, right: border };
 const HEAD_FILL = "D9E2F3";        // bleu clair en-tête de tableau
 const cellMargins = { top: 60, bottom: 60, left: 110, right: 110 };
 
-const LINE = 340;            // interligne ~1.4 (auto)
+// Interligne en twips : 240 = simple, 480 = double. 340 ≈ 1.4× (confort de lecture).
+const LINE = 340;
 
 function P(text, opts = {}) {
   return new Paragraph({
@@ -99,7 +103,10 @@ function table(cols, rows) {
       })).map(p => p),
     })),
   }));
-  // re-create body cells with smaller font reliably
+  // bodyRows (ci-dessus) est inutilisé : la lib docx n'applique pas la taille de
+  // police via textRuns imbriqués dans une cellule de tableau. bodyRows2 contourne
+  // ce problème en passant par lineRuns() qui force size:18 sur chaque TextRun.
+  // bodyRows est conservé pour référence mais seul bodyRows2 est passé au Table.
   const bodyRows2 = rows.map(r => new TableRow({
     children: r.map((cell, i) => new TableCell({
       borders, width: { size: widths[i], type: WidthType.DXA }, margins: cellMargins,

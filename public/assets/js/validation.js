@@ -1,8 +1,15 @@
 /**
  * Validation front (natif) — avis lieu + inscription.
- * 
+ *
  * version : sara
  * date : 07/05/2026
+ *
+ * ⚠️  Le code ci-dessous (jusqu'à la fin de ce bloc) est l'ANCIENNE implémentation,
+ *     conservée à titre de référence historique. Elle manipulait le DOM en créant
+ *     des balises <p> à la volée (insertAdjacentElement), ce qui causait des
+ *     doublons à chaque soumission. L'implémentation active commence après la
+ *     fermeture de ce bloc (ligne ~108).
+ *
  * // Validation front-end des formulaires
 
 
@@ -105,9 +112,14 @@ function supprimerErreur(id) {
     }
 }
  */
+// validation.js — Validation front-end (avis + inscription)
+// Portée dans une IIFE pour éviter de polluer le scope global avec les helpers.
 (function () {
   'use strict';
 
+  // showErr : bascule l'attribut HTML hidden sur un élément d'erreur déjà présent
+  // dans le DOM (défini dans la vue PHP). Préféré à display:none pour rester
+  // cohérent avec les sélecteurs CSS qui ciblent [hidden].
   function showErr(id, show) {
     var el = document.getElementById(id);
     if (!el) return;
@@ -133,6 +145,11 @@ function supprimerErreur(id) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
   }
 
+  // bindStars — synchronise les boutons étoiles visuels avec un <input hidden>.
+  // Les boutons étoiles (role visuel) ne transportent pas de valeur : c'est
+  // l'input hidden #rating-value qui est soumis avec le formulaire.
+  // Le survol peint temporairement jusqu'à la valeur hovérée ;
+  // le clic fixe la valeur courante (current) et efface le survol.
   function bindStars(form) {
     var wrap = form.querySelector('#stars-input');
     var hidden = form.querySelector('#rating-value');

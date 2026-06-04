@@ -10,7 +10,11 @@
 const fs = require('fs');
 const path = require('path');
 
-// PRNG déterministe (mulberry32) → seed reproductible
+// PRNG déterministe mulberry32 : génère toujours la même séquence pour un seed donné.
+// Cela garantit que le fichier SQL produit est identique à chaque exécution → pas
+// de diff parasite en git et pas de doublons si on rejoue le seed.
+// _s |= 0 force la conversion en entier 32 bits signé (nécessaire pour les opérations
+// bit-à-bit qui seraient sinon interprétées en flottant par le moteur JS).
 let _s = 1337;
 function rng() {
   _s |= 0; _s = (_s + 0x6D2B79F5) | 0;
@@ -305,7 +309,10 @@ for (const u of users) {
   const choisis = new Set();
   while (choisis.size < nb) { choisis.add(pick(lieuNoms)); }
   for (const lieu of choisis) {
-    // notes pondérées : surtout 4-5, un peu de 3, rarement 1-2
+    // Distribution pondérée des notes pour un jeu de données réaliste :
+    //   42 % → 5 étoiles, 30 % → 4, 16 % → 3, 8 % → 2, 4 % → 1
+    // Reflète le biais positif habituel des plateformes d'avis (les gens
+    // qui ont aimé commentent plus souvent que ceux qui n'ont pas aimé).
     const r = rng();
     const note = r < 0.42 ? 5 : r < 0.72 ? 4 : r < 0.88 ? 3 : r < 0.96 ? 2 : 1;
     const titre = pick(TITRES[note]);
@@ -349,7 +356,10 @@ for (const a of avisPourComm) {
 }
 out.push("");
 
-// Likes sur avis : un échantillon
+// Likes sur avis : un échantillon déterministe.
+// L'astuce `(id_utilisateur + id_avis) % 7 = 0` sélectionne ~1/7 des paires
+// possibles (≈ 14 %) sans stocker de liste en mémoire ni faire appel au PRNG.
+// Le résultat est reproductible car les IDs sont fixes après les INSERT précédents.
 out.push("-- Likes sur des avis publics (échantillon)");
 out.push(
   "INSERT IGNORE INTO like_avis (id_utilisateur, id_avis) " +

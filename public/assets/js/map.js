@@ -1,8 +1,14 @@
 // map.js — Carte 3D Mapbox GL JS — Projet ABS (MVC)
 // Requiert : window.MAP_DATA { token, places, countries, placePath }
 
+// IIFE : tout le code est encapsulé pour éviter de polluer le scope global.
+// var (ES5) utilisé partout : compatibilité avec les navigateurs anciens et
+// cohérence avec l'API Mapbox GL JS qui est elle-même en ES5 compilé.
 (function () {
   'use strict';
+  // Sortie silencieuse si Mapbox n'est pas chargé ou si le serveur n'a pas injecté
+  // window.MAP_DATA (token, lieux, pays…). Cela permet d'inclure ce script sur
+  // toutes les pages sans erreur JS sur celles qui n'ont pas la carte.
   if (typeof mapboxgl === 'undefined' || !window.MAP_DATA) return;
 
   var d           = window.MAP_DATA;
