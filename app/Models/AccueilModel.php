@@ -17,7 +17,11 @@ class AccueilModel extends Modele
      */
     public static function classementLieux(int $limite): array
     {
-        // Si la vue SQL n'existe pas encore (BDD partielle), on renvoie [] sans faire planter la page.
+        // try/catch Throwable : si la vue SQL vue_classement_lieux n'existe pas encore
+        // (BDD importée partiellement ou en cours de migration), on retourne [] plutôt
+        // que de laisser une exception remonter et afficher une page blanche.
+        // (int) $limite : concaténé directement dans le SQL car PDO ne supporte pas
+        // les placeholders pour LIMIT/OFFSET — le cast entier prévient toute injection.
         try {
             $q = self::pdo()->query(
                 "SELECT id_lieu, lieu, categorie, ville, pays, note_moyenne, nb_avis
@@ -39,6 +43,9 @@ class AccueilModel extends Modele
     {
         try {
             $st = self::pdo()->prepare(
+                // LEFT JOIN lieu : un avis peut porter sur un pays ou une ville (id_lieu NULL),
+                // mais ici le WHERE id_lieu IS NOT NULL filtre déjà. Le LEFT JOIN garantit
+                // qu'un avis sans lieu ne disparaît pas silencieusement de la requête.
                 "SELECT a.id_avis, a.note, a.description, a.created_at, a.id_lieu,
                     u.prenom, u.nom, l.nom AS lieu
                  FROM avis a

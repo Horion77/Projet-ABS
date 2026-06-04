@@ -13,6 +13,8 @@ class AvisModel extends Modele
 {
     public static function lieuExiste(int $idLieu): bool
     {
+        // SELECT 1 LIMIT 1 : plus efficace que COUNT(*) — MySQL s'arrête dès
+        // qu'il trouve une ligne correspondante (pas de scan complet de la table).
         $st = self::pdo()->prepare('SELECT 1 FROM lieu WHERE id_lieu = :id LIMIT 1');
         $st->execute([':id' => $idLieu]);
         return (bool) $st->fetchColumn();
@@ -60,9 +62,13 @@ class AvisModel extends Modele
         string $visibility = 'public',
         ?string $titre = null
     ): int {
+        // Double protection sur la visibilité : le contrôleur filtre déjà, mais si la
+        // valeur arrive corrompue par une autre voie, on retombe sur 'public' par défaut.
         if ($visibility !== 'public' && $visibility !== 'prive') {
             $visibility = 'public';
         }
+        // mb_substr : troncature multibyte pour respecter la colonne VARCHAR(200) sans
+        // couper au milieu d'un caractère UTF-8.
         $titre = $titre !== null && $titre !== '' ? mb_substr($titre, 0, 200) : null;
         $st    = self::pdo()->prepare(
             'INSERT INTO avis (note, titre, description, visibility, id_utilisateur, id_lieu)
@@ -184,7 +190,12 @@ class AvisModel extends Modele
 
     /**
      * Les N derniers avis publics par pays (sur des lieux précis).
-     * Utilise une window function MySQL 8 pour limiter par pays.
+     *
+     * Utilise ROW_NUMBER() OVER (PARTITION BY id_pays) — window function MySQL 8.0+.
+     * Incompatible avec MySQL 5.7 : si la BDD est ancienne, cette requête échoue.
+     * L'alternative sans window function serait N requêtes séparées (une par pays),
+     * ce qui serait bien plus lent sur de nombreux pays.
+     *
      * Retourne un tableau indexé par id_pays : [ id_pays => [avis, ...] ]
      *
      * @return array<int, list<array<string, mixed>>>
@@ -221,11 +232,13 @@ class AvisModel extends Modele
         $rows = self::pdo()->query($sql);
         if (!$rows) return [];
 
-        // Grouper par id_pays
+        // Grouper par id_pays en PHP : plus simple qu'un second GROUP BY en SQL.
         $grouped = [];
         foreach ($rows->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $idPays = (int) $row['id_pays'];
-            unset($row['rn']); // colonne interne, inutile côté JS
+            // La colonne rn (numéro de rang) est interne à la sous-requête :
+            // on la retire pour ne pas l'exposer dans window.MAP_DATA côté JS.
+            unset($row['rn']);
             $grouped[$idPays][] = $row;
         }
         return $grouped;
@@ -255,13 +268,16 @@ class AvisModel extends Modele
 
     /**
      * Note moyenne et nombre total d'avis sur un lieu.
-     * Les avis privés comptent dans la moyenne (mais ne sont pas affichés).
+     * Les avis privés comptent dans la moyenne (cohérence : un utilisateur qui
+     * publie un avis privé a quand même exprimé une note sur le lieu).
      *
      * @return array{n:int, moy:string|null}
      */
     public static function statsParLieu(int $idLieu): array
     {
         $st = self::pdo()->prepare(
+            // COALESCE(AVG(...), NULL) est redondant (AVG retourne NULL si 0 ligne)
+            // mais le rend explicite : le contrôleur teste $stats['n'] > 0 avant d'afficher.
             'SELECT COUNT(*) AS n, COALESCE(ROUND(AVG(a.note), 2), NULL) AS moy
              FROM avis a WHERE a.id_lieu = :id'
         );

@@ -31,6 +31,10 @@ class SignalementModel extends Modele
             return 0;
         }
 
+        // INSERT IGNORE : si la contrainte unique (id_utilisateur + cible_type + cible_id)
+        // est violée, MySQL ignore silencieusement l'insertion et lastInsertId() retourne 0.
+        // Le contrôleur vérifie aDejaSignale() en amont, mais INSERT IGNORE sert de
+        // filet de sécurité contre les doubles soumissions rapides (double-clic, etc.).
         $st = self::pdo()->prepare(
             'INSERT IGNORE INTO signalement
                (cible_type, cible_id, motif, details, id_utilisateur)
@@ -69,7 +73,9 @@ class SignalementModel extends Modele
         $statut  = in_array($statut, self::STATUTS, true) ? $statut : 'en_attente';
         $limite  = max(1, min(500, $limite));
 
-        // CASE pour extraire le bon contenu et auteur cible selon cible_type.
+        // JOIN polymorphique : cible_type détermine quelle table joindre (avis ou commentaire).
+        // Les deux LEFT JOINs coexistent ; le CASE sélectionne la bonne valeur selon le type.
+        // Cela évite une requête UNION ou deux requêtes séparées par type.
         $sql = "SELECT s.id_signalement, s.cible_type, s.cible_id, s.motif,
                        s.details, s.statut, s.created_at,
                        s.id_utilisateur AS sig_user_id,
@@ -171,7 +177,8 @@ class SignalementModel extends Modele
 
             $pdo->commit();
             return true;
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
+            // rollBack annule le DELETE si l'UPDATE échoue (atomicité de la transaction).
             $pdo->rollBack();
             return false;
         }

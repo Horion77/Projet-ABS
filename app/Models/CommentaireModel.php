@@ -22,6 +22,10 @@ class CommentaireModel extends Modele
     public static function parAvis(int $idAvis): array
     {
         $st = self::pdo()->prepare(
+            // ORDER BY created_at ASC : ordre chronologique (le plus ancien en premier)
+            // pour un fil de discussion naturel à lire de haut en bas.
+            // La liste est plate (pas d'arbre) : la hiérarchie parent/enfant
+            // est reconstituée dans la vue PHP via id_parent.
             'SELECT c.id_commentaire, c.texte, c.created_at, c.id_parent,
                     u.id_utilisateur, u.prenom, u.nom,
                     (SELECT COUNT(*) FROM like_commentaire lc
@@ -47,6 +51,8 @@ class CommentaireModel extends Modele
              VALUES (:texte, :id_avis, :id_user, :id_parent)'
         );
         $st->execute([
+            // Double protection : le contrôleur valide déjà (1–2000 chars), mais
+            // mb_substr ici garantit que le modèle est autonome si appelé ailleurs.
             ':texte'     => mb_substr(trim($texte), 0, 2000),
             ':id_avis'   => $idAvis,
             ':id_user'   => $idUser,

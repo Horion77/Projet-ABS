@@ -38,8 +38,11 @@ class LieuModel extends Modele
      */
     public static function tousAvecNotes(): array
     {
-        // LEFT JOIN avis + GROUP BY : une ligne par lieu, AVG sur les avis publics seulement.
-        // Pins carte : constantes tant que la BDD n’inclut pas les colonnes type/icon (migration 2026_05_06_add_type_icon_lieu.sql).
+        // COUNT(CASE WHEN a.visibility = ‘public’ THEN 1 END) : compte uniquement les
+        // avis publics sans HAVING (qui filtrerait les lieux sans avis public). Cela
+        // permet de retourner tous les lieux sur la carte, même ceux sans avis.
+        // La moyenne (AVG) porte sur tous les avis (public + privé) pour être cohérente
+        // avec statsParLieu() sur la fiche lieu.
         $sql = "SELECT
                 l.id_lieu,
                 l.nom AS name,
@@ -52,7 +55,7 @@ class LieuModel extends Modele
                 p.nom AS country_name,
                 p.id_pays,
                 COALESCE(ROUND(AVG(a.note), 2), NULL) AS avg_rating,
-                COUNT(CASE WHEN a.visibility = 'public' THEN 1 END) AS review_count
+                COUNT(CASE WHEN a.visibility = ‘public’ THEN 1 END) AS review_count
              FROM lieu l
              JOIN categorie_lieu cl ON cl.id_categorie = l.id_categorie
              JOIN ville vi ON vi.id_ville = l.id_ville
@@ -210,13 +213,17 @@ class LieuModel extends Modele
         $sql .= ' GROUP BY l.id_lieu, l.nom, l.image_url, l.latitude, l.longitude,
                            cl.libelle, vi.nom, p.nom, p.continent, p.id_pays';
 
-        // Note minimale : exclut aussi les lieux sans avis (AVG NULL).
+        // HAVING (et non WHERE) car on filtre sur un agrégat AVG calculé après GROUP BY.
+        // Effet de bord voulu : les lieux sans avis (AVG = NULL) sont aussi exclus
+        // quand un noteMin est demandé — cohérent avec l'UX "note minimum X".
         if ($noteMin >= 1 && $noteMin <= 5) {
             $sql .= ' HAVING AVG(a.note) >= :noteMin';
             $params[':noteMin'] = $noteMin;
         }
 
-        // Les mieux notés d'abord ; les lieux sans note passent en fin de liste.
+        // (note_moy IS NULL) retourne 0 (faux) ou 1 (vrai) → ORDER BY ... ASC place
+        // les non-NULL en premier (0 < 1). C'est le moyen le plus portable en MySQL
+        // pour trier NULL en dernier sans NULLS LAST (disponible en MySQL 8.0.26+).
         $sql .= ' ORDER BY (note_moy IS NULL) ASC, note_moy DESC, nb_avis DESC, l.nom ASC';
         $sql .= ' LIMIT ' . (int) $limite;
 
@@ -232,8 +239,10 @@ class LieuModel extends Modele
      */
     public static function paysPourFiltreCarte(): array
     {
-        // On ajoute places_count + avg_rating pour la mini-card au hover sur un pays.
-        // LEFT JOIN avis (publics uniquement) pour ne pas perdre les pays sans avis.
+        // places_count + avg_rating alimentent la mini-card au hover sur la carte.
+        // ROUND(AVG(latitude / longitude)) : centroïde géographique de tous les lieux
+        // du pays — utilisé pour centrer la caméra lors du flyTo sur un pays.
+        // LEFT JOIN avis : conserve les pays dont aucun avis n'est encore public.
         $q = self::pdo()->query(
             "SELECT p.id_pays, p.nom, p.code_iso,
                     ROUND(AVG(l2.latitude), 4)  AS lat,

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Modele;
-use PDO;
 
 /**
  * Opérations de mise à jour du profil utilisateur (table utilisateur).
@@ -56,7 +55,10 @@ class ProfilModel extends Modele
     }
 
     /**
-     * Vérifie si un email est déjà utilisé par quelqu'un d'autre (pour éviter les doublons à la modification).
+     * Vérifie si l'email est déjà utilisé par un autre compte.
+     * Différent de UtilisateurModel::emailExiste() qui ne s'utilise qu'à l'inscription :
+     * ici on exclut l'utilisateur courant (id_utilisateur != :id) pour qu'un utilisateur
+     * puisse garder son propre email sans déclencher une fausse erreur de doublon.
      */
     public static function emailExistePourAutre(string $email, int $idActuel): bool
     {

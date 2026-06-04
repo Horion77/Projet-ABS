@@ -17,6 +17,11 @@ class LikeModel extends Modele
     /**
      * Toggle like sur un avis.
      * Retourne true si le like vient d'être ajouté, false s'il vient d'être retiré.
+     *
+     * Pattern lecture-avant-écriture (2 requêtes) : on lit l'état actuel pour savoir
+     * quelle action faire ET pour retourner le nouvel état au contrôleur.
+     * Alternative possible : INSERT ON DUPLICATE KEY UPDATE + lecture du résultat,
+     * mais plus complexe et moins lisible pour le même résultat.
      */
     public static function toggleAvis(int $idUser, int $idAvis): bool
     {

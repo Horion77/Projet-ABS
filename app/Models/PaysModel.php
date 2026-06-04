@@ -29,11 +29,13 @@ class PaysModel extends Modele
     }
 
     /**
-     * Cherche un pays par son code ISO 3 lettres (BDD), sinon par nom, sinon le crée.
-     * Mapbox renvoie un code ISO 2 lettres ("fr") : on le convertit via la table
-     * ISO-3166 ci-dessous. Si le code ISO-2 n'est pas dans la table, on tente une
-     * recherche par nom et, en dernier recours, on génère un code ISO-3 dégradé
-     * (impossible normalement — Mapbox couvre les 250 pays standards).
+     * Résolution d'un pays en 3 étapes (cascade) :
+     *   1. Conversion ISO-2 → ISO-3 via la table embarquée ISO2_VERS_ISO3
+     *      (Mapbox renvoie l'alpha-2 minuscule, ex. "fr" ; la BDD stocke l'alpha-3, ex. "FRA").
+     *   2. Recherche en BDD par code ISO-3 (le plus fiable — unique par pays).
+     *   3. Repli par nom exact insensible à la casse (si le code ISO-2 est inconnu).
+     *   4. Création si toujours introuvable — exige un ISO-3 valide car la colonne
+     *      code_iso est CHAR(3) NOT NULL UNIQUE en BDD.
      */
     public static function trouverOuCreerParCodeIso(?string $codeIso2, string $nom): int
     {
@@ -110,9 +112,10 @@ class PaysModel extends Modele
     }
 
     /**
-     * Table ISO 3166-1 alpha-2 → alpha-3 (Mapbox renvoie l'alpha-2 minuscule).
-     * Couverture des 250 codes officiels — embarquée plutôt qu'un appel API
-     * externe (zero dépendance, deterministe, hors-ligne).
+     * Table de correspondance ISO 3166-1 alpha-2 (minuscule) → alpha-3.
+     * Embarquée dans le code plutôt qu'appelée via une API externe :
+     * zéro dépendance réseau, déterministe, fonctionnel hors-ligne.
+     * Source : https://www.iso.org/iso-3166-country-codes.html
      */
     private const ISO2_VERS_ISO3 = [
         'af' => 'AFG', 'ax' => 'ALA', 'al' => 'ALB', 'dz' => 'DZA', 'as' => 'ASM',
