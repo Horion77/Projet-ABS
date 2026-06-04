@@ -1,4 +1,9 @@
-/* ABS — global dark cosmic (Tailwind v4) */
+/* ABS — styles globaux dark cosmic (style.css, chargé sur toutes les pages)
+ *
+ * Stratégie de scope : tous les styles hors carte utilisent body:not(.map-page)
+ * pour éviter tout conflit avec map.css qui gère son propre contexte visuel.
+ * Les styles partagés (header, footer, flash) sont déclarés sans ce sélecteur.
+ */
 
 @import "tailwindcss";
 @import "./theme.css";
@@ -243,6 +248,11 @@ body:not(.map-page) form textarea::placeholder {
   opacity: 0.7;
 }
 
+/* Exclusions du style button global :
+ *   .star-btn            → boutons étoiles interactifs, ont leur propre couleur
+ *   .nav-deconnexion-btn → bouton nav avec sa propre déclaration plus haut
+ *   .nav-toggle          → hamburger mobile, style différent (surface + border)
+ */
 body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle),
 body:not(.map-page) .btn {
   @apply cursor-pointer rounded-full border-0 px-5 py-2 font-semibold;
@@ -352,6 +362,8 @@ body:not(.map-page) .titre-page-pays {
 }
 
 /* ── Profil — sections dépliables ─────────────────────────────────────── */
+/* Utilise l'élément natif <details> : ouvert/fermé sans JavaScript.
+   Le chevron (::after) tourne via CSS transform quand [open] est présent. */
 body:not(.map-page) .details-profil {
   @apply rounded-xl border mb-3 overflow-hidden;
   background-color: var(--abs-card-bg, rgba(255,255,255,0.04));

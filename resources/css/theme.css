@@ -1,4 +1,10 @@
-/* Thème cosmic violet — tokens partagés */
+/* Thème cosmic violet — tokens partagés
+ *
+ * Double déclaration intentionnelle :
+ *   @theme  → consommé par Tailwind v4 (génère les classes utilitaires abs-*)
+ *   :root   → consommé par le CSS vanilla (var(--abs-*) dans tous les autres fichiers)
+ * Modifier une valeur ici suffit : les deux systèmes restent synchronisés.
+ */
 
 @theme {
   --color-abs-bg: #0a0a0f;
@@ -37,7 +43,8 @@
   --abs-gold: #fbbf24;
   --abs-link: #67e8f9;
 
-  /* Alias legacy */
+  /* Alias legacy — conservés pour les vues PHP plus anciennes qui utilisent
+     encore ces noms. Ne pas supprimer tant que les vues n'ont pas été migrées. */
   --couleur-primaire: var(--abs-cta);
   --couleur-primaire-fonce: var(--abs-cta-hover);
   --couleur-fond: var(--abs-bg);

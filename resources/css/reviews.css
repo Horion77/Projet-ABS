@@ -1,4 +1,10 @@
-/* Pages avis + pays — dark cosmic */
+/* Pages avis + pays — dark cosmic (reviews.css)
+ *
+ * Ce fichier couvre deux pages :
+ *   - Liste globale des avis (/avis) avec filtres et pagination
+ *   - Fiche pays (/pays/:slug) avec grille de lieux
+ * Les deux partagent les mêmes tokens de couleur et les composants .carte-avis-*.
+ */
 
 @import "./theme.css";
 
@@ -74,6 +80,8 @@
   border: 1px solid var(--abs-border);
 }
 
+/* Redéclaré ici (aussi dans place.css) car les deux fichiers sont chargés
+   indépendamment selon la page affichée. */
 .stars-readonly {
   letter-spacing: 0.05em;
   color: var(--abs-gold);

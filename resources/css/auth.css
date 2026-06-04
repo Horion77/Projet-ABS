@@ -1,3 +1,5 @@
+/* Page authentification — connexion / inscription (auth.css) */
+
 @import "./theme.css";
 
 body.page-auth {
@@ -92,6 +94,8 @@ body.page-auth .site-main {
   box-shadow: 0 0 0 3px rgba(124,58,237,0.18);
 }
 
+/* La règle globale de style.css applique width:100% à tous les <input>.
+   Les !important ci-dessous écrasent ce reset uniquement pour la checkbox. */
 .form-auth input[type="checkbox"] {
   display: inline-flex !important;
   width: 1.1rem !important;
@@ -155,6 +159,9 @@ body.page-auth .site-main {
   gap: 0.3rem;
 }
 
+/* Le sélecteur global de style.css cible tous les <button> et leur applique
+   le style violet pill. Les !important ici neutralisent ce reset pour ce lien
+   inline qui se trouve à l'intérieur d'un <form> (donc stylé comme bouton). */
 .cgu-lien {
   background: none !important;
   border: none !important;
@@ -233,6 +240,8 @@ body.page-auth .site-main {
   margin: 0.3rem 0 0;
   font-family: var(--font-abs-sans);
 }
+/* z-index: 1000 — doit passer au-dessus du header sticky (z-index: 100)
+   et de tout autre élément positionné de la page. */
 .cgu-overlay {
   position: fixed;
   inset: 0;

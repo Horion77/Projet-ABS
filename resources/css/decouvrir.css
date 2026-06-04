@@ -39,6 +39,9 @@
   padding: 1.25rem;
   margin-bottom: 2rem;
 }
+/* flex: 1 1 150px = chaque champ peut grandir/rétrécir librement mais garde
+   150px comme base. Le wrapping du .dc-form se charge du responsive
+   sans aucune media query : sous ~450px les champs passent seuls sur une ligne. */
 .dc-field {
   display: flex;
   flex-direction: column;
@@ -67,6 +70,8 @@
 .dc-field select:hover,
 .dc-field select:focus { border-color: var(--abs-violet-glow); }
 
+/* flex: 1 1 100% force la rangée d'actions à occuper toute la largeur
+   et à se placer sous les champs, quelle que soit la taille de l'écran. */
 .dc-actions {
   display: flex;
   align-items: center;
@@ -111,6 +116,8 @@
 }
 
 /* Grille de résultats */
+/* auto-fill (et non auto-fit) : conserve les colonnes vides quand il y a peu
+   de résultats, évitant que les cartes s'étirent sur toute la largeur. */
 .dc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -132,6 +139,8 @@
   border-color: var(--abs-violet-glow);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
 }
+/* z-index: 1 nécessaire : .dc-card a overflow:hidden qui crée un contexte
+   d'empilement et ferait disparaître le badge sans cette valeur. */
 .dc-rank {
   position: absolute;
   top: 0.6rem;
@@ -151,6 +160,7 @@
   object-fit: cover;
   display: block;
 }
+/* Fallback visuel quand le lieu n'a pas encore de photo uploadée. */
 .dc-card-noimg {
   background: linear-gradient(135deg, var(--abs-surface-2), var(--abs-bg-elevated));
 }

@@ -418,9 +418,11 @@
 }
 
 
-/* Like avis / like commentaire — checkbox + label */
-
-/* La checkbox est cachée, le label fait tout le visuel */
+/* Like avis / like commentaire — pattern CSS "checkbox hack"
+ * La checkbox est cachée ; son état (coché / non coché) est lu via
+ * le sélecteur :checked + label, sans aucun JavaScript.
+ * L'envoi réel du like au serveur est géré par un script séparé
+ * qui écoute le changement d'état de la checkbox. */
 .like-toggle {
   display: none;
 }
@@ -585,7 +587,10 @@
 }
 
 
-/* ── Signalement (utilisateur signale un avis ou commentaire) ─────────────── */
+/* ── Signalement ─────────────────────────────────────────────────────────── */
+/* Le signalement utilise l'élément natif <details>/<summary> : le formulaire
+   se déplie sans JS. .btn-signaler est le <summary> ; on masque sa flèche
+   native via ::-webkit-details-marker pour la remplacer par le texte du bouton. */
 .signaler-wrap {
   display: inline-block;
   margin-left: auto;

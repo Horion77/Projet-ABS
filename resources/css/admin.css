@@ -57,6 +57,8 @@
     border-radius: var(--radius-abs, 0.75rem);
     padding: 1rem 1.1rem;
 }
+/* Liseré gauche coloré : identifie visuellement le type de contenu signalé
+   sans avoir à lire le badge texte — violet = commentaire, doré = avis. */
 .adm-card--commentaire { border-left: 3px solid var(--abs-violet-glow); }
 .adm-card--avis        { border-left: 3px solid var(--abs-gold); }
 

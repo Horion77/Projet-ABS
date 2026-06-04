@@ -3,6 +3,8 @@
 @import "./theme.css";
 
 /* ── Fond cosmic (body quand home.css est présent) ─────────────────────── */
+/* home.css est importé globalement ; le sélecteur :not(.map-page) évite
+   d'écraser le fond et le scroll de la page carte qui gère son propre fond. */
 body:not(.map-page) {
   position: relative;
   background-color: var(--abs-bg);
@@ -14,6 +16,10 @@ body:not(.map-page) {
   background-size: 100% 100%, 100% 100%, 52px 52px, 52px 52px;
 }
 
+/* Deux pseudo-éléments superposés = deux champs d'étoiles indépendants.
+   ::before anime en "alternate" (0.55 → 0.95), ::after en "alternate-reverse"
+   (0.55 → 0.25) : ensemble ils donnent un scintillement naturel et non synchronisé.
+   position:fixed (et non absolute) pour que les étoiles ne défilent pas avec le contenu. */
 body:not(.map-page)::before {
   content: "";
   position: fixed;
