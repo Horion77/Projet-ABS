@@ -9,7 +9,9 @@ $nbEnAttente = (int) ($nbEnAttente ?? 0);
 $nbTraite    = (int) ($nbTraite    ?? 0);
 $nbRejete    = (int) ($nbRejete    ?? 0);
 
-/** Libellés lisibles pour les motifs stockés en base. */
+// Closure de traduction des valeurs enum stockées en BDD ('spam', 'insulte'…)
+// vers des libellés lisibles pour l'interface admin. Définie ici plutôt que dans
+// Aides.php : ce vocabulaire est spécifique à la modération et n'a aucun sens ailleurs.
 $libMotif = static function (string $m): string {
     return match ($m) {
         'spam'        => 'Spam',
@@ -58,7 +60,10 @@ $libMotif = static function (string $m): string {
             $sigUser  = trim(($s['sig_prenom'] ?? '') . ' ' . ($s['sig_nom'] ?? '')) ?: 'Utilisateur';
             $cibleUser= trim(($s['cible_prenom'] ?? '') . ' ' . ($s['cible_nom'] ?? ''));
             $contenu  = (string) ($s['contenu'] ?? '');
-            $supprime = $contenu === ''; // la cible n'existe plus (supprimée entretemps)
+            // $supprime : vrai si le contenu ciblé a été supprimé depuis le signalement
+            // (un admin l'a supprimé, ou l'auteur l'a effacé lui-même). Dans ce cas,
+            // le bouton "Supprimer le contenu" est masqué (rien à supprimer).
+            $supprime = $contenu === '';
             $dt       = !empty($s['created_at']) ? new \DateTimeImmutable((string) $s['created_at']) : null;
             $extrait  = $contenu !== '' ? (mb_strlen($contenu) > 220 ? mb_substr($contenu, 0, 220) . '…' : $contenu) : '—';
         ?>
@@ -99,6 +104,12 @@ $libMotif = static function (string $m): string {
                         <button type="submit" name="action" value="marquer_traite" class="btn btn-sm">Marquer traité</button>
                         <button type="submit" name="action" value="rejeter" class="btn btn-sm btn-ghost">Rejeter</button>
                         <?php if (!$supprime) : ?>
+                            <?php
+                            // onclick="return confirm(...)" : confirmation native du navigateur
+                            // avant suppression irréversible. Simple et sans dépendance JS externe.
+                            // La suppression déclenche SignalementModel::supprimerCible() qui
+                            // efface le contenu ET marque tous les signalements liés comme traités.
+                            ?>
                             <button type="submit" name="action" value="supprimer_contenu"
                                     class="btn btn-sm btn-danger"
                                     onclick="return confirm('Supprimer définitivement ce <?= $type === 'avis' ? 'avis' : 'commentaire' ?> ?');">

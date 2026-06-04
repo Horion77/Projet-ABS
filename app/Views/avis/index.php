@@ -11,6 +11,9 @@ $filtreNote = $filtreNote ?? null;
 $filtrePays = $filtrePays ?? null;
 $paysListe  = $paysListe  ?? [];
 
+// $qBase : paramètres de filtre actifs, réinjectés dans chaque lien de pagination.
+// Sans ça, cliquer sur "Suivant" perdrait les filtres note/pays sélectionnés.
+// reviews_pagination_query() (Aides.php) fusionne $qBase avec le numéro de page.
 $qBase = [];
 if ($filtreNote !== null) {
     $qBase['rating'] = (string) $filtreNote;
@@ -57,6 +60,8 @@ if ($filtrePays !== null) {
                 $auteur = 'Utilisateur';
             }
             $lieuId = (int) ($a['id_lieu'] ?? 0);
+            // DateTimeImmutable (et non DateTime) : l'objet ne peut pas être modifié
+            // par accident après création — plus sûr dans un foreach qui itère sur plusieurs avis.
             $dt = !empty($a['created_at']) ? new \DateTimeImmutable((string) $a['created_at']) : null;
             ?>
             <div class="avis-card carte-avis-global">

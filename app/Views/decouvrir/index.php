@@ -16,7 +16,8 @@ $continents  = $continents  ?? [];
 $paysListe   = $paysListe   ?? [];
 $villesListe = $villesListe ?? [];
 
-/** Rendu compact d'étoiles à partir d'une note décimale. */
+// Closure locale (pas dans Aides.php) : le rendu demi-étoile ⯨ est spécifique
+// à cette page. Les autres vues utilisent starsRatingHtml() (entiers seulement).
 $etoiles = static function (?float $note): string {
     if ($note === null) {
         return '';
@@ -34,6 +35,11 @@ $etoiles = static function (?float $note): string {
         <p>Dis-nous ce que tu cherches, on te sort les meilleurs spots.</p>
     </header>
 
+    <?php
+    // method="get" : les critères de recherche sont dans l'URL (?cat=Musée&note=4…).
+    // Avantage : l'URL est partageable/bookmarkable. Pas de données sensibles ici,
+    // donc GET est approprié (contrairement aux formulaires de connexion/inscription).
+    ?>
     <form class="dc-form" method="get" action="<?= e(url('decouvrir')) ?>">
         <div class="dc-field">
             <label for="dc-cat">Type de lieu</label>

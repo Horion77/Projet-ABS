@@ -1,3 +1,11 @@
+<?php
+/**
+ * Page d'erreur 404 — fichier HTML autonome, sans layout principal.
+ * Appelé directement par Reponse::notFound() via require, en dehors du
+ * système Vue::afficher(). Les fonctions globales (e(), asset(), url())
+ * restent disponibles car bootstrap.php les a déjà chargées via Aides.php.
+ */
+?>
 <!DOCTYPE html>
 <html lang="fr">
 

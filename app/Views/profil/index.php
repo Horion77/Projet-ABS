@@ -12,18 +12,23 @@ $util = $util ?? [];
     <section class="bloc-profil" aria-labelledby="titre-infos">
         <h2 id="titre-infos">Vos informations</h2>
 <?php 
-        // 1. Nettoyage des données
+        // Double source d'avatar — ordre de priorité :
+        //   1. $util['avatar']     → chemin local relatif (ex. "assets/uploads/avatars/avatar_xxx.jpg")
+        //                            uploadé par l'utilisateur via ProfilController::modifierAvatar()
+        //   2. $util['avatar_url'] → URL externe (ex. Dicebear SVG généré par le seed)
+        // La vérification strtolower(...) === 'null' gère les anciennes lignes en BDD où
+        // la colonne stockait littéralement la chaîne "null" au lieu de la valeur SQL NULL.
         $valAvatar = trim((string)($util['avatar'] ?? ''));
         if (strtolower($valAvatar) === 'null') $valAvatar = '';
-        
+
         $valAvatarUrl = trim((string)($util['avatar_url'] ?? ''));
         if (strtolower($valAvatarUrl) === 'null') $valAvatarUrl = '';
 
-        // 2. Sélection de la bonne source avec url()
+        // ltrim($valAvatar, '/') + url() : reconstruit l'URL publique complète en tenant
+        // compte de APP_BASE_URL (MAMP). Un chemin "assets/..." devient "/Projet-ABS/public/assets/...".
         $avatarAffiche = null;
         if ($valAvatar !== '') {
-            // On enlève le slash du début et on génère l'URL complète
-            $avatarAffiche = e(url(ltrim($valAvatar, '/'))); 
+            $avatarAffiche = e(url(ltrim($valAvatar, '/')));
         } elseif ($valAvatarUrl !== '') {
             $avatarAffiche = e($valAvatarUrl);
         }
@@ -39,6 +44,11 @@ $util = $util ?? [];
             </div>
         <?php else : ?>
             <div class="profil-avatar-wrap profil-avatar-vide">
+                <?php
+                // Initiales générées en fallback quand aucun avatar n'est disponible.
+                // mb_substr + mb_strtoupper : multibyte-safe pour les prénoms accentués
+                // (Élodie → "É", pas "E" ou un octet corrompu avec substr/strtoupper).
+                ?>
                 <span class="profil-avatar-initiales">
                     <?= mb_strtoupper(mb_substr((string)($util['prenom'] ?? ''), 0, 1)) ?>
                     <?= mb_strtoupper(mb_substr((string)($util['nom'] ?? ''), 0, 1)) ?>

@@ -51,13 +51,22 @@ $old = $old ?? [];
                 <p class="field-error" id="err-cgu" hidden>Vous devez accepter les CGU.</p>
             </div>
 
+            <?php
+            // disabled par défaut : le JS de cette page active le bouton uniquement
+            // lorsque la case CGU est cochée (checkbox #cgu). Empêche la soumission
+            // sans acceptation des CGU même si le JS de validation.js est désactivé.
+            ?>
             <button class="btn-auth" type="submit" id="btn-inscrire" disabled>Créer mon compte</button>
         </form>
         <p class="lien-auth-bas">Déjà inscrit ? <a href="<?= e(url('connexion')) ?>">Se connecter</a></p>
     </div>
 </div>
 
-<!-- Modal CGU -->
+<!-- Modal CGU
+     role="dialog" + aria-modal="true" : annonce aux lecteurs d'écran qu'il s'agit
+     d'une boîte de dialogue modale (le reste de la page est inactif pendant l'ouverture).
+     hidden (attribut HTML) : géré par le JS ci-dessous via overlay.hidden = true/false.
+     Préféré à display:none en CSS car compatible avec les animations CSS et les ARIA. -->
 <div class="cgu-overlay" id="cgu-overlay" role="dialog" aria-modal="true" aria-labelledby="cgu-titre" hidden>
     <div class="cgu-modal">
         <div class="cgu-modal-entete">
@@ -95,6 +104,9 @@ $old = $old ?? [];
     </div>
 </div>
 
+<!-- JS inline spécifique à cette page : géré dans la vue plutôt que dans validation.js
+     car la logique CGU (modal + activation du bouton) n'existe nulle part ailleurs.
+     IIFE pour ne pas polluer le scope global. -->
 <script>
 (function () {
     var checkbox  = document.getElementById('cgu');
@@ -127,6 +139,7 @@ $old = $old ?? [];
     }
     btnFermer.addEventListener('click', fermerModal);
     btnRefuser.addEventListener('click', fermerModal);
+    // Clic sur le fond semi-transparent (pas sur la modale elle-même) → ferme
     overlay.addEventListener('click', function (e) {
         if (e.target === overlay) fermerModal();
     });

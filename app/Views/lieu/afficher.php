@@ -21,6 +21,15 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
         <p><a class="btn" href="<?= e(url('carte')) ?>">Retour à la carte</a></p>
 
     <?php else : ?>
+        <?php
+        /**
+         * @var array<string,mixed> $lieu
+         * Ici $lieu est garanti non-null par le contrôleur : si $erreur === null,
+         * c'est que LieuModel::trouverParIdAvecLocalisation() a retourné un tableau.
+         * L'annotation aide Intelephense à inférer le type (il ne remonte pas le
+         * flux de contrôle à travers les blocs if/else alternatifs).
+         */
+        ?>
 
         <article class="place-article">
 
@@ -59,6 +68,12 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
             <?php if (!empty($lieu['description'])) : ?>
                 <section class="place-bloc" aria-label="Présentation">
                     <h2>Présentation</h2>
+                    <?php
+                    // nl2br(e(...)) : l'ordre est critique. e() échappe d'abord les caractères
+                    // HTML (<, >, &…), puis nl2br() convertit \n en <br> sur le texte déjà
+                    // sécurisé. Inverser l'ordre convertirait les \n avant d'échapper, ce
+                    // qui laisserait des <br> non échappés et permettrait de l'injection HTML.
+                    ?>
                     <p class="place-desc"><?= nl2br(e((string) $lieu['description'])) ?></p>
                 </section>
             <?php endif; ?>
@@ -227,6 +242,11 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
                             <?php if (!empty($comsSorted)) :
 
                                 // Sépare racines et réponses
+                                        // Sépare la liste plate en deux groupes :
+                                // racines  → commentaires sans parent (premier niveau)
+                                // reponses → indexées par id_parent pour accès O(1) lors du rendu
+                                // CommentaireModel::parAvis() retourne une liste plate ; c'est ici
+                                // qu'on reconstruit l'arbre à deux niveaux (racine + réponses directes).
                                 $racines  = array_filter($comsSorted, fn($c) => $c['id_parent'] === null);
                                 $reponses = [];
                                 foreach ($comsSorted as $c) {
@@ -406,11 +426,13 @@ $userId       = isLoggedIn() ? (int) ($_SESSION['user_id'] ?? 0) : 0;
                     body: 'id_avis=' + encodeURIComponent(idAvis),
                 });
                 const data = await res.json();
+                // Mise à jour optimiste : la checkbox a déjà changé visuellement au clic.
+                // On synchronise le compteur et l'état réel avec la réponse serveur.
                 count.textContent = data.count;
                 cb.checked = data.liked;
                 cb.setAttribute('aria-label', data.liked ? 'Retirer mon like' : 'Liker cet avis');
             } catch (e) {
-                // Retour arrière si l'appel échoue
+                // Rollback : l'appel a échoué, on remet la checkbox dans son état précédent.
                 cb.checked = !cb.checked;
                 console.error('Erreur like avis', e);
             }

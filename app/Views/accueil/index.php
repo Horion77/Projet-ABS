@@ -2,8 +2,15 @@
 /**
  * Page d'accueil — variables : $lieuxPop, $derniersAvis
  */
+// ?? [] : défense contre une éventuelle absence de la variable si le contrôleur
+// évolue sans passer la clé. Préféré à isset() partout dans les vues.
 $lieuxPop     = $lieuxPop     ?? [];
 $derniersAvis = $derniersAvis ?? [];
+?>
+<?php
+// displaySuccess() seul (pas le partial messages.php complet) : la page d'accueil
+// affiche les confirmations (connexion réussie, inscription…) mais pas les erreurs
+// de formulaire qui, elles, sont renvoyées sur la page de formulaire concernée.
 ?>
 <?= displaySuccess() ?>
 <section class="accueil-hero" aria-label="Bienvenue">
@@ -28,6 +35,11 @@ $derniersAvis = $derniersAvis ?? [];
     <?php else : ?>
         <div class="grille-cartes-lieux">
             <?php foreach ($lieuxPop as $row) : ?>
+            <?php
+            // (int) $row['id_lieu'] : cast en entier avant injection dans l'URL.
+            // Même si e() échappe les caractères HTML, le cast garantit qu'aucune
+            // valeur non numérique (ex. injection SQL) ne peut atteindre l'URL.
+            ?>
             <a class="carte-lieu" href="<?= e(url('lieu')) ?>?id=<?= (int) $row['id_lieu'] ?>">
                 <div class="carte-lieu-illu" aria-hidden="true"></div>
                 <div class="carte-lieu-corps">
@@ -60,6 +72,10 @@ $derniersAvis = $derniersAvis ?? [];
                 — <span class="rda-lieu"><a href="<?= e(url('lieu')) ?>?id=<?= (int) $av['id_lieu'] ?>"><?= e((string) ($av['lieu'] ?? 'Lieu')) ?></a></span>
                 <span class="rda-auteur">(<?= e((string) $av['prenom']) ?> <?= e((string) ($av['nom'] ?? '')) ?>)</span>
                 <?php if (!empty($av['description'])) : ?>
+                    <?php
+                    // tronque_e() : troncature multibyte ET échappement HTML en un seul appel.
+                    // Équivalent à e(mb_strimwidth(...)) mais avec le fallback substr intégré.
+                    ?>
                     <p class="rda-comm">« <?= tronque_e((string) $av['description'], 160) ?> »</p>
                 <?php endif; ?>
                 <time class="rda-temps" datetime="<?= e((string) $av['created_at']) ?>"><?= e((string) $av['created_at']) ?></time>

@@ -6,6 +6,9 @@
 $pays   = $pays   ?? null;
 $lieux  = $lieux  ?? [];
 $erreur = $erreur ?? null;
+// $paysData : version garantie tableau de $pays.
+// Évite d'accéder directement à $pays['nom'] qui déclencherait une erreur si
+// $pays est null (cas d'un id invalide ou d'un pays supprimé entre-temps).
 $paysData = is_array($pays) ? $pays : [];
 ?>
 <div class="pays-container conteneur conteneur-pays">

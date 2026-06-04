@@ -9,6 +9,11 @@ $myReviewedLieux = $myReviewedLieux ?? [];
 $mapboxToken     = $mapboxToken     ?? '';
 $paysNoms        = $paysNoms        ?? [];
 
+// JSON_UNESCAPED_UNICODE : garde les caractères UTF-8 lisibles dans le JSON
+//   (é, à, ★…) au lieu de les encoder en \uXXXX.
+// JSON_INVALID_UTF8_SUBSTITUTE (PHP 7.2+) : remplace les octets UTF-8 invalides
+//   par le caractère de remplacement Unicode au lieu de retourner false.
+//   Défensif : évite un json_encode() raté si une description contient des données corrompues.
 $jsonFlags = JSON_UNESCAPED_UNICODE;
 if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
     $jsonFlags |= constant('JSON_INVALID_UTF8_SUBSTITUTE');
@@ -33,7 +38,9 @@ $nbLieux = count($places);
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
 
-<!-- Ajoute la classe map-page au body pour les overrides CSS -->
+<!-- map-page est appliquée via un <script> synchrone (pas defer) pour que la classe
+     soit présente dès le premier paint CSS. Si on utilisait defer ou DOMContentLoaded,
+     il y aurait un flash de mise en page sans les overrides CSS de map.css. -->
 <script>document.body.classList.add('map-page');</script>
 
 <div id="map-wrapper">
@@ -49,6 +56,10 @@ $nbLieux = count($places);
                 <select id="country-filter">
                     <option value="">Tous les pays</option>
                     <?php foreach ($countries as $c) : ?>
+                    <?php
+                    // data-lat / data-lng : lus par map.js pour centrer la caméra
+                    // lors du flyTo quand l'utilisateur sélectionne un pays dans ce filtre.
+                    ?>
                     <option value="<?= (int) $c['id_pays'] ?>"
                             data-lat="<?= e((string) ($c['lat'] ?? '0')) ?>"
                             data-lng="<?= e((string) ($c['lng'] ?? '0')) ?>">
@@ -171,6 +182,11 @@ $nbLieux = count($places);
 <!-- Composant Web officiel Mapbox pour l'autocomplete d'adresse (configuré dans map.js) -->
 <script id="search-js" src="https://api.mapbox.com/search-js/v1.0.0-beta.22/web.js" defer></script>
 <script>
+// window.MAP_DATA : point d'entrée unique entre PHP et map.js.
+// Toutes les données (lieux, pays, token, URLs) sont sérialisées ici en JSON
+// et injectées dans la page. map.js lit window.MAP_DATA au démarrage.
+// Le script est synchrone (pas defer) pour que MAP_DATA soit disponible
+// avant que map.js (chargé juste en-dessous) s'exécute.
 window.MAP_DATA = <?= json_encode($mapData, $jsonFlags) ?>;
 </script>
 <script src="<?= e(asset('js/map.js')) ?>"></script>
