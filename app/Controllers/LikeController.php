@@ -16,8 +16,11 @@ class LikeController extends Controleur
 {
 
     /**
-     * POST /avis/liker
-     * Like ou unlike un avis selon l'état actuel.
+     * POST /avis/liker — Toggle like sur un avis, réponse JSON.
+     * Appelé en fetch() depuis le JS de la fiche lieu (place.css / stars interactive).
+     * toggleAvis() insère si absent, supprime si présent (idempotent).
+     * La réponse contient 'liked' (nouvel état) et 'count' (total recalculé)
+     * pour que le JS mette à jour le compteur sans rechargement.
      */
     public function likerAvis(): never
     {

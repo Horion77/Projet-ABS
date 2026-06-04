@@ -9,8 +9,13 @@ use App\Models\AvisModel;
 use Throwable;
 
 /**
- * Traitement formulaire avis adapté depuis `Projet-ABS-Sara/actions/avis_action.php`.
- * Compatible avec les anciens formulaires (place_id/rating/title/comment ET id_lieu/note/description).
+ * Traitement du formulaire de soumission d'avis (POST /avis).
+ *
+ * Double compatibilité de nommage des champs :
+ *   place_id / rating / title / comment  → noms utilisés par l'ancien code Sara
+ *   id_lieu  / note   / titre / description → noms MVC courants
+ * Les deux conventions sont acceptées pour éviter de casser les formulaires
+ * existants pendant la migration.
  */
 class AvisController extends Controleur
 {
@@ -41,6 +46,8 @@ class AvisController extends Controleur
 
         $vis = $this->requete->post('visibility') === 'prive' ? 'prive' : 'public';
 
+        // URL de retour définie tôt : toutes les redirections d'erreur pointent vers
+        // la fiche lieu si l'id est valide, ou vers la carte en dernier recours.
         $retour = $idLieu >= 1 ? '/lieu?id=' . $idLieu : '/carte';
 
         // Valider les données avant enregistrement.
@@ -77,9 +84,10 @@ class AvisController extends Controleur
         }
 
         try {
-            // Enregistre l'avis dans la base de données via le Model MVC (`avis`, pas `reviews`).
             AvisModel::creerPourLieu($uid, $idLieu, $note, $comment, $vis, $titre);
         } catch (Throwable) {
+            // Throwable capture aussi bien les Exception que les Error PHP 8
+            // (ex. PDOException sur contrainte d'unicité non détectée en amont).
             Session::flashErreurs(['Impossible d’enregistrer l’avis pour le moment.']);
             $this->rediriger($retour);
         }

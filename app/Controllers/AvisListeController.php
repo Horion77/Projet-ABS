@@ -17,6 +17,7 @@ class AvisListeController extends Controleur
 
     public function index(): void
     {
+        // max(1, …) empêche page=0 ou page négative sans lever d'erreur.
         $page = max(1, $this->requete->getInt('page', 1));
 
         $filtreNote = null;
@@ -32,6 +33,7 @@ class AvisListeController extends Controleur
         }
 
         $total = AvisModel::compterPublicsLieux($filtreNote, $filtrePays);
+        // ceil() peut retourner 0 si $total = 0 → max(1, …) garantit au moins 1 page.
         $pages = (int) max(1, (int) ceil($total / self::PAR_PAGE));
         // Évite page=999 quand il n'y a qu'une page (ex. après filtre).
         if ($page > $pages) {

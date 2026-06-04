@@ -64,7 +64,9 @@ class ProfilController extends Controleur
         }
 
         if (ProfilModel::modifierInfos($id, $prenom, $nom, $email)) {
-            // Mise à jour de la session pour refléter le nouveau prénom/nom
+            // La session PHP stocke le prénom/nom pour l'afficher dans le header
+            // sans requête SQL à chaque page. On les synchronise ici après modification
+            // pour éviter que le header affiche l'ancien nom jusqu'à la prochaine connexion.
             $_SESSION['user_prenom'] = $prenom;
             $_SESSION['user_nom']    = $nom;
             Session::flashSucces('Vos informations ont été mises à jour avec succès.');
@@ -87,6 +89,8 @@ class ProfilController extends Controleur
 
         $erreurs = [];
 
+        // ⚠️  Le message dit "6 caractères" mais la règle vérifie < 12.
+        // À corriger pour rester cohérent avec InscriptionController (12 min).
         if (mb_strlen($password) < 12) {
             $erreurs[] = 'Le mot de passe doit contenir au moins 6 caractères.';
         }
@@ -157,6 +161,9 @@ class ProfilController extends Controleur
             $this->rediriger('/profil');
         }
 
+        // Chemin relatif (sans /Projet-ABS/public) contrairement aux photos de lieux
+        // qui stockent un chemin absolu. Les avatars sont servis via public/assets/
+        // et le CSS les référence avec src="/assets/...".
         $cheminPublic = '/assets/uploads/avatars/' . $nomFichier;
 
         if (ProfilModel::modifierAvatar($id, $cheminPublic)) {

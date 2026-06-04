@@ -167,7 +167,10 @@ class LieuController extends Controleur
             $this->repondreJson(['success' => false, 'erreur' => 'Enregistrement impossible.'], 500);
         }
 
-        // Réponse : on renvoie le lieu complet pour que le JS l'ajoute à la carte sans reload.
+        // On renvoie le lieu complet pour que map.js l'ajoute à places[] et place
+        // immédiatement un pin sur la carte, sans rechargement de la page.
+        // avg_rating et categorie sont null/0 : le lieu vient d'être créé,
+        // il n'a encore aucun avis. map.js gère ces cas (badge note absent).
         $this->repondreJson([
             'success' => true,
             'lieu'    => [
@@ -181,7 +184,7 @@ class LieuController extends Controleur
                 'categorie'    => null,
                 'country_name' => $paysNom,
                 'id_pays'      => $idPays,
-                'avg_rating'   => null,
+                'avg_rating'   => null,  // aucun avis encore
                 'review_count' => 0,
             ],
         ]);
@@ -201,6 +204,9 @@ class LieuController extends Controleur
             throw new \RuntimeException('Photo trop lourde (5 Mo max).');
         }
 
+        // finfo lit les magic bytes du fichier (pas l'extension déclarée par le client).
+        // mime_content_type() serait équivalent mais deprecated sur certaines configs.
+        // On ne fait jamais confiance à $_FILES['type'] qui est contrôlé par le navigateur.
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $mime  = $finfo->file($file['tmp_name']);
         $ext   = match ($mime) {
@@ -218,6 +224,9 @@ class LieuController extends Controleur
             throw new \RuntimeException("Dossier d'upload indisponible.");
         }
 
+        // uniqid(true) ajoute les microsecondes au suffixe pour réduire le risque
+        // de collision sur des serveurs rapides qui traiteraient plusieurs uploads
+        // dans la même microseconde (très rare mais possible en charge).
         $nomFichier = uniqid('lieu_', true) . '.' . $ext;
         $cible      = $dossier . '/' . $nomFichier;
         if (!move_uploaded_file($file['tmp_name'], $cible)) {

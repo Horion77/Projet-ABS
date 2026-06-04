@@ -29,7 +29,10 @@ class DecouvrirController extends Controleur
         }
 
         // On ne lance la recherche que si l'utilisateur a soumis au moins un critère
-        // (évite d'afficher 120 lieux au premier chargement).
+        // (évite d'afficher tous les lieux au premier chargement de la page).
+        // On teste !== null (présence dans l'URL) pour les champs texte/select
+        // car une valeur vide '' est une soumission valide (= "toutes catégories").
+        // Pour les champs numériques on teste > 0 car 0 = non sélectionné.
         $aRecherche = $this->requete->get('cat') !== null
             || $this->requete->get('continent') !== null
             || $this->requete->getInt('note', 0) > 0
@@ -43,7 +46,7 @@ class DecouvrirController extends Controleur
                 $continent !== '' ? $continent : null,
                 $idPays > 0 ? $idPays : null,
                 $idVille > 0 ? $idVille : null,
-                60
+                60  // limite à 60 résultats pour ne pas saturer la page
             )
             : [];
 

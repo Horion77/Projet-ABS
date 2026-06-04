@@ -41,7 +41,9 @@ class CommentaireController extends Controleur
             Reponse::notFound('Avis introuvable.');
         }
 
-        // Si c'est une réponse, on vérifie que le commentaire parent existe
+        // Si le parent déclaré n'existe plus (supprimé entre-temps), on traite
+        // le commentaire comme une réponse directe à l'avis (comportement tolérant :
+        // pas d'erreur, juste une dégradation gracieuse).
         if ($idParent !== null && !CommentaireModel::existe($idParent)) {
             $idParent = null;
         }
@@ -49,6 +51,8 @@ class CommentaireController extends Controleur
         $user = Session::utilisateur();
         CommentaireModel::creer($idAvis, (int) $user['id'], $texte, $idParent);
 
+        // L'ancre #avis-{id} fait défiler la page jusqu'à l'avis commenté
+        // pour que l'utilisateur voie son commentaire sans scroller manuellement.
         $this->rediriger('lieu?id=' . $idLieu . '#avis-' . $idAvis);
     }
 

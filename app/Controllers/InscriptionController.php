@@ -56,6 +56,10 @@ class InscriptionController extends Controleur
         $erreurs[] = 'Les mots de passe ne correspondent pas.';
     }
 
+    // La vérification d'unicité de l'email est faite en dernier et seulement si
+    // la validation basique a réussi : évite une requête SQL inutile si le format
+    // est déjà invalide, et empêche de révéler l'existence d'un compte via le
+    // message d'erreur si les autres champs sont eux-mêmes invalides.
     if (empty($erreurs) && UtilisateurModel::emailExiste($email)) {
         $erreurs[] = 'Cette adresse e-mail est déjà utilisée.';
     }
@@ -70,7 +74,10 @@ class InscriptionController extends Controleur
         $this->rediriger('/inscription');
     }
 
-    // Argon2ID avec paramètres renforcés
+    // Argon2ID : algorithme de hachage recommandé par l'OWASP pour les mots de passe.
+    // memory_cost = 65536 Ko (64 Mo) : coût mémoire élevé pour ralentir les attaques GPU.
+    // time_cost   = 4 itérations : augmente le temps CPU sans toucher à la mémoire.
+    // threads     = 1 : PHP ne supporte pas le parallélisme dans ce contexte.
     $hash = password_hash($mdp1, PASSWORD_ARGON2ID, [
         'memory_cost' => 65536,
         'time_cost'   => 4,

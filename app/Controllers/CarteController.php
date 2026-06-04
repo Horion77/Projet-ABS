@@ -21,12 +21,18 @@ class CarteController extends Controleur
         $countries  = LieuModel::paysPourFiltreCarte();
         $categories = CategorieLieuModel::toutes();
 
-        // Fusionner les derniers avis dans chaque pays (pré-chargé → panneau instantané)
+        // Pré-charge les 3 derniers avis de chaque pays en une seule requête groupée,
+        // puis les fusionne dans $countries pour éviter N requêtes dans la vue.
+        // Les données sont sérialisées en JSON et injectées dans window.MAP_DATA côté JS :
+        // le panneau pays s'ouvre instantanément sans requête AJAX supplémentaire.
         $derniersAvisParPays = AvisModel::derniersAvisParPays(3);
         foreach ($countries as &$pays) {
             $idPays = (int) $pays['id_pays'];
             $pays['derniers_avis'] = $derniersAvisParPays[$idPays] ?? [];
         }
+        // unset obligatoire : $pays est une référence (& dans le foreach).
+        // Sans cet unset, $pays continuerait de pointer sur le dernier élément
+        // et une affectation ultérieure à $pays écraserait le tableau.
         unset($pays);
 
         // Pour le filtre « Mes avis » : liste des id_lieu où l'utilisateur connecté

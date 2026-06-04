@@ -42,6 +42,9 @@ class SignalementController extends Controleur
         }
 
         $user = Session::utilisateur();
+        // Si l'utilisateur a déjà signalé ce contenu, on répond success:true (pas d'erreur)
+        // avec deja:true pour que le JS puisse afficher un retour différent ("déjà signalé")
+        // sans traiter ça comme un échec. Le contenu n'est pas re-signalé.
         if (SignalementModel::aDejaSignale((int) $user['id'], $type, $idCible)) {
             Reponse::json(['success' => true, 'deja' => true]);
         }
@@ -99,6 +102,9 @@ class SignalementController extends Controleur
             SignalementModel::changerStatut($id, 'rejete');
             Session::flashSucces('Signalement rejeté.');
         } elseif ($action === 'supprimer_contenu') {
+            // supprimerCible() supprime le contenu ciblé ET marque automatiquement
+            // comme 'traité' tous les autres signalements portant sur ce même contenu
+            // (même cible_type + cible_id). Un seul clic traite donc toute la file.
             $ok = SignalementModel::supprimerCible(
                 (string) $sig['cible_type'],
                 (int) $sig['cible_id']
@@ -115,7 +121,10 @@ class SignalementController extends Controleur
         $this->rediriger('/admin/signalements');
     }
 
-    // ── Garde modération (admin OU modérateur) ────────────────────────────────
+    // ── Garde modération ─────────────────────────────────────────────────────
+    // Méthode privée (pas dans l'interface publique du contrôleur) car elle
+    // n'est appelée qu'en interne avant index() et traiter().
+    // Le routeur n'a pas de middleware d'auth : c'est ici que l'accès est gardé.
     private function exigerModerateur(): void
     {
         if (!Session::estModerateur()) {
