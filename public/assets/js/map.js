@@ -1,4 +1,16 @@
 // map.js — Carte 3D Mapbox GL JS — Projet ABS (MVC)
+//
+// Ce fichier gère TOUT ce qui se passe sur la carte côté navigateur :
+//   - Initialisation du globe 3D Mapbox
+//   - Affichage des lieux avec clustering (regroupement en bulles)
+//   - Détection du clic sur les pays (frontières réelles via tileset Mapbox)
+//   - Panneau de navigation gauche (continents, pays, filtres)
+//   - Mode "Ajouter un lieu" (géocodage inverse + formulaire AJAX)
+//   - Synchronisation de la vue dans l'URL (?lng=&lat=&zoom=)
+//
+// Toutes les données viennent de window.MAP_DATA, injecté par carte/index.php
+// (le PHP encode le tableau $mapData en JSON directement dans la page).
+//
 // Requiert : window.MAP_DATA { token, places, countries, placePath }
 
 // IIFE : tout le code est encapsulé pour éviter de polluer le scope global.
@@ -11,34 +23,45 @@
   // toutes les pages sans erreur JS sur celles qui n'ont pas la carte.
   if (typeof mapboxgl === 'undefined' || !window.MAP_DATA) return;
 
+  // --- DONNÉES (viennent toutes de PHP via window.MAP_DATA) ---
   var d           = window.MAP_DATA;
-  var places      = d.places     || [];
-  var countries   = d.countries  || [];
-  var categories  = d.categories || [];
-  var paysNoms    = d.paysNoms   || {};   // ISO3 → nom FR (tous les pays du monde)
-  var pathLieu    = d.placePath  || '/lieu';
-  var pathPays    = d.paysPath   || '/pays';
-  var pathCreer   = d.creerPath  || '/lieu/creer';
-  var isLogged    = d.isLoggedIn === true;
-  // Set des id_lieu où l'utilisateur connecté a déjà laissé un avis : utilisé
-  // par le filtre « Mes avis ». Set pour des lookups O(1) au lieu de O(n).
-  var mesAvisSet  = new Set((d.myReviewedLieux || []).map(function (x) { return parseInt(x, 10); }));
-  // Mode courant du filtre avis : 'tous' (par défaut) | 'avecAvis' | 'mesAvis'
-  var avisFilter  = 'tous';
-  // Filtre par type de lieu : ensemble de libellés de catégories actifs.
-  // Vide = on affiche tout. Sinon on ne garde que les lieux de ces catégories.
-  var categoryFilter = new Set();
+  var places      = d.places     || [];   // tous les lieux géolocalisés (lat, lng, note...)
+  var countries   = d.countries  || [];   // pays avec stats (nb lieux, note moyenne, centre)
+  var categories  = d.categories || [];   // catégories pour les chips de filtre
+  var paysNoms    = d.paysNoms   || {};   // table ISO3 → nom FR (ex: 'FRA' → 'France')
+  var pathLieu    = d.placePath  || '/lieu';     // URL de la fiche lieu
+  var pathPays    = d.paysPath   || '/pays';     // URL de la page pays
+  var pathCreer   = d.creerPath  || '/lieu/creer'; // endpoint POST pour créer un lieu
+  var isLogged    = d.isLoggedIn === true;        // true si l'utilisateur est connecté
 
+  // Set (pas un tableau) pour les lookups O(1) — on teste si un id_lieu est dedans
+  // en O(1) au lieu de O(n) avec .indexOf()
+  var mesAvisSet  = new Set((d.myReviewedLieux || []).map(function (x) { return parseInt(x, 10); }));
+
+  // Filtres actifs — modifiés par l'interface, relus par buildLieuxFeatures()
+  var avisFilter     = 'tous';    // 'tous' | 'avecAvis' | 'mesAvis'
+  var categoryFilter = new Set(); // libellés de catégories actives (vide = tout afficher)
+
+  // Le token Mapbox est obligatoire pour accéder aux tuiles et tilesets
   mapboxgl.accessToken = d.token;
 
   // ── Styles disponibles ──────────────────────────────────────────────────
+  // Chaque style est un fond de carte Mapbox différent.
+  // 'standard' = nouveau style Mapbox 3D avec éclairage dynamique (jour/nuit),
+  //   bâtiments, arbres, monuments inclus. On met fog/buildings à false car
+  //   le style les gère lui-même (inutile de les rajouter en double).
+  // isStandard : flag pour savoir si on peut utiliser setConfigProperty (lightPreset)
   var STYLES = {
+    standard:  { url: 'mapbox://styles/mapbox/standard',              fog: false, buildings: false, terrain: true,  isStandard: true },
     dark:      { url: 'mapbox://styles/mapbox/dark-v11',              fog: true,  buildings: true,  terrain: true  },
     satellite: { url: 'mapbox://styles/mapbox/satellite-streets-v12', fog: true,  buildings: true,  terrain: true  },
     outdoors:  { url: 'mapbox://styles/mapbox/outdoors-v12',          fog: false, buildings: false, terrain: true  },
     streets:   { url: 'mapbox://styles/mapbox/streets-v12',           fog: false, buildings: false, terrain: false },
   };
-  var currentStyleKey = 'dark';
+  var currentStyleKey    = 'standard'; // style actif au démarrage
+  // Préréglage lumière du style Standard : 'dawn' | 'day' | 'dusk' | 'night'
+  // Changeable via les boutons Aube/Jour/Crépuscule/Nuit dans la barre de contrôle
+  var currentLightPreset = 'day';
 
   // Zoom de clustering GL : au-delà de 14, Mapbox affiche les pins individuels.
   var CLUSTER_MAX_ZOOM = 14;
@@ -87,28 +110,35 @@
     { name: 'Oceanie',   lat: -25, lng: 135,  zoom: 3.2 },
   ];
 
-  var activeCountryId   = null;
-  var leafMarkers       = {};   // { id_lieu: mapboxgl.Marker } — DOM pins individuels
-  var hoveredCountryId  = null; // ISO3 du pays sous le curseur
-  var selectedCountryId = null; // ISO3 du pays sélectionné
-  var survolMarker      = false; // true quand la souris est sur un pin DOM (bloque la hover card pays)
+  // --- ÉTAT GLOBAL DE LA CARTE ---
+  var activeCountryId   = null;  // id_pays en base du pays sélectionné (filtre les lieux)
+  var leafMarkers       = {};    // { id_lieu: mapboxgl.Marker } — markers DOM des lieux individuels
+  var hoveredCountryId  = null;  // code ISO3 du pays sous le curseur (pour le hover)
+  var selectedCountryId = null;  // code ISO3 du pays sélectionné (contour bleu)
+  var survolMarker      = false; // true quand la souris est sur un pin → bloque la hover card pays
 
-  // ── URL state : lit ?lng=&lat=&zoom= au chargement pour réouvrir la même vue
+  // ── URL state : lit ?lng=&lat=&zoom= pour réouvrir la même vue au rechargement
+  // Si l'URL contient des coordonnées valides, on repart de cette vue
+  // (utile pour partager un lien ou recharger sans perdre sa position)
   function lireEtatUrl() {
     var p    = new URLSearchParams(window.location.search);
     var lng  = parseFloat(p.get('lng'));
     var lat  = parseFloat(p.get('lat'));
     var zoom = parseFloat(p.get('zoom'));
+    // isNaN = true si la conversion a échoué (param absent ou invalide)
     if (isNaN(lng) || isNaN(lat) || isNaN(zoom)) return null;
     return { lng: lng, lat: lat, zoom: zoom };
   }
-  var etatUrl = lireEtatUrl();
+  var etatUrl = lireEtatUrl(); // null si l'URL n'a pas de coordonnées
 
-  // Centre par défaut : lat 30 (au lieu de 20) → le globe est visuellement plus haut
+  // Vue par défaut au chargement : globe entier, légèrement incliné
+  // [longitude, latitude] — attention, Mapbox met toujours lng avant lat
   var CENTRE_DEFAUT = [20, 30];
-  var ZOOM_DEFAUT   = 1.8;
+  var ZOOM_DEFAUT   = 1.8; // zoom 1.8 = on voit tout le globe
 
-  // ── Init carte ──────────────────────────────────────────────────────────
+  // ── Initialisation de la carte ─────────────────────────────────────────
+  // new mapboxgl.Map() crée le canvas WebGL dans la <div id="map">
+  // Si l'URL contient des coords (?lng=...) on repart de là, sinon vue par défaut
   var map = new mapboxgl.Map({
     container:         'map',
     style:             STYLES[currentStyleKey].url,
@@ -127,20 +157,27 @@
   // Handler clic pays enregistré une seule fois (ne dépend pas du style)
   initPaysClic();
 
+  // 'style.load' se déclenche à chaque fois qu'un style est chargé
+  // (au démarrage ET quand on change de style via le switcher)
+  // On ne peut ajouter des sources/couches QU'après cet événement
   map.on('style.load', function () {
-    applyAtmosphere();
-    applyTerrain();
-    addCountryLayer();
-    addLieuxClusters();
-    // Régions chargées au premier zoom suffisant (fichier ~37 MB)
+    applyAtmosphere();          // brouillard + étoiles + ciel (si style dark/satellite)
+    applyLightPreset();         // éclairage dynamique jour/nuit (style Standard uniquement)
+    applyTerrain();             // relief 3D (DEM = Digital Elevation Model)
+    addCountryLayer();          // couche de remplissage/contour des pays (tileset Mapbox)
+    addLieuxClusters();         // source GeoJSON de nos lieux + clustering
+
+    // regions.json fait 36 Mo → on ne le charge pas immédiatement
+    // on attend que l'utilisateur zoome assez (>= 3.5) pour que ça serve vraiment
     map.once('zoom', tryLoadRegions);
     tryLoadRegions();
   });
 
-  // Mise à jour des pins DOM quand les tuiles de la source clusterisée sont chargées
+  // 'sourcedata' se déclenche chaque fois que les tuiles d'une source sont chargées/mises à jour
+  // On l'utilise pour créer/supprimer les markers DOM des lieux individuels
   map.on('sourcedata', function (e) {
     if (e.sourceId === 'lieux-source' && e.isSourceLoaded) {
-      updateLeafMarkers();
+      updateLeafMarkers(); // recréé les pins DOM pour ce qui est visible
     }
   });
 
@@ -200,6 +237,22 @@
           'fill-extrusion-base':    ['get', 'min_height'],
           'fill-extrusion-opacity': 0.6,
         },
+      });
+    }
+  }
+
+  // ── Éclairage dynamique (style Standard) ─────────────────────────────────
+  // Le style "standard" expose une config 'lightPreset' (dawn/day/dusk/night)
+  // qui change l'ambiance lumineuse + le ciel. Ignoré par les styles classiques.
+  function applyLightPreset() {
+    var cfg = STYLES[currentStyleKey] || {};
+    if (!cfg.isStandard) return;
+    try {
+      map.setConfigProperty('basemap', 'lightPreset', currentLightPreset);
+    } catch (e) {
+      // Le style n'est pas encore prêt : on réessaie quand la carte est stabilisée.
+      map.once('idle', function () {
+        try { map.setConfigProperty('basemap', 'lightPreset', currentLightPreset); } catch (_) {}
       });
     }
   }
@@ -614,12 +667,24 @@
     }
   });
 
-  // ── Clustering natif unifié (villes + monuments) ─────────────────────────
-  // Une seule source GL clusterisée. Les clusters (groupes) s'affichent en GL.
-  // Les pins individuels (feuilles) sont des DOM markers créés par updateLeafMarkers.
-  // La densité gère automatiquement la visibilité — plus de seuils de zoom rigides.
+  // ── Clustering natif unifié ───────────────────────────────────────────────
+  //
+  // Architecture du clustering en 2 niveaux :
+  //
+  // NIVEAU 1 — Bulles (clusters) : dessinées par des couches GL (performant, GPU)
+  //   → couche 'clusters-lieux' (circle) + 'clusters-lieux-count' (symbol/texte)
+  //   → filtrage : ['has', 'point_count'] (seuls les groupes ont cette propriété)
+  //
+  // NIVEAU 2 — Pins individuels (feuilles) : markers HTML créés par updateLeafMarkers()
+  //   → créés UNIQUEMENT pour les points visibles à l'écran (viewport)
+  //   → supprimés dès qu'ils sortent du cadre (sinon on aurait des centaines de <div>)
+  //   → filtrage : ['!', ['has', 'point_count']] (tout ce qui n'est pas un cluster)
+  //
+  // Quand on change un filtre → refreshLieuxSource() → setData() → Mapbox re-clusterise seul
 
-  // Applique le filtre avis (tous / avecAvis / mesAvis) à une liste de lieux.
+  // Applique le filtre par type d'avis sur une liste de lieux.
+  // 'avecAvis' = seulement les lieux qui ont au moins 1 avis
+  // 'mesAvis' = seulement les lieux où l'utilisateur connecté a posté
   function appliquerFiltreAvis(liste) {
     if (avisFilter === 'avecAvis') {
       return liste.filter(function (p) { return parseInt(p.review_count || 0, 10) > 0; });
@@ -630,8 +695,10 @@
     return liste;
   }
 
-  // Construit le GeoJSON de tous les lieux affichables (ville + monument, pas pays).
-  // Combine les filtres pays actif + filtre avis.
+  // Construit la FeatureCollection GeoJSON à injecter dans la source Mapbox.
+  // Applique tous les filtres actifs : pays sélectionné + type d'avis + catégorie.
+  // Chaque Feature = { type:'Feature', properties:{id_lieu}, geometry:{type:'Point', coordinates:[lng,lat]} }
+  // Note : coordonnées en [longitude, latitude] — convention GeoJSON/Mapbox (lng avant lat)
   function buildLieuxFeatures() {
     var base = activeCountryId
       ? places.filter(function (p) { return String(p.id_pays) === String(activeCountryId); })
@@ -655,7 +722,9 @@
       .filter(Boolean);
   }
 
-  // Met à jour la source GeoJSON et le compteur de lieux.
+  // Reconstruit les données et les injecte dans la source Mapbox.
+  // Mapbox recalcule le clustering automatiquement après setData().
+  // À appeler après chaque changement de filtre (pays, catégorie, type d'avis).
   function refreshLieuxSource() {
     var feats = buildLieuxFeatures();
     updateCount(feats.length);
@@ -805,8 +874,10 @@
   }
 
   // ── Création d'un pin HTML ───────────────────────────────────────────────
-  // Petit cercle blanc avec icône SVG catégorisée + badge note optionnel.
-  // Pas de label texte dans le pin → nom visible uniquement dans le popup.
+  // Chaque lieu individuel (non clusterisé) a un marker DOM custom.
+  // Structure du pin : cercle blanc + icône SVG selon la catégorie + badge note coloré
+  //   + label "TripAdvisor style" (nom en gras + sous-titre catégorie à droite)
+  // Le badge est coloré par palier : ★ vert (≥4.5), ambre (≥3), rouge (<3)
   function createPinEl(place) {
     var el   = document.createElement('div');
     var type = place.type || 'monument';
@@ -905,6 +976,30 @@
       Object.values(leafMarkers).forEach(function (m) { m.remove(); });
       leafMarkers = {};
       map.setStyle(STYLES[key].url);
+    });
+  });
+
+  // ── Préréglage lumière (jour / nuit) du style Standard ───────────────────
+  document.querySelectorAll('.light-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.dataset.light;
+      if (!key) return;
+      currentLightPreset = key;
+      document.querySelectorAll('.light-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+
+      // Les presets ne marchent que sur le style Standard : on bascule dessus si besoin.
+      if (!STYLES[currentStyleKey].isStandard) {
+        currentStyleKey = 'standard';
+        document.querySelectorAll('.style-btn').forEach(function (b) {
+          b.classList.toggle('active', b.dataset.style === 'standard');
+        });
+        Object.values(leafMarkers).forEach(function (m) { m.remove(); });
+        leafMarkers = {};
+        map.setStyle(STYLES.standard.url); // applyLightPreset rappelé au style.load
+      } else {
+        applyLightPreset();
+      }
     });
   });
 
@@ -1155,9 +1250,15 @@
   // ══════════════════════════════════════════════════════════════════════════
   // ── Mode « Ajouter un lieu » ──────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-  // Flux : clic bouton → mode actif → clic carte → marker temp draggable +
-  // popup formulaire pré-rempli par reverse-geocoding → submit → POST /lieu/creer
-  // → ajout du pin permanent à la liste places + re-rendu.
+  //
+  // Flux complet :
+  //   1. Clic bouton "+ Ajouter un lieu" → activeAddMode (curseur change)
+  //   2. Clic sur la carte → marker temporaire jaune posé (draggable)
+  //   3. Appel API géocodage inverse (Mapbox) → récupère ville + pays depuis les coords
+  //   4. Popup avec formulaire pré-rempli (nom, catégorie, description, photo)
+  //   5. Submit → fetch POST /lieu/creer (AJAX, pas de rechargement)
+  //   6. PHP valide, insère en base, renvoie le lieu en JSON
+  //   7. JS ajoute le lieu à places[] + refreshLieuxSource() → pin visible immédiatement
 
   var addMode    = false;   // état global du mode ajout
   var markerTemp = null;    // marker jaune temporaire (un seul à la fois)

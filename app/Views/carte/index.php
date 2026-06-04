@@ -83,10 +83,19 @@ $nbLieux = count($places);
 
             <!-- Switcher de styles -->
             <div id="style-switcher">
-                <button class="style-btn active" data-style="dark">Sombre</button>
+                <button class="style-btn active" data-style="standard">Standard 3D</button>
+                <button class="style-btn" data-style="dark">Sombre</button>
                 <button class="style-btn" data-style="satellite">Satellite</button>
                 <button class="style-btn" data-style="outdoors">Terrain</button>
                 <button class="style-btn" data-style="streets">Rues</button>
+            </div>
+
+            <!-- Préréglage de lumière (style Standard) : ambiance jour / nuit -->
+            <div id="light-switcher">
+                <button class="style-btn light-btn" data-light="dawn">Aube</button>
+                <button class="style-btn light-btn active" data-light="day">Jour</button>
+                <button class="style-btn light-btn" data-light="dusk">Crépuscule</button>
+                <button class="style-btn light-btn" data-light="night">Nuit</button>
             </div>
 
             <!-- Compteur -->

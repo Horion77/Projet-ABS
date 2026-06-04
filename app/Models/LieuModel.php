@@ -7,17 +7,23 @@ use App\Core\Modele;
 use PDO;
 
 /**
- * Lieux : fiche détaillée et liste géolocalisée pour la carte.
- * Concentre tout le SQL extrait de l'ancien pages/place.php et pages/map.php.
+ * LieuModel — tout ce qui touche aux lieux en base de données.
+ *
+ * Un "lieu" c'est un point sur la carte : monument, resto, plage...
+ * Il appartient à une ville, qui appartient à un pays.
+ * Il peut avoir des avis, une catégorie, une image, des coordonnées GPS.
  */
 class LieuModel extends Modele
 {
     /**
-     * Fiche d'un lieu avec sa catégorie, sa ville et son pays.
+     * Récupère un lieu par son id avec toutes ses infos de localisation.
+     * Utilisé pour la page de détail d'un lieu (/lieu?id=X).
+     * Retourne null si le lieu n'existe pas.
      */
     public static function trouverParIdAvecLocalisation(int $idLieu): ?array
     {
         $st = self::pdo()->prepare(
+            // On remonte toute la hiérarchie : lieu → catégorie + ville + pays
             'SELECT l.id_lieu, l.nom, l.description, l.latitude, l.longitude, l.image_url,
                 cl.libelle AS categorie, vi.nom AS ville, p.nom AS pays, p.id_pays
              FROM lieu l
@@ -28,11 +34,17 @@ class LieuModel extends Modele
         );
         $st->execute([':id' => $idLieu]);
         $r = $st->fetch(PDO::FETCH_ASSOC);
+        // fetch() retourne false si rien trouvé → on retourne null
         return $r ?: null;
     }
 
     /**
-     * Tous les lieux géolocalisés avec leur note moyenne (avis publics) — pour la carte.
+     * Récupère TOUS les lieux géolocalisés avec leur note moyenne.
+     * C'est la requête principale qui alimente la carte (MAP_DATA.places).
+     *
+     * LEFT JOIN avis : on garde les lieux sans avis (sinon ils n'apparaitraient pas sur la carte)
+     * GROUP BY l.id_lieu : une seule ligne par lieu avec AVG(note) calculée
+     * WHERE latitude IS NOT NULL : on ne prend que les lieux avec des coordonnées GPS
      *
      * @return list<array<string, mixed>>
      */
@@ -49,28 +61,32 @@ class LieuModel extends Modele
                 l.latitude AS lat,
                 l.longitude AS lng,
                 l.image_url,
-                l.type,
-                l.icon,
-                cl.libelle AS categorie,
+                l.type,                    -- 'pays', 'ville' ou 'monument'
+                l.icon,                    -- emoji pour le pin
+                cl.libelle AS categorie,   -- Musée, Restaurant, etc.
                 p.nom AS country_name,
                 p.id_pays,
+                -- COALESCE pour renvoyer NULL (et pas 0) si aucun avis
                 COALESCE(ROUND(AVG(a.note), 2), NULL) AS avg_rating,
                 COUNT(CASE WHEN a.visibility = ‘public’ THEN 1 END) AS review_count
              FROM lieu l
              JOIN categorie_lieu cl ON cl.id_categorie = l.id_categorie
              JOIN ville vi ON vi.id_ville = l.id_ville
              JOIN pays p ON p.id_pays = vi.id_pays
+             -- LEFT JOIN = on garde les lieux même sans avis
              LEFT JOIN avis a ON a.id_lieu = l.id_lieu AND a.visibility = 'public'
              WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL
              GROUP BY l.id_lieu, l.nom, l.latitude, l.longitude, l.image_url, l.type, l.icon, p.nom, p.id_pays, cl.libelle, vi.nom";
+
         $q = self::pdo()->query($sql);
         return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
     /**
-     * Cherche une ville par nom + pays, sinon la crée. Évite les doublons quand
-     * un utilisateur ajoute un lieu dans une ville déjà connue (matching insensible
-     * à la casse).
+     * Cherche une ville par nom + pays, ou la crée si elle n'existe pas encore.
+     * Utilisé quand un utilisateur ajoute un lieu via la carte.
+     *
+     * Le LOWER() évite les doublons genre "paris" vs "Paris" vs "PARIS".
      */
     public static function trouverOuCreerVille(string $nom, int $idPays): int
     {
@@ -79,6 +95,7 @@ class LieuModel extends Modele
             throw new \InvalidArgumentException('Nom de ville vide.');
         }
 
+        // On cherche d'abord si la ville existe déjà (insensible à la casse)
         $st = self::pdo()->prepare(
             'SELECT id_ville FROM ville
               WHERE LOWER(nom) = LOWER(:nom) AND id_pays = :p
@@ -86,6 +103,8 @@ class LieuModel extends Modele
         );
         $st->execute([':nom' => $nom, ':p' => $idPays]);
         $id = $st->fetchColumn();
+
+        // fetchColumn() renvoie false si aucun résultat → on crée la ville
         if ($id !== false) {
             return (int) $id;
         }
@@ -98,8 +117,9 @@ class LieuModel extends Modele
     }
 
     /**
-     * Insère un nouveau lieu créé par un utilisateur depuis la carte.
-     * Les champs ville/pays sont déjà résolus en IDs par le contrôleur.
+     * Insère un nouveau lieu en base.
+     * Appelé par LieuController::creer() après validation du formulaire.
+     * Toutes les données ont déjà été nettoyées et validées côté contrôleur.
      *
      * @param array{
      *   nom: string, type: string, icon: string, description: ?string,
@@ -127,11 +147,13 @@ class LieuModel extends Modele
             ':id_categorie' => $data['id_categorie'],
             ':id_ville'     => $data['id_ville'],
         ]);
+        // lastInsertId() retourne l'id auto-incrémenté du lieu créé
         return (int) self::pdo()->lastInsertId();
     }
 
     /**
-     * Continents distincts présents en base — pour le formulaire « Découvrir ».
+     * Renvoie les continents distincts présents en base.
+     * Utilisé pour peupler le formulaire de filtres de la page Découvrir.
      *
      * @return list<string>
      */
@@ -146,7 +168,8 @@ class LieuModel extends Modele
     }
 
     /**
-     * Villes (avec leur pays) ayant au moins un lieu — pour le filtre « Découvrir ».
+     * Villes qui ont au moins un lieu — pour le filtre de la page Découvrir.
+     * On GROUP BY pour éviter les doublons (une ville peut avoir plusieurs lieux).
      *
      * @return list<array{id_ville:int|string, nom:string, pays:string}>
      */
@@ -164,9 +187,12 @@ class LieuModel extends Modele
     }
 
     /**
-     * Recherche « Découvrir » : lieux filtrés par catégorie / note mini /
-     * continent / pays / ville, triés par note moyenne puis popularité.
-     * La note et le nombre d'avis sont calculés sur les avis publics.
+     * Recherche de lieux pour la page "Découvrir".
+     * Filtre par catégorie, note minimale, continent, pays, ville.
+     * Triés : les mieux notés d'abord, les lieux sans note en dernier.
+     *
+     * Les paramètres null = pas de filtre sur ce critère.
+     * $limite est borné entre 1 et 120 pour éviter des requêtes trop lourdes.
      *
      * @return list<array<string, mixed>>
      */
@@ -178,8 +204,9 @@ class LieuModel extends Modele
         ?int $idVille,
         int $limite = 60
     ): array {
-        $limite = max(1, min(120, $limite));
+        $limite = max(1, min(120, $limite)); // on s'assure que c'est raisonnable
 
+        // Requête de base — on calcule note + nb avis par lieu
         $sql = "SELECT l.id_lieu, l.nom, l.image_url, l.latitude, l.longitude,
                     cl.libelle AS categorie,
                     vi.nom AS ville, p.nom AS pays, p.continent, p.id_pays,
@@ -190,9 +217,10 @@ class LieuModel extends Modele
                 JOIN ville vi          ON vi.id_ville     = l.id_ville
                 JOIN pays p            ON p.id_pays       = vi.id_pays
                 LEFT JOIN avis a       ON a.id_lieu = l.id_lieu AND a.visibility = 'public'
-                WHERE l.type <> 'pays'";
+                WHERE l.type <> 'pays'"; // on ne veut pas afficher les "lieux pays" ici
         $params = [];
 
+        // On ajoute les filtres dynamiquement selon ce qui est renseigné
         if ($categorie !== null && $categorie !== '') {
             $sql .= ' AND cl.libelle = :cat';
             $params[':cat'] = $categorie;
@@ -233,7 +261,12 @@ class LieuModel extends Modele
     }
 
     /**
-     * Pays distincts ayant au moins un lieu géolocalisé — pour le filtre de la carte.
+     * Pays ayant au moins un lieu géolocalisé — pour le filtre et les stats de la carte.
+     *
+     * On calcule :
+     * - le centre géographique du pays (moyenne des lat/lng de ses lieux) → pour le flyTo
+     * - le nombre de lieux distincts
+     * - la note moyenne (avis publics uniquement)
      *
      * @return list<array{id_pays:int|string, nom:string}>
      */
@@ -245,7 +278,7 @@ class LieuModel extends Modele
         // LEFT JOIN avis : conserve les pays dont aucun avis n'est encore public.
         $q = self::pdo()->query(
             "SELECT p.id_pays, p.nom, p.code_iso,
-                    ROUND(AVG(l2.latitude), 4)  AS lat,
+                    ROUND(AVG(l2.latitude), 4)  AS lat,   -- centre approximatif du pays
                     ROUND(AVG(l2.longitude), 4) AS lng,
                     COUNT(DISTINCT l2.id_lieu)  AS places_count,
                     ROUND(AVG(a.note), 1)       AS avg_rating
@@ -258,5 +291,16 @@ class LieuModel extends Modele
              ORDER BY p.nom"
         );
         return $q ? $q->fetchAll(PDO::FETCH_ASSOC) : [];
+    }
+
+    /**
+     * Vérifie qu'un lieu avec cet id existe bien en base.
+     * Utilisé par AvisController avant d'accepter la soumission d'un avis.
+     */
+    public static function lieuExiste(int $idLieu): bool
+    {
+        $st = self::pdo()->prepare('SELECT 1 FROM lieu WHERE id_lieu = :id LIMIT 1');
+        $st->execute([':id' => $idLieu]);
+        return (bool) $st->fetchColumn();
     }
 }

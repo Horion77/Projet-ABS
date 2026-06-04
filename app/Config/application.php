@@ -18,5 +18,5 @@ return [
     ‘env’      => getenv(‘APP_ENV’) ?: ‘dev’,
     // Préfixe commun à toutes les URL générées : utilisé par le routeur pour
     // ignorer ce segment dans le chemin de la requête entrante.
-    ‘base_url’ => ‘/Projet-ABS/public’,
+    ‘base_url’ => ‘/real-abs/public’,
 ];
