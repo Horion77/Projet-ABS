@@ -12,6 +12,7 @@ $fichierCssPage = $fichierCssPage ?? null;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitre) ?> | ABS</title>
+    <link rel="icon" type="image/svg+xml" href="<?= e(asset('images/favicon.svg')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/style.css')) ?>">
     <?php
     // CSS additionnel chargé uniquement pour les pages qui en ont besoin :
