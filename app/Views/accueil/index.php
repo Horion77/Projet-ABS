@@ -16,7 +16,7 @@ $derniersAvis = $derniersAvis ?? [];
 <section class="accueil-hero" aria-label="Bienvenue">
     <div class="hero-overlay">
         <h1 class="hero-titre">Explorez le monde, partagez vos avis</h1>
-        <p class="hero-soustitre">Découvrez des lieux, notez-les et inspirez d’autres voyageurs sur ABS.</p>
+        <p class="hero-soustitre">Découvrez des lieux, notez-les et inspirez d'autres voyageurs sur ABS.</p>
         <div class="hero-actions">
             <a class="btn btn-hero" href="<?= e(url('carte')) ?>">Explorer la carte</a>
             <?php if (!isLoggedIn()) : ?>
@@ -28,10 +28,10 @@ $derniersAvis = $derniersAvis ?? [];
 
 <div class="conteneur conteneur-accueil">
     <h2 class="titre-rubrique">Lieux populaires</h2>
-    <p class="soustitre-rubrique">D’après la note moyenne des avis (publics).</p>
+    <p class="soustitre-rubrique">D'après la note moyenne des avis (publics).</p>
 
     <?php if (count($lieuxPop) === 0) : ?>
-        <p class="message-vide accueil-vide">Aucun lieu n’a encore reçu d’avis, ou la base vient d’être installée. Le classement s’affichera dès qu’il y aura des avis publics sur des lieux.</p>
+        <p class="message-vide accueil-vide">Aucun lieu n'a encore reçu d'avis, ou la base vient d'être installée. Le classement s'affichera dès qu'il y aura des avis publics sur des lieux.</p>
     <?php else : ?>
         <div class="grille-cartes-lieux">
             <?php foreach ($lieuxPop as $row) : ?>
@@ -63,7 +63,7 @@ $derniersAvis = $derniersAvis ?? [];
 <div class="conteneur conteneur-accueil conteneur-derniers-avis">
     <h2 class="titre-rubrique">Derniers avis sur un lieu</h2>
     <?php if (count($derniersAvis) === 0) : ?>
-        <p class="message-vide">Aucun avis récent à afficher pour l’instant.</p>
+        <p class="message-vide">Aucun avis récent à afficher pour l'instant.</p>
     <?php else : ?>
         <ul class="liste-derniers-avis">
             <?php foreach ($derniersAvis as $av) : ?>

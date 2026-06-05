@@ -57,7 +57,7 @@ class AvisController extends Controleur
         }
 
         if (!AvisModel::lieuExiste($idLieu)) {
-            Session::flashErreurs(['Ce lieu n’existe pas.']);
+            Session::flashErreurs(['Ce lieu n'existe pas.']);
             $this->rediriger($retour);
         }
 
@@ -88,7 +88,7 @@ class AvisController extends Controleur
         } catch (Throwable) {
             // Throwable capture aussi bien les Exception que les Error PHP 8
             // (ex. PDOException sur contrainte d'unicité non détectée en amont).
-            Session::flashErreurs(['Impossible d’enregistrer l’avis pour le moment.']);
+            Session::flashErreurs(['Impossible d'enregistrer l'avis pour le moment.']);
             $this->rediriger($retour);
         }
 

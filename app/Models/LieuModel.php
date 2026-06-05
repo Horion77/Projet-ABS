@@ -50,7 +50,7 @@ class LieuModel extends Modele
      */
     public static function tousAvecNotes(): array
     {
-        // COUNT(CASE WHEN a.visibility = ‘public’ THEN 1 END) : compte uniquement les
+        // COUNT(CASE WHEN a.visibility = 'public' THEN 1 END) : compte uniquement les
         // avis publics sans HAVING (qui filtrerait les lieux sans avis public). Cela
         // permet de retourner tous les lieux sur la carte, même ceux sans avis.
         // La moyenne (AVG) porte sur tous les avis (public + privé) pour être cohérente
@@ -68,7 +68,7 @@ class LieuModel extends Modele
                 p.id_pays,
                 -- COALESCE pour renvoyer NULL (et pas 0) si aucun avis
                 COALESCE(ROUND(AVG(a.note), 2), NULL) AS avg_rating,
-                COUNT(CASE WHEN a.visibility = ‘public’ THEN 1 END) AS review_count
+                COUNT(CASE WHEN a.visibility = 'public' THEN 1 END) AS review_count
              FROM lieu l
              JOIN categorie_lieu cl ON cl.id_categorie = l.id_categorie
              JOIN ville vi ON vi.id_ville = l.id_ville

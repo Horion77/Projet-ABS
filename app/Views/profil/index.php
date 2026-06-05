@@ -159,7 +159,7 @@ $util = $util ?? [];
     <section class="bloc-avis" aria-labelledby="titre-mes-avis">
         <h2 id="titre-mes-avis">Vos avis (<?= count($mesAvis) ?>)</h2>
         <?php if (count($mesAvis) === 0) : ?>
-            <p class="message-vide">Vous n’avez pas encore publié d’avis.</p>
+            <p class="message-vide">Vous n'avez pas encore publié d'avis.</p>
         <?php else : ?>
             <ul class="liste-avis-profil">
                 <?php foreach ($mesAvis as $a) : ?>

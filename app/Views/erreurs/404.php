@@ -20,8 +20,8 @@
     <main class="site-main">
         <div class="conteneur" style="text-align:center; padding: 4rem 1rem;">
             <h1>404</h1>
-            <p>AHHH Désolé, cette page n’existe pas ou a été déplacée.</p>
-            <p><a class="btn" href="<?= e(url()) ?>">Retour à l’accueil</a></p>
+            <p>AHHH Désolé, cette page n'existe pas ou a été déplacée.</p>
+            <p><a class="btn" href="<?= e(url()) ?>">Retour à l'accueil</a></p>
         </div>
     </main>
 </body>
