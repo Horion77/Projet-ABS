@@ -136,9 +136,31 @@
   var CENTRE_DEFAUT = [20, 30];
   var ZOOM_DEFAUT   = 1.8; // zoom 1.8 = on voit tout le globe
 
-  // ── Initialisation de la carte ─────────────────────────────────────────
-  // new mapboxgl.Map() crée le canvas WebGL dans la <div id="map">
-  // Si l'URL contient des coords (?lng=...) on repart de là, sinon vue par défaut
+  // ══════════════════════════════════════════════════════════════════════
+  // 🎓 QUESTION JURY : "Comment vous avez fait le globe 3D ?"
+  //
+  // Réponse courte : new mapboxgl.Map({ projection: 'globe' })
+  // C'est UN seul paramètre qui fait la différence entre une carte plate
+  // et un globe. Le reste c'est juste la configuration de la vue initiale.
+  //
+  // Décryptage de chaque paramètre :
+  //   container: 'map'          → id de la <div> HTML qui reçoit le canvas WebGL
+  //                               Mapbox crée un <canvas> dedans et dessine dessus via WebGL
+  //   style: url                → thème visuel complet (couleurs, routes, labels...)
+  //                               On peut switcher à chaud via map.setStyle() sans recharger
+  //   center: [lng, lat]        → ATTENTION : longitude d'abord, latitude ensuite !
+  //                               C'est la convention GeoJSON/Mapbox (inverse de Google Maps)
+  //   zoom: 1.8                 → échelle. 0 = planète entière, 22 = détail d'une rue
+  //                               1.8 = on voit tout le globe avec un peu de marge
+  //   pitch: 45                 → inclinaison en degrés. 0 = vue du dessus (2D),
+  //                               90 = vue horizontale. 45 = vue isométrique sympa
+  //   bearing: -10              → rotation de la carte. 0 = nord en haut. -10 = légèrement
+  //                               pivoté pour donner une impression de profondeur
+  //   projection: 'globe'       → ← C'EST ÇA le secret. Sans ce paramètre : carte plate.
+  //                               Disponible depuis Mapbox GL JS v2.9+
+  //   antialias: true           → lissage WebGL des bords (plus joli, légèrement plus lent)
+  //   renderWorldCopies: false  → sans ça, la carte se répète à l'infini sur les côtés
+  // ══════════════════════════════════════════════════════════════════════
   var map = new mapboxgl.Map({
     container:         'map',
     style:             STYLES[currentStyleKey].url,
@@ -146,7 +168,7 @@
     zoom:              etatUrl ? etatUrl.zoom              : ZOOM_DEFAUT,
     pitch:             45,
     bearing:           -10,
-    projection:        'globe',
+    projection:        'globe',     // ← active le rendu globe 3D
     antialias:         true,
     renderWorldCopies: false,
   });
@@ -369,6 +391,24 @@
   }
 
   // ── Couche pays : hover + sélection ─────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════
+  // 🎓 QUESTION JURY : "Comment vous détectez les clics sur les frontières des pays ?"
+  //
+  // On utilise un tileset vectoriel officiel Mapbox : 'mapbox.country-boundaries-v1'
+  // Ce tileset contient les vraies frontières géographiques de tous les pays du monde,
+  // mises à jour par Mapbox. On ne stocke PAS les frontières dans notre BDD — trop lourd.
+  //
+  // Le flux quand on clique sur la France :
+  //   1. map.on('click') → queryRenderedFeatures() interroge les tuiles visibles
+  //   2. On récupère f.id = 'FRA' (code ISO3 du pays cliqué)
+  //   3. trouverPaysDB('FRA') cherche 'FRA' dans notre tableau countries[] (chargé depuis MySQL)
+  //   4. Si trouvé → on filtre les lieux + on ouvre le panneau avec les stats de la BDD
+  //   5. Si pas trouvé → panneau vide "Aucun avis pour ce pays"
+  //
+  // La tolérance variable (tol) résout le problème des petits pays insulaires
+  // (Japon, Grèce...) qui font quelques pixels à faible zoom et sont impossibles
+  // à viser avec un clic précis. On élargit la zone de détection selon le zoom.
+  // ══════════════════════════════════════════════════════════════════════
   function addCountryLayer() {
     // Tileset officiel Mapbox (gratuit) avec toutes les frontières pays
     if (!map.getSource('pays-source')) {
@@ -732,6 +772,27 @@
     if (src) src.setData({ type: 'FeatureCollection', features: feats });
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // 🎓 QUESTION JURY : "Comment fonctionne le clustering ?"
+  //
+  // Le clustering c'est le regroupement automatique des pins proches en bulles.
+  // On a deux niveaux d'affichage :
+  //
+  //   NIVEAU 1 — Bulles GL (cluster) : dessinées par le GPU via des couches Mapbox.
+  //     → Très performant même avec des centaines de points.
+  //     → Détectées par le filtre ['has', 'point_count'] (seuls les groupes ont ça).
+  //
+  //   NIVEAU 2 — Markers DOM (feuilles) : éléments HTML créés par updateLeafMarkers().
+  //     → Créés UNIQUEMENT pour les points visibles à l'écran (sinon on aurait des centaines de <div>).
+  //     → Détectés par le filtre ['!', ['has', 'point_count']] (tout ce qui n'est pas un cluster).
+  //
+  // Le passage niveau 1 → niveau 2 se fait à clusterMaxZoom (14) :
+  //   en dessous → Mapbox regroupe → bulles GL
+  //   au dessus  → Mapbox n'regroupe plus → updateLeafMarkers() crée les markers HTML
+  //
+  // Quand on change un filtre (pays, catégorie) → refreshLieuxSource() → setData()
+  // → Mapbox recalcule tout le clustering automatiquement. On ne fait rien à la main.
+  // ══════════════════════════════════════════════════════════════════════
   // Crée la source clusterisée + les couches GL de clusters. Appelée au style.load.
   function addLieuxClusters() {
     if (map.getSource('lieux-source')) return;
@@ -1459,41 +1520,70 @@
     popupTemp.setLngLat([lng, lat]);
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // 🎓 AJAX — comment et pourquoi ici ?
+  //
+  // Sans AJAX : un <form action="/lieu/creer"> classique rechargerait toute la page.
+  //   → la carte disparaît, on perd la position, l'utilisateur doit tout recommencer. Nul.
+  //
+  // Avec AJAX (fetch API) : on envoie les données EN ARRIÈRE-PLAN.
+  //   → le serveur répond en JSON (pas en HTML), on met à jour juste le pin. Propre.
+  //
+  // 🎓 QUESTION JURY : "C'est quoi la différence entre AJAX et une requête classique ?"
+  //   → Classique : browser envoie → serveur répond HTML → page rechargée entièrement
+  //   → AJAX      : JS envoie     → serveur répond JSON → page reste ouverte, mise à jour partielle
+  //
+  // Décryptage ligne par ligne :
+  //   ev.preventDefault()           → annule le rechargement de page du form HTML
+  //   fetch(url, {method:'POST'})   → requête HTTP asynchrone (n'attend pas, continue à tourner)
+  //   new FormData(form)            → emballe TOUS les champs du form + le fichier photo
+  //   credentials: 'same-origin'    → envoie le cookie de session (OBLIGATOIRE pour l'auth)
+  //   .then(r => r.json())          → quand la réponse arrive, on parse le JSON
+  //   places.push(nouveau)          → ajoute le lieu au tableau en mémoire JS
+  //   refreshLieuxSource()          → Mapbox reçoit le GeoJSON mis à jour → recalcule clusters
+  //   .catch(...)                   → si réseau coupé, on affiche l'erreur sans crasher
+  //
+  // 🎓 QUESTION JURY : "Pourquoi 'asynchrone' ?"
+  //   → fetch() ne bloque pas le thread JS. La carte reste interactive pendant l'envoi.
+  //   → Les .then() s'exécutent QUAND la réponse arrive, pas immédiatement.
+  // ══════════════════════════════════════════════════════════════════════
   function soumettreFormulaire(ev) {
-    ev.preventDefault();
+    ev.preventDefault();           // empêche le rechargement de page (comportement par défaut du form)
     var form = ev.target;
     var errBox = form.querySelector('.form-error');
     var btnSubmit = form.querySelector('button[type="submit"]');
     errBox.hidden = true;
-    btnSubmit.disabled = true;
+    btnSubmit.disabled = true;     // désactive le bouton pour éviter le double-submit
     btnSubmit.textContent = 'Envoi…';
 
+    // ↓ C'est ici que se passe l'AJAX : on envoie les données sans recharger la page
     fetch(pathCreer, {
       method: 'POST',
-      body: new FormData(form),
-      credentials: 'same-origin',
+      body: new FormData(form),    // FormData emballe tout : champs texte + fichier photo
+      credentials: 'same-origin', // envoie le cookie de session (sinon PHP ne sait pas qui on est)
     })
+    // on chaîne les .then() : chaque étape reçoit le résultat de la précédente
     .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+    // r.ok = true si HTTP 200-299, false si 400/500. On vérifie les deux (HTTP + logique PHP)
     .then(function (res) {
       if (!res.ok || !res.body.success) {
+        // PHP a renvoyé une erreur → on l'affiche dans le form, on ne ferme rien
         errBox.textContent = res.body.erreur || 'Erreur inconnue.';
         errBox.hidden = false;
         btnSubmit.disabled = false;
         btnSubmit.textContent = 'Créer le lieu';
         return;
       }
-      // Succès : on ajoute le lieu à la liste, on rafraîchit le cluster Mapbox
-      // (sinon le nouveau pin ne se regroupe pas avec les autres dans la même
-      // zone et le clic sur la couche unclustered-monuments ne le trouve pas),
-      // puis on re-rend les markers DOM.
-      var nouveau = res.body.lieu;
-      places.push(nouveau);
+      // ✅ Succès : PHP a inséré le lieu en base et renvoyé l'objet JSON complet
+      var nouveau = res.body.lieu;  // { id_lieu, name, lat, lng, categorie, ... }
+      places.push(nouveau);         // on l'ajoute au tableau JS en mémoire (pas de rechargement)
       nettoyerMarkerTemp();
-      refreshLieuxSource();
-      // Petit zoom sur le nouveau lieu pour confirmer visuellement à l'utilisateur.
+      refreshLieuxSource();         // Mapbox reçoit le nouveau GeoJSON et place le pin dans les clusters
+      // flyTo = animation de zoom sur le nouveau lieu pour confirmer visuellement
       map.flyTo({ center: [parseFloat(nouveau.lng), parseFloat(nouveau.lat)], zoom: 15, essential: true });
     })
     .catch(function () {
+      // .catch = réseau coupé ou serveur planté → on n'a jamais eu de réponse JSON
       errBox.textContent = 'Connexion au serveur impossible.';
       errBox.hidden = false;
       btnSubmit.disabled = false;
