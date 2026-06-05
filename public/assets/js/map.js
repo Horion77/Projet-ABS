@@ -136,31 +136,21 @@
   var CENTRE_DEFAUT = [20, 30];
   var ZOOM_DEFAUT   = 1.8; // zoom 1.8 = on voit tout le globe
 
-  // ══════════════════════════════════════════════════════════════════════
-  // 🎓 QUESTION JURY : "Comment vous avez fait le globe 3D ?"
+  // ── Initialisation du globe 3D ────────────────────────────────────────
+  // new mapboxgl.Map() crée le canvas WebGL dans la <div id="map">.
+  // Le secret du globe c'est projection:'globe' — sans ça, carte plate classique.
   //
-  // Réponse courte : new mapboxgl.Map({ projection: 'globe' })
-  // C'est UN seul paramètre qui fait la différence entre une carte plate
-  // et un globe. Le reste c'est juste la configuration de la vue initiale.
-  //
-  // Décryptage de chaque paramètre :
-  //   container: 'map'          → id de la <div> HTML qui reçoit le canvas WebGL
-  //                               Mapbox crée un <canvas> dedans et dessine dessus via WebGL
-  //   style: url                → thème visuel complet (couleurs, routes, labels...)
-  //                               On peut switcher à chaud via map.setStyle() sans recharger
+  //   container: 'map'          → id de la <div> qui accueille le canvas WebGL
+  //   style: url                → thème visuel (couleurs, routes, labels...). On peut
+  //                               le changer à chaud via map.setStyle() sans rechargement
   //   center: [lng, lat]        → ATTENTION : longitude d'abord, latitude ensuite !
-  //                               C'est la convention GeoJSON/Mapbox (inverse de Google Maps)
-  //   zoom: 1.8                 → échelle. 0 = planète entière, 22 = détail d'une rue
-  //                               1.8 = on voit tout le globe avec un peu de marge
-  //   pitch: 45                 → inclinaison en degrés. 0 = vue du dessus (2D),
-  //                               90 = vue horizontale. 45 = vue isométrique sympa
-  //   bearing: -10              → rotation de la carte. 0 = nord en haut. -10 = légèrement
-  //                               pivoté pour donner une impression de profondeur
-  //   projection: 'globe'       → ← C'EST ÇA le secret. Sans ce paramètre : carte plate.
-  //                               Disponible depuis Mapbox GL JS v2.9+
-  //   antialias: true           → lissage WebGL des bords (plus joli, légèrement plus lent)
-  //   renderWorldCopies: false  → sans ça, la carte se répète à l'infini sur les côtés
-  // ══════════════════════════════════════════════════════════════════════
+  //                               Convention GeoJSON/Mapbox — l'inverse de Google Maps
+  //   zoom: 1.8                 → 0 = planète entière, 22 = détail d'une rue. 1.8 = globe entier
+  //   pitch: 45                 → inclinaison en degrés. 0 = vue du dessus, 45 = isométrique
+  //   bearing: -10              → rotation. 0 = nord en haut. -10 = légère impression de profondeur
+  //   projection: 'globe'       → active le rendu globe 3D (Mapbox GL JS v2.9+)
+  //   antialias: true           → lissage WebGL des bords, plus joli mais légèrement plus lent
+  //   renderWorldCopies: false  → sans ça la carte se répète à l'infini sur les côtés
   var map = new mapboxgl.Map({
     container:         'map',
     style:             STYLES[currentStyleKey].url,
@@ -391,24 +381,19 @@
   }
 
   // ── Couche pays : hover + sélection ─────────────────────────────────────
-  // ══════════════════════════════════════════════════════════════════════
-  // 🎓 QUESTION JURY : "Comment vous détectez les clics sur les frontières des pays ?"
+  // On utilise le tileset vectoriel officiel 'mapbox.country-boundaries-v1' :
+  // les vraies frontières géographiques de tous les pays, fournies par Mapbox.
+  // On ne stocke PAS les frontières dans notre BDD — ça ferait des Go de données.
   //
-  // On utilise un tileset vectoriel officiel Mapbox : 'mapbox.country-boundaries-v1'
-  // Ce tileset contient les vraies frontières géographiques de tous les pays du monde,
-  // mises à jour par Mapbox. On ne stocke PAS les frontières dans notre BDD — trop lourd.
-  //
-  // Le flux quand on clique sur la France :
+  // Flux quand on clique sur la France :
   //   1. map.on('click') → queryRenderedFeatures() interroge les tuiles visibles
-  //   2. On récupère f.id = 'FRA' (code ISO3 du pays cliqué)
-  //   3. trouverPaysDB('FRA') cherche 'FRA' dans notre tableau countries[] (chargé depuis MySQL)
-  //   4. Si trouvé → on filtre les lieux + on ouvre le panneau avec les stats de la BDD
-  //   5. Si pas trouvé → panneau vide "Aucun avis pour ce pays"
+  //   2. On récupère f.id = 'FRA' (code ISO3 fourni par le tileset)
+  //   3. trouverPaysDB('FRA') cherche ce code dans notre tableau countries[] (depuis MySQL)
+  //   4. Trouvé → on filtre les lieux + panneau avec les stats de la BDD
+  //   5. Pas trouvé → panneau vide "Aucun avis pour ce pays"
   //
-  // La tolérance variable (tol) résout le problème des petits pays insulaires
-  // (Japon, Grèce...) qui font quelques pixels à faible zoom et sont impossibles
-  // à viser avec un clic précis. On élargit la zone de détection selon le zoom.
-  // ══════════════════════════════════════════════════════════════════════
+  // La tolérance variable (tol) résout les petits pays insulaires (Japon, Grèce...)
+  // qui font quelques pixels à faible zoom. On élargit la zone de détection selon le zoom.
   function addCountryLayer() {
     // Tileset officiel Mapbox (gratuit) avec toutes les frontières pays
     if (!map.getSource('pays-source')) {
@@ -772,27 +757,20 @@
     if (src) src.setData({ type: 'FeatureCollection', features: feats });
   }
 
-  // ══════════════════════════════════════════════════════════════════════
-  // 🎓 QUESTION JURY : "Comment fonctionne le clustering ?"
+  // ── Clustering : 2 niveaux d'affichage ───────────────────────────────
+  // NIVEAU 1 — Bulles GL : dessinées par le GPU via des couches Mapbox.
+  //   → Très performant, même avec des centaines de points.
+  //   → Filtre : ['has', 'point_count'] — seuls les groupes ont cette propriété.
   //
-  // Le clustering c'est le regroupement automatique des pins proches en bulles.
-  // On a deux niveaux d'affichage :
+  // NIVEAU 2 — Markers DOM : éléments HTML créés par updateLeafMarkers().
+  //   → Créés uniquement pour ce qui est visible à l'écran (sinon des centaines de <div>).
+  //   → Filtre : ['!', ['has', 'point_count']] — tout ce qui n'est PAS un cluster.
   //
-  //   NIVEAU 1 — Bulles GL (cluster) : dessinées par le GPU via des couches Mapbox.
-  //     → Très performant même avec des centaines de points.
-  //     → Détectées par le filtre ['has', 'point_count'] (seuls les groupes ont ça).
+  // Passage niveau 1 → 2 à clusterMaxZoom (14) :
+  //   zoom < 14  → Mapbox regroupe → bulles GL
+  //   zoom >= 14 → Mapbox arrête → updateLeafMarkers() crée les markers HTML individuels
   //
-  //   NIVEAU 2 — Markers DOM (feuilles) : éléments HTML créés par updateLeafMarkers().
-  //     → Créés UNIQUEMENT pour les points visibles à l'écran (sinon on aurait des centaines de <div>).
-  //     → Détectés par le filtre ['!', ['has', 'point_count']] (tout ce qui n'est pas un cluster).
-  //
-  // Le passage niveau 1 → niveau 2 se fait à clusterMaxZoom (14) :
-  //   en dessous → Mapbox regroupe → bulles GL
-  //   au dessus  → Mapbox n'regroupe plus → updateLeafMarkers() crée les markers HTML
-  //
-  // Quand on change un filtre (pays, catégorie) → refreshLieuxSource() → setData()
-  // → Mapbox recalcule tout le clustering automatiquement. On ne fait rien à la main.
-  // ══════════════════════════════════════════════════════════════════════
+  // Changement de filtre → refreshLieuxSource() → setData() → Mapbox recalcule seul.
   // Crée la source clusterisée + les couches GL de clusters. Appelée au style.load.
   function addLieuxClusters() {
     if (map.getSource('lieux-source')) return;
@@ -1520,33 +1498,25 @@
     popupTemp.setLngLat([lng, lat]);
   }
 
-  // ══════════════════════════════════════════════════════════════════════
-  // 🎓 AJAX — comment et pourquoi ici ?
+  // ── AJAX : pourquoi et comment ───────────────────────────────────────
+  // Sans AJAX, un <form action="..."> classique rechargerait toute la page.
+  //   → la carte disparaît, la position est perdue, mauvaise UX.
   //
-  // Sans AJAX : un <form action="/lieu/creer"> classique rechargerait toute la page.
-  //   → la carte disparaît, on perd la position, l'utilisateur doit tout recommencer. Nul.
+  // Avec fetch (AJAX) on envoie les données en arrière-plan :
+  //   → le serveur répond en JSON (pas en HTML), on met à jour juste le pin. Rien ne recharge.
   //
-  // Avec AJAX (fetch API) : on envoie les données EN ARRIÈRE-PLAN.
-  //   → le serveur répond en JSON (pas en HTML), on met à jour juste le pin. Propre.
+  // Décryptage :
+  //   ev.preventDefault()          → annule le rechargement par défaut du form HTML
+  //   fetch(url, {method:'POST'})  → requête HTTP asynchrone — n'attend pas, continue à tourner
+  //   new FormData(form)           → emballe tous les champs + le fichier photo automatiquement
+  //   credentials: 'same-origin'   → envoie le cookie de session (OBLIGATOIRE pour que PHP sache qui on est)
+  //   .then(r => r.json())         → quand la réponse arrive (asynchrone), on parse le JSON
+  //   places.push(nouveau)         → ajoute le lieu au tableau JS en mémoire
+  //   refreshLieuxSource()         → Mapbox reçoit le nouveau GeoJSON et intègre le pin dans les clusters
+  //   .catch(...)                  → réseau coupé → on affiche l'erreur sans crasher
   //
-  // 🎓 QUESTION JURY : "C'est quoi la différence entre AJAX et une requête classique ?"
-  //   → Classique : browser envoie → serveur répond HTML → page rechargée entièrement
-  //   → AJAX      : JS envoie     → serveur répond JSON → page reste ouverte, mise à jour partielle
-  //
-  // Décryptage ligne par ligne :
-  //   ev.preventDefault()           → annule le rechargement de page du form HTML
-  //   fetch(url, {method:'POST'})   → requête HTTP asynchrone (n'attend pas, continue à tourner)
-  //   new FormData(form)            → emballe TOUS les champs du form + le fichier photo
-  //   credentials: 'same-origin'    → envoie le cookie de session (OBLIGATOIRE pour l'auth)
-  //   .then(r => r.json())          → quand la réponse arrive, on parse le JSON
-  //   places.push(nouveau)          → ajoute le lieu au tableau en mémoire JS
-  //   refreshLieuxSource()          → Mapbox reçoit le GeoJSON mis à jour → recalcule clusters
-  //   .catch(...)                   → si réseau coupé, on affiche l'erreur sans crasher
-  //
-  // 🎓 QUESTION JURY : "Pourquoi 'asynchrone' ?"
-  //   → fetch() ne bloque pas le thread JS. La carte reste interactive pendant l'envoi.
-  //   → Les .then() s'exécutent QUAND la réponse arrive, pas immédiatement.
-  // ══════════════════════════════════════════════════════════════════════
+  // "Asynchrone" = fetch() ne bloque pas. La carte reste interactive pendant l'envoi.
+  // Les .then() s'exécutent QUAND la réponse arrive, pas immédiatement.
   function soumettreFormulaire(ev) {
     ev.preventDefault();           // empêche le rechargement de page (comportement par défaut du form)
     var form = ev.target;
