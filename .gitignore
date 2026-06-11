@@ -37,3 +37,4 @@ public/assets/uploads/*
 public/uploads/lieux/*
 !public/uploads/lieux/.gitkeep
 !public/uploads/lieux/.htaccess
+.cursor/
