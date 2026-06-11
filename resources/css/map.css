@@ -1,0 +1,1184 @@
+/* map.css — Carte 3D ABS (MVC) */
+
+/* ── Variables locales à la page carte ──────────────────────────────────── */
+body.map-page {
+    --carte-bg:        #050514;
+    --carte-surface:   rgba(10, 14, 32, 0.88);
+    --carte-surface-2: rgba(16, 22, 48, 0.92);
+    --carte-border:    rgba(120, 160, 255, 0.18);
+    --carte-border-h:  rgba(120, 160, 255, 0.45);
+    --carte-text:      #e6ecff;
+    --carte-text-dim:  rgba(200, 215, 255, 0.65);
+    --carte-text-mute: rgba(200, 215, 255, 0.35);
+    --carte-accent:    #7eb3ff;
+    --carte-accent-2: #4f7ce8;
+    --carte-gold:      #ffc857;
+    --carte-glow:      0 0 0 1px rgba(120, 160, 255, 0.12), 0 10px 30px rgba(0, 0, 30, 0.55);
+}
+
+/* ── Font ───────────────────────────────────────────────────────────────── */
+body.map-page, body.map-page * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── Overrides layout pour la page carte ───────────────────────────────── */
+body.map-page {
+    overflow: hidden;
+    background: var(--carte-bg);
+}
+body.map-page .site-main {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+body.map-page .site-footer { display: none; }
+
+/* ── Wrapper carte (remplit l'espace sous la nav) ──────────────────────── */
+#map-wrapper {
+    position: relative;
+    flex: 1 1 auto;
+    width: 100%;
+    height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#map { flex: 1; width: 100%; height: 100%; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BARRE DE CONTRÔLES (top)
+   ══════════════════════════════════════════════════════════════════════════ */
+#map-controls {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+    padding: 12px 16px 20px;
+    /* Dégradé assombrit la carte sous la barre sans bloquer les clics sur la carte */
+    background: linear-gradient(to bottom,
+        rgba(5, 7, 22, 0.9) 0%,
+        rgba(5, 7, 22, 0.55) 70%,
+        transparent 100%);
+    /* pointer-events:none sur le wrapper : seul #map-controls-inner (réactivé ci-dessous)
+       capte les clics — le dégradé de fond ne bloque pas les interactions avec la carte. */
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+/* Écrans moyens : labels plus courts, gaps réduits */
+@media (max-width: 1100px) {
+    #map-controls-inner { gap: 8px; }
+
+    /* Cache les labels des filtres, garde juste le select */
+    #country-filter-wrap label,
+    #avis-filter-wrap label { display: none; }
+
+    #map-title { font-size: 0.88rem; }
+
+    .style-btn { padding: 5px 9px; font-size: 0.72rem; }
+}
+#map-controls-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto;
+    max-width: 1600px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    /* Défilement horizontal silencieux en dernier recours (très petits écrans) :
+       la barre de défilement est masquée visuellement mais reste fonctionnelle. */
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+#map-controls-inner::-webkit-scrollbar { display: none; }
+#map-title {
+    font-size: 1rem; font-weight: 700;
+    color: #fff;
+    margin: 0; white-space: nowrap;
+    letter-spacing: 0.005em;
+    display: flex; align-items: center; gap: 8px;
+}
+#map-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--carte-accent);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--carte-accent);
+}
+
+/* ── Filtre pays ────────────────────────────────────────────────────────── */
+#country-filter-wrap {
+    display: flex; align-items: center; gap: 10px;
+}
+#country-filter-wrap label {
+    color: var(--carte-text-dim);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+#country-filter {
+    background: var(--carte-surface);
+    color: var(--carte-text);
+    border: 1px solid var(--carte-border);
+    border-radius: 8px;
+    padding: 7px 28px 7px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%237eb3ff' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+#country-filter:hover,
+#country-filter:focus {
+    border-color: var(--carte-border-h);
+    background-color: var(--carte-surface-2);
+}
+
+/* ── Style switcher ─────────────────────────────────────────────────────── */
+#style-switcher {
+    display: flex; gap: 2px;
+    background: var(--carte-surface);
+    border: 1px solid var(--carte-border);
+    border-radius: 9px;
+    padding: 3px;
+}
+.style-btn {
+    background: transparent; border: none; border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.76rem; font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--carte-text-dim);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    white-space: nowrap;
+}
+.style-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+.style-btn.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--carte-accent-2), #2d4fb8);
+    box-shadow: 0 2px 8px rgba(79, 124, 232, 0.4);
+}
+
+/* ── Compteur ───────────────────────────────────────────────────────────── */
+#places-count {
+    margin-left: auto;
+    color: var(--carte-text-dim);
+    font-size: 0.82rem;
+    white-space: nowrap;
+    padding: 7px 14px;
+    background: var(--carte-surface);
+    border: 1px solid var(--carte-border);
+    border-radius: 8px;
+}
+#places-count #count-number {
+    color: var(--carte-accent);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PANNEAU NAV GAUCHE
+   ══════════════════════════════════════════════════════════════════════════ */
+#nav-panel {
+    position: absolute; top: 78px; left: 14px; z-index: 40;
+    width: 184px;
+    max-height: calc(100% - 100px);
+    overflow-y: auto;
+    padding: 10px 10px 14px;
+    background: linear-gradient(180deg, rgba(16, 22, 48, 0.96), rgba(10, 14, 32, 0.94));
+    border: 1px solid var(--carte-border);
+    border-radius: 14px;
+    display: flex; flex-direction: column; gap: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 160, 255, 0.25) transparent;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--carte-glow);
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+}
+#nav-panel::-webkit-scrollbar { width: 6px; }
+#nav-panel::-webkit-scrollbar-thumb {
+    background: rgba(120, 160, 255, 0.25);
+    border-radius: 3px;
+}
+
+/* JS ajoute/retire la classe .map-nav-open sur <body> pour piloter l'état
+   du panneau. CSS gère uniquement l'animation ; pas de display:none pour
+   que la transition reste visible dans les deux sens. */
+body:not(.map-nav-open) #nav-panel {
+    transform: translateX(calc(-100% - 24px));
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* En-tête du panneau (titre + bouton fermer) */
+.nav-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 4px 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--carte-border);
+}
+.nav-panel-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fff;
+}
+.nav-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--carte-text-dim);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    transition: color 0.15s;
+}
+.nav-close-btn:hover { color: #fff; }
+
+/* Bouton flottant d'ouverture (visible quand le panneau est replié) */
+.nav-open-btn {
+    position: absolute;
+    top: 78px; left: 14px; z-index: 39;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--carte-surface);
+    border: 1px solid var(--carte-border);
+    border-radius: 10px;
+    color: var(--carte-text);
+    font: 600 0.82rem 'Inter', sans-serif;
+    padding: 8px 13px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    box-shadow: var(--carte-glow);
+    transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s;
+}
+.nav-open-btn:hover { background: var(--carte-surface-2); transform: translateY(-1px); }
+/* Icône hamburger en pur CSS */
+.nav-open-ic {
+    width: 15px; height: 11px;
+    position: relative;
+    display: inline-block;
+}
+.nav-open-ic, .nav-open-ic::before, .nav-open-ic::after {
+    border-top: 2px solid var(--carte-accent);
+    box-sizing: border-box;
+}
+.nav-open-ic::before, .nav-open-ic::after {
+    content: ''; position: absolute; left: 0; width: 100%;
+}
+.nav-open-ic::before { top: 4px; }
+.nav-open-ic::after  { top: 9px; }
+/* Cache le bouton d'ouverture quand le panneau est déjà ouvert */
+body.map-nav-open .nav-open-btn {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-12px);
+}
+
+/* Fond derrière le tiroir (mobile uniquement, géré dans la media query) */
+.nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 6, 16, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 35;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.nav-section { margin-top: 10px; }
+.nav-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--carte-text-mute);
+    padding: 2px 8px 5px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--carte-border);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+}
+.nav-label:hover { color: var(--carte-text-dim); }
+/* Chevron de repli */
+.nav-label::after {
+    content: '';
+    width: 7px; height: 7px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+    margin-bottom: 2px;
+}
+.nav-section.collapsed .nav-label::after { transform: rotate(-45deg); }
+.nav-section.collapsed > div { display: none; }
+.nav-btn {
+    display: block; width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--carte-text-dim);
+    font-size: 0.82rem;
+    padding: 6px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, padding-left 0.12s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    padding-left: 12px;
+}
+.nav-btn.active {
+    background: linear-gradient(90deg, rgba(79, 124, 232, 0.28), rgba(79, 124, 232, 0.08));
+    color: #fff;
+    font-weight: 600;
+    border-left: 2px solid var(--carte-accent);
+    padding-left: 10px;
+}
+.nav-world-btn {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(120, 160, 255, 0.08);
+    margin-bottom: 4px;
+}
+
+/* Pays dans la nav : nom + petit compteur de lieux aligné à droite */
+.nav-country-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Chips de filtre par type de lieu */
+#nav-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.nav-cat-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: auto;
+    padding: 5px 9px;
+    border: 1px solid var(--carte-border);
+    border-radius: 999px;
+    font-size: 0.74rem;
+}
+.nav-cat-btn:hover { padding-left: 9px; }   /* annule le décalage hérité de .nav-btn:hover */
+.nav-cat-ic { display: inline-flex; color: var(--carte-accent); }
+.nav-cat-ic svg { width: 13px; height: 13px; display: block; }
+.nav-cat-btn.active {
+    background: linear-gradient(135deg, var(--carte-accent-2), #2d4fb8);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 600;
+}
+.nav-cat-btn.active .nav-cat-ic { color: #fff; }
+.nav-count {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--carte-accent);
+    background: rgba(120, 160, 255, 0.12);
+    border-radius: 9px;
+    padding: 1px 7px;
+    min-width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* ── Masque markers pendant le mouvement ────────────────────────────────── */
+#map.map-moving .abs-marker { opacity: 0 !important; pointer-events: none !important; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PINS — style TripAdvisor
+   Cercle blanc + icône catégorie colorée, badge note coloré (vert→rouge),
+   et label nom + catégorie posé à droite du pin.
+   ══════════════════════════════════════════════════════════════════════════ */
+.abs-marker {
+    cursor: pointer;
+    position: relative;
+    transition: opacity 0.25s ease;
+}
+
+/* Cercle principal — petit pin discret */
+.abs-pin-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.abs-pin-circle svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+    flex-shrink: 0;
+}
+.abs-marker:hover .abs-pin-circle {
+    transform: scale(1.25) translateY(-2px);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Paliers de couleur alignés sur ceux de TripAdvisor :
+   vert foncé ≥ 4.5, vert clair 4.0–4.5, ambre 3.0–4.0, rouge < 3.0 */
+.abs-pin-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #22c55e;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    line-height: 1.5;
+    padding: 0 4px;
+    min-width: 15px;
+    text-align: center;
+    border-radius: 6px;
+    border: 1.5px solid #fff;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 2;
+}
+.abs-pin-badge--exc  { background: #15803d; }  /* ≥ 4.5 — excellent */
+.abs-pin-badge--good { background: #22c55e; }  /* 4.0–4.5 — très bien */
+.abs-pin-badge--avg  { background: #f59e0b; }  /* 3.0–4.0 — moyen */
+.abs-pin-badge--low  { background: #ef4444; }  /* < 3.0 — faible */
+
+/* Label façon TripAdvisor : nom + catégorie à droite du pin.
+   Positionné en absolu → n'affecte pas l'ancrage du cercle sur le point. */
+.abs-pin-label {
+    position: absolute;
+    left: calc(100% + 5px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    pointer-events: none;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.85);
+    transition: transform 0.15s ease;
+}
+.abs-pin-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.abs-pin-cat {
+    font-size: 0.66rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+.abs-marker:hover { z-index: 5; }
+.abs-marker:hover .abs-pin-name { text-decoration: none; }
+
+/* Pays — indigo violet, légèrement plus grand */
+.abs-pin--pays .abs-pin-circle {
+    border-color: #818cf8;
+    color: #6366f1;
+    width: 34px;
+    height: 34px;
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.5);
+}
+.abs-pin--pays .abs-pin-circle svg { width: 17px; height: 17px; }
+
+/* Ville — bleu ciel */
+.abs-pin--ville .abs-pin-circle {
+    border-color: #38bdf8;
+    color: #0ea5e9;
+    width: 30px;
+    height: 30px;
+    box-shadow: 0 2px 9px rgba(14, 165, 233, 0.45);
+}
+.abs-pin--ville .abs-pin-circle svg { width: 15px; height: 15px; }
+
+/* Monument — ambre doré */
+.abs-pin--monument .abs-pin-circle {
+    border-color: #fbbf24;
+    color: #d97706;
+    box-shadow: 0 1px 7px rgba(217, 119, 6, 0.45);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   POPUPS (pays / ville uniquement — les monuments redirigent en 1 clic)
+   ══════════════════════════════════════════════════════════════════════════ */
+.mapboxgl-popup.abs-popup .mapboxgl-popup-content {
+    background: var(--carte-surface-2);
+    border: 1px solid var(--carte-border);
+    border-radius: 14px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 30, 0.7);
+    color: var(--carte-text);
+    max-width: 290px;
+    backdrop-filter: blur(10px);
+}
+.mapboxgl-popup.abs-popup .mapboxgl-popup-tip {
+    border-top-color: var(--carte-surface-2);
+}
+.mapboxgl-popup.abs-popup .mapboxgl-popup-close-button {
+    color: var(--carte-text-dim);
+    font-size: 1.3rem;
+    padding: 6px 12px;
+    background: transparent;
+    line-height: 1;
+}
+.mapboxgl-popup.abs-popup .mapboxgl-popup-close-button:hover { color: #fff; }
+
+.popup-inner { display: flex; flex-direction: column; }
+.popup-image {
+    width: 100%; height: 140px;
+    object-fit: cover; display: block;
+}
+.popup-body  { padding: 14px 16px 16px; }
+
+.popup-type-badge {
+    display: inline-block;
+    font-size: 0.66rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--carte-accent);
+    background: rgba(126, 179, 255, 0.12);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+.popup-title {
+    margin: 0 0 4px;
+    font-size: 1.05rem; font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+}
+.popup-country {
+    margin: 0 0 10px;
+    font-size: 0.74rem;
+    color: var(--carte-text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+}
+
+.popup-rating {
+    font-size: 0.88rem;
+    color: var(--carte-gold);
+    margin-bottom: 12px;
+}
+.popup-rating span  { color: #fff; font-weight: 600; margin-left: 4px; }
+.popup-rating small { color: var(--carte-text-mute); margin-left: 4px; }
+.popup-rating.no-rating {
+    color: var(--carte-text-mute);
+    font-style: italic;
+}
+
+.popup-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--carte-accent-2), #2d4fb8);
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 12px rgba(79, 124, 232, 0.35);
+}
+.popup-link:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(79, 124, 232, 0.55);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LÉGENDE COULEURS (bottom-right)
+   Les contrôles Mapbox (zoom + fullscreen) occupent ~155px depuis le bas :
+   on positionne la légende au-dessus pour ne pas les chevaucher.
+   ══════════════════════════════════════════════════════════════════════════ */
+.legende-carte {
+    position: absolute; bottom: 165px; right: 14px; z-index: 5;
+    background: var(--carte-surface);
+    color: var(--carte-text);
+    border: 1px solid var(--carte-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.76rem;
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+    box-shadow: var(--carte-glow);
+}
+.legende-carte h4 {
+    margin: 0 0 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--carte-border);
+}
+.legende-carte ul { margin: 0; padding: 0; list-style: none; }
+.legende-carte li {
+    display: flex; align-items: center;
+    gap: 9px;
+    margin: 4px 0;
+    color: var(--carte-text-dim);
+}
+.leg-puce {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.leg-pays     { background: linear-gradient(135deg, rgba(60, 90, 200, 0.95), rgba(30, 50, 140, 0.95)); }
+.leg-ville    { background: linear-gradient(135deg, rgba(30, 70, 130, 0.95), rgba(10, 35, 80, 0.95)); }
+.leg-monument { background: linear-gradient(135deg, rgba(180, 120, 40, 0.95), rgba(110, 70, 20, 0.95)); }
+
+/* Légende et panneau pays sont tous deux en bas/à droite : on masque la légende
+   quand le panneau est ouvert pour éviter le chevauchement. */
+body.pays-panel-open .legende-carte { display: none; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MINI-CARD AU HOVER SUR UN PAYS (positionnée par JS)
+   ══════════════════════════════════════════════════════════════════════════ */
+.pays-hover-card {
+    position: absolute;
+    pointer-events: none;
+    background: var(--carte-surface-2);
+    color: var(--carte-text);
+    border: 1px solid var(--carte-border-h);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    z-index: 6;
+    backdrop-filter: blur(8px);
+    max-width: 240px;
+    box-shadow: 0 8px 28px rgba(0, 0, 30, 0.65);
+}
+.pays-hover-card .phc-img {
+    width: 100%;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 7px;
+    margin-bottom: 8px;
+    display: block;
+}
+.pays-hover-card h5 {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+}
+.pays-hover-card .phc-stats {
+    color: var(--carte-text-dim);
+    font-size: 0.74rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PANNEAU PAYS — floating card (medium), slide depuis la droite
+   ══════════════════════════════════════════════════════════════════════════ */
+.pays-panel {
+    position: fixed;
+    /* 3.5rem = hauteur de la nav du site, 68px = hauteur de la barre de contrôles */
+    top: calc(3.5rem + 68px);
+    right: 14px;
+    width: 300px;
+    /* on laisse ~150px en bas pour ne pas couvrir les contrôles Mapbox (zoom/plein écran) */
+    max-height: calc(100dvh - 3.5rem - 68px - 150px);
+    background: rgba(10, 12, 28, 0.94);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--carte-border-h);
+    border-radius: 14px;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(calc(100% + 24px));
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity  0.3s ease;
+    opacity: 0;
+    overflow-y: auto;
+    padding: 0;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(120,160,255,0.08);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120,160,255,0.2) transparent;
+}
+.pays-panel:not([hidden]) {
+    transform: translateX(0);
+    opacity: 1;
+}
+.pays-panel::-webkit-scrollbar { width: 4px; }
+.pays-panel::-webkit-scrollbar-thumb { background: rgba(120,160,255,0.2); border-radius: 2px; }
+
+/* Bouton fermer — coin haut-droit, sticky */
+.pays-panel-close {
+    position: sticky;
+    top: 0;
+    align-self: flex-end;
+    background: transparent;
+    border: none;
+    color: var(--carte-text-dim);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 10px 14px 4px;
+    z-index: 1;
+    transition: color 0.15s;
+}
+.pays-panel-close:hover { color: #fff; }
+
+/* Contenu panneau */
+#pays-panel-content { padding: 0 16px 24px; }
+
+/* Header pays */
+.pp-header {
+    padding: 4px 0 12px;
+    border-bottom: 1px solid var(--carte-border);
+    margin-bottom: 14px;
+}
+.pp-nom {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+.pp-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--carte-text-dim);
+    flex-wrap: wrap;
+}
+.pp-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--carte-gold);
+    font-weight: 600;
+}
+.pp-rating-num { color: #fff; }
+
+/* Image représentative */
+.pp-img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    display: block;
+}
+
+/* Section titre */
+.pp-section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--carte-text-dim);
+    margin: 0 0 8px;
+}
+
+/* Card avis */
+.pp-avis-card {
+    background: var(--carte-surface-2);
+    border: 1px solid var(--carte-border);
+    border-radius: 9px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+.pp-avis-lieu {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #c8d4f0;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pp-avis-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--carte-text-dim);
+    margin-bottom: 5px;
+}
+.pp-avis-note { color: var(--carte-gold); font-weight: 600; }
+.pp-avis-desc {
+    font-size: 0.74rem;
+    color: var(--carte-text-dim);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* État vide */
+.pp-empty {
+    text-align: center;
+    padding: 24px 0;
+    color: var(--carte-text-dim);
+}
+.pp-empty-icon { font-size: 2rem; margin-bottom: 10px; }
+.pp-empty p { margin: 4px 0; font-size: 0.82rem; }
+
+/* Bouton CTA */
+.pp-cta {
+    display: block;
+    margin-top: 14px;
+    text-align: center;
+    background: var(--carte-gold);
+    color: #0a0a0f;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 9px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.15s;
+}
+.pp-cta:hover { opacity: 0.85; text-decoration: none; }
+
+/* Mobile : bottom sheet compact */
+@media (max-width: 600px) {
+    .pays-panel {
+        top: auto;
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-height: 55dvh;
+        border-radius: 14px;
+        transform: translateY(calc(100% + 24px));
+        opacity: 0;
+    }
+    .pays-panel:not([hidden]) {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CONTRÔLES MAPBOX (zoom +/- et fullscreen) — légère personnalisation
+   ══════════════════════════════════════════════════════════════════════════ */
+body.map-page .mapboxgl-ctrl-group {
+    background: var(--carte-surface);
+    border: 1px solid var(--carte-border);
+    border-radius: 8px;
+    box-shadow: var(--carte-glow);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+}
+body.map-page .mapboxgl-ctrl-group button {
+    background-color: transparent;
+}
+body.map-page .mapboxgl-ctrl-group button:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+}
+body.map-page .mapboxgl-ctrl-group button + button {
+    border-top: 1px solid var(--carte-border);
+}
+/* Icônes Mapbox claires sur fond sombre */
+body.map-page .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+    filter: invert(0.85) brightness(1.4);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+/* Tablette / mobile : le panneau devient un tiroir plein hauteur depuis la gauche */
+@media (max-width: 900px) {
+    #nav-panel {
+        top: 0; left: 0; bottom: 0;
+        width: 82vw; max-width: 320px;
+        height: 100dvh; max-height: 100dvh;
+        border-radius: 0 16px 16px 0;
+        z-index: 60;
+        padding-top: 14px;
+    }
+    /* Le fond ne s'active que sur mobile, quand le tiroir est ouvert */
+    body.map-nav-open .nav-backdrop { opacity: 1; pointer-events: auto; }
+}
+
+@media (max-width: 600px) {
+    #map-controls { padding: 10px 10px 16px; }
+    /* Barre compacte : une seule ligne qui défile horizontalement */
+    #map-controls-inner {
+        flex-wrap: nowrap;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+    }
+    #map-controls-inner > * { flex: 0 0 auto; }
+    /* Le titre se réduit à sa pastille lumineuse pour gagner de la place */
+    #map-title { font-size: 0; gap: 0; }
+    #country-filter-wrap label,
+    #avis-filter-wrap label { display: none; }
+    #places-count { margin-left: 0; }
+    #recherche-wrap { min-width: 150px; }
+    .legende-carte { display: none; }
+    /* Bouton Filtres remonté pour ne pas chevaucher les contrôles repliés */
+    .nav-open-btn { top: auto; bottom: 16px; left: 14px; }
+}
+
+/* Filtre par type d'avis : même style visuel que le filtre pays pour rester cohérent */
+#avis-filter-wrap { display: flex; align-items: center; gap: 10px; }
+#avis-filter-wrap label {
+    color: var(--carte-text-dim);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+#avis-filter {
+    background: var(--carte-surface);
+    color: var(--carte-text);
+    border: 1px solid var(--carte-border);
+    border-radius: 8px;
+    padding: 7px 28px 7px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* ════════════════════════════════════════════════════════════════════════ */
+/* ── Barre de recherche d'adresse + bouton « Ajouter un lieu » ──────────── */
+/* ════════════════════════════════════════════════════════════════════════ */
+
+#recherche-wrap {
+    min-width: 240px;
+    max-width: 320px;
+}
+mapbox-search-box {
+    width: 100%;
+    --color: #e8eaf2;
+    --background: rgba(20, 25, 40, 0.85);
+    --border: 1px solid rgba(255, 255, 255, 0.1);
+    --border-radius: 8px;
+    --font-family: 'Inter', sans-serif;
+    --box-shadow: none;
+}
+
+.btn-add-pin {
+    background: linear-gradient(135deg, #f0a500, #f06d00);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font: 600 13px 'Inter', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 120ms, box-shadow 120ms;
+    box-shadow: 0 2px 8px rgba(240, 109, 0, 0.35);
+}
+.btn-add-pin:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(240, 109, 0, 0.5); }
+.btn-add-pin.actif {
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.3);
+}
+.btn-add-pin .plus { font-size: 18px; line-height: 1; }
+
+/* Bandeau d'aide affiché au-dessus de la carte pendant l'ajout */
+.add-mode-hint {
+    position: absolute;
+    top: 80px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(240, 109, 0, 0.95);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font: 500 13px 'Inter', sans-serif;
+    z-index: 10;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    display: flex; align-items: center; gap: 12px;
+}
+.add-mode-hint button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #fff;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.add-mode-hint button:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* Curseur croix sur la carte pendant le mode ajout */
+body.map-add-mode .mapboxgl-canvas { cursor: crosshair !important; }
+
+/* ── Marker temporaire jaune (avant validation du formulaire) ─────────── */
+.marker-temp {
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: grab;
+    animation: marker-temp-pulse 1.4s ease-in-out infinite;
+}
+.marker-temp:active { cursor: grabbing; }
+.marker-temp-pin {
+    font-size: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+@keyframes marker-temp-pulse {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+}
+
+/* ── Formulaire de création de lieu (dans la popup Mapbox) ────────────── */
+.form-creer-lieu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font: 13px 'Inter', sans-serif;
+    color: #e8eaf2;
+}
+.form-creer-lieu h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+}
+.form-creer-lieu label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 12px;
+    color: #a8b1c8;
+}
+.form-creer-lieu input[type="text"],
+.form-creer-lieu input:not([type]),
+.form-creer-lieu input[type="file"],
+.form-creer-lieu select,
+.form-creer-lieu textarea {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e8eaf2;
+    padding: 6px 8px;
+    border-radius: 5px;
+    font: 13px 'Inter', sans-serif;
+}
+.form-creer-lieu input:focus,
+.form-creer-lieu select:focus,
+.form-creer-lieu textarea:focus {
+    outline: none;
+    border-color: #f0a500;
+}
+.form-creer-lieu textarea { resize: vertical; min-height: 50px; }
+.form-creer-lieu .loc-preview {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 11.5px;
+    color: #a8b1c8;
+    line-height: 1.5;
+}
+.form-creer-lieu .loc-preview strong { color: #e8eaf2; font-weight: 600; }
+.form-creer-lieu .form-error {
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #ff7a6a;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+.form-creer-lieu .form-actions {
+    display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px;
+}
+.form-creer-lieu .form-actions button {
+    background: linear-gradient(135deg, #f0a500, #f06d00);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 12px;
+    font: 600 12px 'Inter', sans-serif;
+    cursor: pointer;
+}
+.form-creer-lieu .form-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+.form-creer-lieu .form-actions button[type="button"] {
+    background: rgba(255, 255, 255, 0.08);
+    color: #a8b1c8;
+}
+.form-creer-lieu .form-actions button[type="button"]:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Globe légèrement coupé sur mobile : on réduit le clip du wrapper */
+@media (max-width: 600px) {
+
+    /* Donne un peu plus de hauteur au wrapper carte */
+    #map-wrapper {
+        height: calc(100dvh - 3rem);
+        overflow: visible;
+    }
+
+    /* (Barre de contrôles + légende : gérées dans le bloc @media 600px plus haut) */
+
+    /* Panneau catégories : se replie en bas en drawer */
+    #cat-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        max-height: 40vh;
+        border-radius: 1rem 1rem 0 0;
+        overflow-y: auto;
+        z-index: 20;
+        padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+    }
+
+    /* Formulaire création lieu : reste visible et scrollable */
+    .mapboxgl-popup-content {
+        max-width: 90vw !important;
+        max-height: 80dvh;
+        overflow-y: auto;
+    }
+    .form-creer-lieu {
+        max-width: 100%;
+    }
+
+    /* Bouton ajouter un lieu : texte court */
+    #btn-add-lieu span:not(.add-icon) {
+        display: none;
+    }
+}

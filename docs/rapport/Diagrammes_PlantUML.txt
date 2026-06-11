@@ -1,0 +1,362 @@
+================================================================================
+ PROJET ABS — Codes PlantUML des diagrammes
+--------------------------------------------------------------------------------
+ Comment générer les images :
+   - En ligne : copier chaque bloc sur https://www.plantuml.com/plantuml
+   - VS Code  : extension "PlantUML" (clic droit > Preview Current Diagram)
+   - Chaque diagramme est délimité par @startuml ... @enduml
+================================================================================
+
+
+################################################################################
+# 1. MCD — Modèle Conceptuel de Données (Figure III.1)
+#    Notation entité-association (style chen simplifié via entités + liens)
+################################################################################
+
+@startuml MCD_ABS
+' Modèle Conceptuel de Données — Projet ABS
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "ROLE" as role {
+  libelle
+}
+entity "UTILISATEUR" as user {
+  nom
+  prenom
+  email
+  telephone
+  password
+  avatar
+  bio
+  date_inscription
+}
+entity "PAYS" as pays {
+  nom
+  code_iso
+  continent
+}
+entity "VILLE" as ville {
+  nom
+}
+entity "CATEGORIE_LIEU" as cat {
+  libelle
+}
+entity "LIEU" as lieu {
+  type
+  nom
+  description
+  latitude
+  longitude
+  adresse
+  image
+}
+entity "AVIS" as avis {
+  note
+  titre
+  description
+  visibilite
+  date
+}
+entity "PHOTO_AVIS" as photo {
+  url
+  ordre
+}
+entity "COMMENTAIRE" as com {
+  texte
+  date
+}
+entity "SIGNALEMENT" as sig {
+  cible_type
+  motif
+  details
+  statut
+  date
+}
+entity "VISITE" as visite {
+  date_visite
+  note_perso
+}
+entity "COLLECTION" as coll {
+  titre
+  description
+  visibilite
+  date
+}
+
+' --- Associations (cardinalités lues côté entité) ---
+role ||--o{ user : "possède"
+user ||--o{ avis : "rédige"
+pays ||--o{ ville : "regroupe"
+ville ||--o{ lieu : "contient"
+cat  ||--o{ lieu : "classe"
+
+avis }o--|| pays  : "porte sur"
+avis }o--|| ville : "porte sur"
+avis }o--|| lieu  : "porte sur"
+
+avis ||--o{ photo : "illustré par"
+avis ||--o{ com   : "commenté par"
+user ||--o{ com   : "écrit"
+com  ||--o{ com   : "répond à"
+
+user ||--o{ sig    : "signale"
+user ||--o{ visite : "enregistre"
+user ||--o{ coll   : "crée"
+
+user }o--o{ avis : "aime (like_avis)"
+user }o--o{ com  : "aime (like_commentaire)"
+coll }o--o{ lieu : "regroupe (collection_item)"
+@enduml
+
+
+################################################################################
+# 2. MLD — Modèle Logique de Données (Figure III.2)
+#    Tables + clés primaires (PK) et étrangères (FK)
+################################################################################
+
+@startuml MLD_ABS
+' Modèle Logique de Données — Projet ABS
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+class role {
+  +id_role : PK
+  libelle
+}
+class utilisateur {
+  +id_utilisateur : PK
+  nom
+  prenom
+  email <<unique>>
+  telephone
+  password_hash
+  avatar_url
+  bio
+  created_at
+  #id_role : FK
+}
+class pays {
+  +id_pays : PK
+  nom
+  code_iso <<unique>>
+  continent
+}
+class ville {
+  +id_ville : PK
+  nom
+  #id_pays : FK
+}
+class categorie_lieu {
+  +id_categorie : PK
+  libelle <<unique>>
+}
+class lieu {
+  +id_lieu : PK
+  type
+  icon
+  nom
+  description
+  latitude
+  longitude
+  adresse
+  image_url
+  #id_categorie : FK
+  #id_ville : FK
+}
+class avis {
+  +id_avis : PK
+  note
+  titre
+  description
+  visibility
+  created_at
+  #id_utilisateur : FK
+  #id_pays : FK
+  #id_ville : FK
+  #id_lieu : FK
+}
+class photo_avis {
+  +id_photo : PK
+  url
+  ordre
+  #id_avis : FK
+}
+class commentaire {
+  +id_commentaire : PK
+  texte
+  created_at
+  #id_utilisateur : FK
+  #id_avis : FK
+  #id_parent : FK
+}
+class like_commentaire {
+  +id_like : PK
+  created_at
+  #id_utilisateur : FK
+  #id_commentaire : FK
+}
+class like_avis {
+  +#id_utilisateur : PK,FK
+  +#id_avis : PK,FK
+  created_at
+}
+class signalement {
+  +id_signalement : PK
+  cible_type
+  cible_id
+  motif
+  details
+  statut
+  created_at
+  #id_utilisateur : FK
+}
+class visite {
+  +id_visite : PK
+  date_visite
+  note_perso
+  #id_utilisateur : FK
+  #id_pays : FK
+  #id_ville : FK
+  #id_lieu : FK
+}
+class collection {
+  +id_collection : PK
+  titre
+  description
+  couverture_url
+  visibility
+  created_at
+  #id_utilisateur : FK
+}
+class collection_item {
+  +id_item : PK
+  ordre
+  created_at
+  #id_collection : FK
+  #id_pays : FK
+  #id_ville : FK
+  #id_lieu : FK
+}
+
+role          ||--o{ utilisateur
+pays          ||--o{ ville
+ville         ||--o{ lieu
+categorie_lieu||--o{ lieu
+utilisateur   ||--o{ avis
+pays          ||--o{ avis
+ville         ||--o{ avis
+lieu          ||--o{ avis
+avis          ||--o{ photo_avis
+utilisateur   ||--o{ commentaire
+avis          ||--o{ commentaire
+commentaire   ||--o{ commentaire
+utilisateur   ||--o{ like_commentaire
+commentaire   ||--o{ like_commentaire
+utilisateur   ||--o{ like_avis
+avis          ||--o{ like_avis
+utilisateur   ||--o{ signalement
+utilisateur   ||--o{ visite
+pays          ||--o{ visite
+ville         ||--o{ visite
+lieu          ||--o{ visite
+utilisateur   ||--o{ collection
+collection    ||--o{ collection_item
+pays          ||--o{ collection_item
+ville         ||--o{ collection_item
+lieu          ||--o{ collection_item
+@enduml
+
+
+################################################################################
+# 3. Diagramme de séquence GÉNÉRIQUE d'une requête (Figure III.3)
+#    Cheminement MVC : du navigateur jusqu'à la vue
+################################################################################
+
+@startuml Sequence_Generique
+title Flux générique d'une requête (architecture MVC)
+
+actor Utilisateur as U
+participant "Navigateur" as B
+participant "index.php\n(Front Controller)" as F
+participant "Routeur" as R
+participant "Controller" as C
+participant "Model" as M
+database "MySQL\n(PDO)" as DB
+participant "Vue" as V
+
+U -> B : Action (clic / formulaire)
+B -> F : Requête HTTP (GET/POST)
+F -> F : bootstrap (autoload, session, aides)
+F -> R : dispatch()
+R -> R : Recherche route (méthode + chemin)
+alt route trouvée
+  R -> C : appel méthode du contrôleur
+  C -> C : Validation des données
+  C -> M : Appel(s) métier
+  M -> DB : Requête SQL préparée
+  DB --> M : Résultats
+  M --> C : Données (tableaux)
+  C -> V : Rendu avec les données
+  V --> B : Page HTML
+  B --> U : Affichage
+else route inconnue / méthode invalide
+  R --> B : Erreur 404 / 405
+  B --> U : Page d'erreur
+end
+@enduml
+
+
+################################################################################
+# 4. Diagramme de séquence — SOUMISSION D'UN AVIS (Figure III.4)
+#    Cas concret : POST /avis
+################################################################################
+
+@startuml Sequence_Soumission_Avis
+title Soumission d'un avis (POST /avis)
+
+actor Utilisateur as U
+participant "Navigateur" as B
+participant "Routeur" as R
+participant "AvisController" as C
+participant "Session" as S
+participant "AvisModel" as M
+database "MySQL" as DB
+
+U -> B : Remplit et envoie le formulaire d'avis
+B -> R : POST /avis
+R -> C : traiterSoumission()
+
+C -> C : Vérifie que la requête est un POST
+C -> S : estConnecte() ?
+alt non connecté
+  S --> C : false
+  C -> S : flashErreurs("Connexion requise")
+  C --> B : Redirection /connexion
+else connecté
+  S --> C : true
+  C -> C : Récupère et valide les champs\n(note 1-5, commentaire <= 8000, lieu)
+  alt données invalides
+    C -> S : flashErreurs(...)
+    C --> B : Redirection page précédente
+  else données valides
+    C -> M : lieuExiste(id_lieu)
+    M -> DB : SELECT 1 FROM lieu WHERE id_lieu=?
+    DB --> M : existe
+    M --> C : true
+    C -> M : utilisateurADejaAvisSurLieu(uid, id_lieu)
+    M -> DB : SELECT COUNT(*) FROM avis ...
+    DB --> M : 0
+    M --> C : false (pas de doublon)
+    C -> M : creerPourLieu(uid, id_lieu, note, ...)
+    M -> DB : INSERT INTO avis (...) VALUES (...)
+    DB --> M : id inséré
+    M --> C : id_avis
+    C -> S : flashSucces("Avis enregistré")
+    C --> B : Redirection /lieu?id=X
+    B --> U : Fiche du lieu avec le nouvel avis
+  end
+end
+@enduml

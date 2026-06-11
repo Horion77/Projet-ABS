@@ -1,0 +1,10 @@
+CREATE TABLE signalement (
+id_signalement INT NOT NULL,
+cible_type VARCHAR(15) NOT NULL,
+cible_id INT NOT NULL,
+motif VARCHAR(60) NOT NULL,
+details VARCHAR(500),
+statut VARCHAR(15) NOT NULL,
+created_at DATETIME NOT NULL,
+PRIMARY KEY (id_signalement)
+);

@@ -1,0 +1,203 @@
+/* Page « Découvrir » — formulaire de critères + grille de lieux recommandés */
+
+@import "./theme.css";
+
+.decouvrir {
+  max-width: var(--max-largeur);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+/* En-tête */
+.dc-hero {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.dc-hero h1 {
+  font-family: var(--font-abs-serif);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: var(--abs-text);
+  margin: 0 0 0.4rem;
+}
+.dc-hero p {
+  color: var(--abs-text-muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Formulaire de critères */
+.dc-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--abs-surface);
+  border: 1px solid var(--abs-border);
+  border-radius: var(--radius-abs-lg, 1.25rem);
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+/* flex: 1 1 150px = chaque champ peut grandir/rétrécir librement mais garde
+   150px comme base. Le wrapping du .dc-form se charge du responsive
+   sans aucune media query : sous ~450px les champs passent seuls sur une ligne. */
+.dc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 150px;
+  flex: 1 1 150px;
+}
+.dc-field label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--abs-text-muted);
+}
+.dc-field select {
+  background: var(--abs-bg-elevated);
+  color: var(--abs-text);
+  border: 1px solid var(--abs-border);
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.dc-field select:hover,
+.dc-field select:focus { border-color: var(--abs-violet-glow); }
+
+/* flex: 1 1 100% force la rangée d'actions à occuper toute la largeur
+   et à se placer sous les champs, quelle que soit la taille de l'écran. */
+.dc-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 100%;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+.dc-btn {
+  background: linear-gradient(135deg, var(--abs-violet), #6d28d9);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-abs-pill, 9999px);
+  padding: 0.7rem 1.8rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+}
+.dc-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(139, 92, 246, 0.55); }
+.dc-reset {
+  color: var(--abs-text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.dc-reset:hover { color: var(--abs-text); text-decoration: underline; }
+
+/* État vide / invite */
+.dc-empty {
+  text-align: center;
+  color: var(--abs-text-muted);
+  padding: 3rem 1rem;
+}
+.dc-empty-icon { font-size: 2.6rem; margin-bottom: 0.75rem; }
+.dc-empty p { margin: 0; font-size: 1rem; }
+
+.dc-count {
+  color: var(--abs-text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+/* Grille de résultats */
+/* auto-fill (et non auto-fit) : conserve les colonnes vides quand il y a peu
+   de résultats, évitant que les cartes s'étirent sur toute la largeur. */
+.dc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.1rem;
+}
+.dc-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--abs-surface);
+  border: 1px solid var(--abs-border);
+  border-radius: var(--radius-abs, 0.75rem);
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.dc-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--abs-violet-glow);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+/* z-index: 1 nécessaire : .dc-card a overflow:hidden qui crée un contexte
+   d'empilement et ferait disparaître le badge sans cette valeur. */
+.dc-rank {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 1;
+  background: rgba(10, 10, 15, 0.8);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+.dc-card-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+/* Fallback visuel quand le lieu n'a pas encore de photo uploadée. */
+.dc-card-noimg {
+  background: linear-gradient(135deg, var(--abs-surface-2), var(--abs-bg-elevated));
+}
+.dc-card-body { padding: 0.85rem 0.95rem 1rem; }
+.dc-card-cat {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--abs-violet-glow);
+  margin-bottom: 0.3rem;
+}
+.dc-card-nom {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--abs-text);
+  margin: 0 0 0.25rem;
+  line-height: 1.25;
+}
+.dc-card-loc {
+  font-size: 0.78rem;
+  color: var(--abs-text-muted);
+  margin-bottom: 0.55rem;
+}
+.dc-card-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+.dc-stars { color: var(--abs-gold); letter-spacing: 1px; }
+.dc-note-num { color: var(--abs-text); font-weight: 700; }
+.dc-nb { color: var(--abs-text-muted); font-size: 0.74rem; }
+.dc-no-note { color: var(--abs-text-muted); font-style: italic; font-size: 0.8rem; }
+
+@media (max-width: 600px) {
+  .dc-field { flex: 1 1 100%; }
+  .dc-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+  .dc-card-img { height: 110px; }
+}

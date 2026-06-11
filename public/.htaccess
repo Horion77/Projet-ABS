@@ -1,0 +1,23 @@
+# Front Controller : toutes les requêtes qui ne ciblent pas un fichier ou dossier
+# existant sont relayées à index.php (qui appelle le Routeur).
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteBase /real-abs/public/
+
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # On capture tout ce qui suit "public/" et on l'envoie dans une variable "url"
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+Options -Indexes

@@ -1,0 +1,311 @@
+/*! tailwindcss v4.3.0 | MIT License | https://tailwindcss.com */
+:root, :host {
+  --font-abs-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-abs-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+:root {
+  --abs-bg: #0a0a0f;
+  --abs-bg-elevated: #12121a;
+  --abs-surface: #16161e;
+  --abs-surface-2: #1e1e28;
+  --abs-border: rgba(167, 139, 250, 0.22);
+  --abs-text: #f4f4f5;
+  --abs-text-muted: #a1a1aa;
+  --abs-violet: #8b5cf6;
+  --abs-violet-glow: #a78bfa;
+  --abs-cta: #2dd4bf;
+  --abs-cta-hover: #14b8a6;
+  --abs-gold: #fbbf24;
+  --abs-link: #67e8f9;
+  --couleur-primaire: var(--abs-cta);
+  --couleur-primaire-fonce: var(--abs-cta-hover);
+  --couleur-fond: var(--abs-bg);
+  --couleur-bloc: var(--abs-surface);
+  --couleur-texte: var(--abs-text);
+  --couleur-texte-alt: var(--abs-text-muted);
+  --couleur-lien: var(--abs-link);
+  --couleur-bordure: var(--abs-border);
+  --rayon: 0.75rem;
+  --max-largeur: 68rem;
+}
+.conteneur-avis-liste {
+  padding-top: 1.5rem;
+  padding-bottom: 2.5rem;
+  max-width: var(--max-largeur);
+  margin-left: auto;
+  margin-right: auto;
+}
+.titre-page-avis {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-abs-serif);
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  font-weight: 700;
+  color: var(--abs-text);
+}
+.intro-avis {
+  margin: 0 0 1.5rem;
+  color: var(--abs-text-muted);
+  font-size: 0.98rem;
+  font-family: var(--font-abs-sans);
+}
+.liste-avis-globale {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.carte-avis-global {
+  background: var(--abs-surface);
+  border: 1px solid var(--abs-border);
+  border-radius: 1.25rem;
+  padding: 1.15rem 1.35rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+}
+.carte-avis-global:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+.carte-avis-global-ent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.75rem;
+}
+.avis-cible {
+  margin: 0.4rem 0 0.25rem;
+  font-size: 0.95rem;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.avis-lien-lieu {
+  margin: 0.5rem 0 0;
+  font-size: 0.92rem;
+}
+.avis-lien-lieu a {
+  color: var(--abs-cta);
+  font-weight: 600;
+}
+.avis-photo-thumb {
+  border-radius: 0.65rem;
+  object-fit: cover;
+  border: 1px solid var(--abs-border);
+}
+.stars-readonly {
+  letter-spacing: 0.05em;
+  color: var(--abs-gold);
+  font-size: 1rem;
+}
+.stars-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+.form-filtres-avis {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--abs-surface);
+  border: 1px solid var(--abs-border);
+  border-radius: 1rem;
+}
+.filtres-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+}
+.filtres-row label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--abs-text-muted);
+  margin-right: 0.25rem;
+  font-family: var(--font-abs-sans);
+}
+.filtres-row select {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--abs-border);
+  border-radius: 0.65rem;
+  min-width: 8rem;
+  background: var(--abs-bg-elevated);
+  color: var(--abs-text);
+  font-family: var(--font-abs-sans);
+}
+.btn-filtre-avis {
+  padding: 0.5rem 1.1rem;
+  font: inherit;
+  font-weight: 600;
+  background: var(--abs-cta);
+  color: #0a0a0f;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: var(--font-abs-sans);
+  transition: background 0.15s;
+}
+.btn-filtre-avis:hover {
+  background: var(--abs-cta-hover);
+}
+.lien-reset-filtres {
+  font-size: 0.9rem;
+  align-self: center;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.lien-reset-filtres:hover {
+  color: var(--abs-cta);
+}
+.avis-titre-liste {
+  margin: 0.35rem 0 0.15rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--abs-text);
+  font-family: var(--font-abs-serif);
+}
+.avis-note {
+  color: var(--abs-cta);
+  font-weight: 600;
+  font-family: var(--font-abs-sans);
+}
+.avis-auteur {
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.avis-commentaire {
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+  line-height: 1.55;
+}
+.avis-date {
+  font-size: 0.82rem;
+  color: var(--abs-text-muted);
+}
+.pagination-avis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--abs-border);
+}
+.page-nav {
+  font-weight: 600;
+  color: var(--abs-cta);
+  font-family: var(--font-abs-sans);
+}
+.page-nav--disabled {
+  color: var(--abs-text-muted);
+  font-weight: 400;
+  pointer-events: none;
+  opacity: 0.5;
+}
+.page-info {
+  font-size: 0.95rem;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.conteneur-pays {
+  padding: 1.5rem 1.25rem 2.5rem;
+  max-width: var(--max-largeur);
+  margin: 0 auto;
+}
+.titre-page-pays {
+  margin: 0.5rem 0 0.25rem;
+  font-family: var(--font-abs-serif);
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  font-weight: 700;
+  color: var(--abs-text);
+}
+.intro-pays {
+  margin: 0 0 1.5rem;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.titre-rubrique-pays {
+  font-family: var(--font-abs-serif);
+  font-size: 1.2rem;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--abs-border);
+  color: var(--abs-text);
+}
+.grille-lieux-pays {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1.25rem;
+}
+.carte-lieu-pays {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--abs-surface);
+  border: 1px solid var(--abs-border);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+}
+.carte-lieu-pays:hover {
+  text-decoration: none;
+  color: inherit;
+  transform: translateY(-3px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+}
+.carte-lieu-pays-illu {
+  min-height: 7rem;
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.5), rgba(26, 16, 51, 0.95));
+}
+.carte-lieu-pays-illu.has-img {
+  min-height: 0;
+  line-height: 0;
+}
+.carte-lieu-pays-illu img {
+  width: 100%;
+  height: auto;
+  max-height: 11rem;
+  object-fit: cover;
+  display: block;
+}
+.carte-lieu-pays-corps {
+  padding: 0.85rem 1rem 1.1rem;
+}
+.carte-lieu-pays-corps h3 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-abs-serif);
+  font-size: 1.05rem;
+  color: var(--abs-text);
+}
+.carte-lieu-pays-ville {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.carte-lieu-pays-note {
+  margin: 0;
+  font-size: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  color: var(--abs-cta);
+  font-family: var(--font-abs-sans);
+}
+.note-chiffre {
+  font-weight: 600;
+}
+.nb-avis {
+  color: var(--abs-text-muted);
+  font-size: 0.85rem;
+}
+.sans-note {
+  color: var(--abs-text-muted);
+  font-size: 0.9rem;
+}
+@media (max-width: 32rem) {
+  .titre-page-avis {
+    font-size: 1.35rem;
+  }
+}

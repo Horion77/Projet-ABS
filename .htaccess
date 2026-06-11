@@ -1,0 +1,4 @@
+# Sur WAMP : on accède déjà via /Projet-ABS/public/ donc ce fichier ne fait rien.
+# Le routage est géré par public/.htaccess
+
+Options -Indexes

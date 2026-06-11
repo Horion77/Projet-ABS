@@ -1,0 +1,364 @@
+/* Page d'accueil — cosmic violet + étoiles (home.css chargé uniquement ici) */
+
+@import "./theme.css";
+
+/* ── Fond cosmic (body quand home.css est présent) ─────────────────────── */
+/* home.css est importé globalement ; le sélecteur :not(.map-page) évite
+   d'écraser le fond et le scroll de la page carte qui gère son propre fond. */
+body:not(.map-page) {
+  position: relative;
+  background-color: var(--abs-bg);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -15%, rgba(139, 92, 246, 0.28) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(45, 212, 191, 0.08) 0%, transparent 50%),
+    linear-gradient(rgba(167, 139, 250, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 52px 52px, 52px 52px;
+}
+
+/* Deux pseudo-éléments superposés = deux champs d'étoiles indépendants.
+   ::before anime en "alternate" (0.55 → 0.95), ::after en "alternate-reverse"
+   (0.55 → 0.25) : ensemble ils donnent un scintillement naturel et non synchronisé.
+   position:fixed (et non absolute) pour que les étoiles ne défilent pas avec le contenu. */
+body:not(.map-page)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.85;
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 15%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 25% 35%, rgba(167, 139, 250, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 40% 8%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 55% 45%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(2px 2px at 70% 22%, rgba(167, 139, 250, 0.9), transparent),
+    radial-gradient(1px 1px at 85% 60%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 15% 70%, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1px 1px at 35% 88%, rgba(167, 139, 250, 0.65), transparent),
+    radial-gradient(1px 1px at 60% 75%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 90% 12%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 5% 42%, rgba(167, 139, 250, 0.7), transparent),
+    radial-gradient(1px 1px at 48% 55%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 72% 90%, rgba(255, 255, 255, 0.65), transparent),
+    radial-gradient(1px 1px at 92% 38%, rgba(167, 139, 250, 0.75), transparent),
+    radial-gradient(1px 1px at 22% 58%, rgba(255, 255, 255, 0.5), transparent);
+  animation: abs-twinkle 5s ease-in-out infinite alternate;
+}
+
+body:not(.map-page)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  background-image:
+    radial-gradient(1px 1px at 18% 28%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 62% 18%, rgba(45, 212, 191, 0.5), transparent),
+    radial-gradient(1px 1px at 78% 48%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 32% 82%, rgba(167, 139, 250, 0.55), transparent);
+  animation: abs-twinkle-slow 7s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes abs-twinkle {
+  0% { opacity: 0.55; }
+  100% { opacity: 0.95; }
+}
+@keyframes abs-twinkle-slow {
+  0% { opacity: 0.25; }
+  100% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.map-page)::before,
+  body:not(.map-page)::after {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+.accueil-hero {
+  position: relative;
+  z-index: 1;
+  min-height: min(72vh, 640px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem 4rem;
+  color: var(--abs-text);
+  background: transparent;
+}
+
+.accueil-hero::before {
+  content: "• DÉCOUVREZ LE MONDE AUTREMENT";
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  padding: 0.35rem 1rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--abs-violet-glow);
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  border-radius: 9999px;
+  background: rgba(139, 92, 246, 0.12);
+  font-family: var(--font-abs-sans);
+}
+
+.hero-overlay {
+  position: relative;
+  z-index: 2;
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-titre {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-abs-serif);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #f4f4f5 0%, #a78bfa 45%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-soustitre {
+  margin: 0 0 1.75rem;
+  max-width: 32rem;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.btn-hero {
+  display: inline-block;
+  padding: 0.7rem 1.5rem;
+  background: var(--abs-cta);
+  color: #0a0a0f;
+  text-decoration: none;
+  font-family: var(--font-abs-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 2px solid var(--abs-cta);
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.25);
+}
+.btn-hero:hover {
+  background: var(--abs-cta-hover);
+  border-color: var(--abs-cta-hover);
+  text-decoration: none;
+  color: #0a0a0f;
+  transform: translateY(-1px);
+  box-shadow: 0 0 32px rgba(45, 212, 191, 0.4);
+}
+
+.btn-hero-sec {
+  display: inline-block;
+  padding: 0.7rem 1.5rem;
+  background: transparent;
+  color: var(--abs-text);
+  text-decoration: none;
+  font-family: var(--font-abs-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 2px solid rgba(167, 139, 250, 0.45);
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-hero-sec:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--abs-violet-glow);
+  text-decoration: none;
+  color: var(--abs-text);
+}
+
+/* ── Sections contenu ─────────────────────────────────────────────────── */
+.conteneur-accueil {
+  position: relative;
+  z-index: 1;
+  max-width: var(--max-largeur);
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 0;
+}
+.conteneur-derniers-avis {
+  padding-bottom: 3rem;
+}
+
+.titre-rubrique {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-abs-serif);
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  font-weight: 700;
+  color: var(--abs-text);
+  border: none;
+  padding: 0;
+  display: block;
+}
+
+.soustitre-rubrique {
+  margin: 0 0 1.5rem;
+  color: var(--abs-text-muted);
+  font-size: 0.95rem;
+  font-family: var(--font-abs-sans);
+}
+
+.accueil-vide {
+  max-width: 40rem;
+}
+
+/* ── Grille cartes lieux ────────────────────────────────────────────────── */
+.grille-cartes-lieux {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 560px) {
+  .grille-cartes-lieux {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 960px) {
+  .grille-cartes-lieux {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.carte-lieu {
+  display: flex;
+  flex-direction: column;
+  background: var(--abs-surface);
+  border: 1px solid var(--abs-border);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--abs-text);
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+}
+.carte-lieu:hover {
+  text-decoration: none;
+  color: var(--abs-text);
+  transform: translateY(-3px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(139, 92, 246, 0.15);
+}
+.carte-lieu:focus-visible {
+  outline: 2px solid var(--abs-violet);
+  outline-offset: 3px;
+}
+
+.carte-lieu-illu {
+  height: 140px;
+  flex-shrink: 0;
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.55) 0%, rgba(30, 16, 51, 0.9) 50%, rgba(45, 212, 191, 0.25) 100%);
+}
+.carte-lieu:nth-child(2) .carte-lieu-illu {
+  background: linear-gradient(145deg, rgba(45, 212, 191, 0.4) 0%, rgba(20, 50, 60, 0.9) 100%);
+}
+.carte-lieu:nth-child(3) .carte-lieu-illu {
+  background: linear-gradient(145deg, rgba(251, 191, 36, 0.35) 0%, rgba(60, 30, 20, 0.9) 100%);
+}
+.carte-lieu:nth-child(4) .carte-lieu-illu {
+  background: linear-gradient(145deg, rgba(99, 102, 241, 0.5) 0%, rgba(15, 20, 50, 0.95) 100%);
+}
+
+.carte-lieu-corps {
+  padding: 1rem 1.15rem 1.15rem;
+  flex: 1;
+  background: var(--abs-surface);
+}
+.carte-lieu-corps h3 {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-abs-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--abs-text);
+}
+.carte-lieu-pays {
+  margin: 0.15rem 0;
+  font-size: 0.88rem;
+  color: var(--abs-text-muted);
+  font-family: var(--font-abs-sans);
+}
+.carte-lieu-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--abs-cta);
+  font-family: var(--font-abs-sans);
+}
+.carte-lieu-note::before {
+  content: "★ ";
+  color: var(--abs-cta);
+}
+
+/* ── Derniers avis (carte unique) ───────────────────────────────────────── */
+.liste-derniers-avis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--abs-surface);
+  border: 1px solid var(--abs-border);
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+.liste-derniers-avis li {
+  padding: 1.1rem 1.35rem;
+  border-bottom: 1px solid var(--abs-border);
+  font-family: var(--font-abs-sans);
+}
+.liste-derniers-avis li:last-child {
+  border-bottom: 0;
+}
+
+.rda-note {
+  color: var(--abs-cta);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.rda-note::after {
+  content: "";
+}
+.rda-lieu a {
+  color: var(--abs-text);
+  font-weight: 600;
+}
+.rda-lieu a:hover {
+  color: var(--abs-cta);
+}
+.rda-auteur {
+  color: var(--abs-text-muted);
+  font-size: 0.88rem;
+}
+.rda-comm {
+  margin: 0.5rem 0 0.35rem;
+  font-size: 0.95rem;
+  color: var(--abs-text-muted);
+  font-style: italic;
+}
+.rda-temps {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--abs-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}

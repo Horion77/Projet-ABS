@@ -1,0 +1,12 @@
+# Normalize line endings to reduce noisy merge diffs across macOS/Windows.
+* text=auto eol=lf
+
+*.php  text eol=lf
+*.sql  text eol=lf
+*.js   text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf

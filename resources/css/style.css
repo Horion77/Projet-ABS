@@ -1,0 +1,507 @@
+/* ABS — styles globaux dark cosmic (style.css, chargé sur toutes les pages)
+ *
+ * Stratégie de scope : tous les styles hors carte utilisent body:not(.map-page)
+ * pour éviter tout conflit avec map.css qui gère son propre contexte visuel.
+ * Les styles partagés (header, footer, flash) sont déclarés sans ce sélecteur.
+ */
+
+@import "tailwindcss";
+@import "./theme.css";
+@keyframes abs-btn-pulse {
+  0%   { box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+  50%  { box-shadow: 0 0 50px rgba(139,92,246,0.95), 0 0 80px rgba(139,92,246,0.5); }
+  100% { box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+}
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap");
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+body:not(.map-page) {
+  @apply m-0 min-h-screen flex flex-col;
+  font-family: var(--font-abs-sans);
+  line-height: 1.5;
+  color: var(--abs-text);
+  background-color: var(--abs-bg);
+}
+
+body:not(.map-page) a {
+  color: var(--abs-link);
+  text-decoration: none;
+}
+body:not(.map-page) a:hover {
+  text-decoration: underline;
+  color: var(--abs-cta);
+}
+
+body:not(.map-page) a:focus-visible,
+body:not(.map-page) button:focus-visible,
+body:not(.map-page) input:focus-visible,
+body:not(.map-page) textarea:focus-visible,
+body:not(.map-page) select:focus-visible {
+  outline: 2px solid var(--abs-violet);
+  outline-offset: 2px;
+}
+
+body:not(.map-page) ul {
+  margin: 0;
+}
+body:not(.map-page) img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Skip link ────────────────────────────────────────────────────────── */
+.skip {
+  @apply absolute z-[200] px-4 py-2 text-sm;
+  left: -9999px;
+  background: var(--abs-violet);
+  color: #fff;
+}
+.skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  outline: none;
+}
+
+/* ── Header / nav (toutes les pages, y compris la carte) ──────────────── */
+.site-header {
+  @apply sticky top-0 z-[100] border-b backdrop-blur-md;
+  background: rgba(10, 10, 15, 0.85);
+  border-color: var(--abs-border);
+}
+
+.header-inner {
+  @apply mx-auto flex flex-wrap items-center justify-between gap-2 px-5 py-3;
+  max-width: var(--max-largeur);
+}
+
+.logo {
+  @apply text-xl font-bold tracking-wide;
+  font-family: var(--font-abs-serif);
+  color: var(--abs-text);
+  text-decoration: none;
+}
+.logo::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: #8b5cf6;
+  box-shadow: 0 0 8px #8b5cf6;
+  vertical-align: middle;
+}
+.logo:hover {
+  text-decoration: none;
+  color: var(--abs-cta);
+}
+
+.nav-toggle {
+  @apply hidden cursor-pointer rounded-lg border px-3 py-1.5 text-sm;
+  background: var(--abs-surface);
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+  font-family: inherit;
+}
+
+.nav-site {
+  @apply flex flex-wrap items-center gap-2;
+}
+.nav-site a {
+  @apply whitespace-nowrap text-sm font-semibold no-underline;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(124,58,237,0.40);
+  transition: transform 0.15s;
+}
+.nav-site a:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  color: #fff !important;
+  text-decoration: none;
+  transform: translateY(-1px);
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
+}
+
+.nav-auth {
+  @apply inline-block rounded-full px-4 py-1.5 text-sm font-semibold no-underline;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff !important;
+  box-shadow: 0 0 18px rgba(124,58,237,0.45);
+}
+.nav-auth:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  text-decoration: none;
+  color: #fff !important;
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
+  transform: translateY(-1px);
+}
+
+.nav-deconnexion-btn {
+  @apply cursor-pointer font-semibold;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  border: none;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(124,58,237,0.40);
+  font-family: var(--font-abs-sans);
+  font-size: 0.875rem;
+  transition: transform 0.15s;
+}
+.nav-deconnexion-btn:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  color: #fff !important;
+  transform: translateY(-1px);
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
+}
+
+.nav-sep {
+  display: inline-block;
+  width: 0;
+}
+
+@media (max-width: 700px) {
+  .nav-toggle {
+    display: block;
+  }
+  .nav-site {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.5rem;
+  }
+  .nav-site.nav-open {
+    display: flex;
+  }
+}
+
+/* ── Main / footer ────────────────────────────────────────────────────── */
+body:not(.map-page) .site-main {
+  @apply flex-1 relative z-[1];
+}
+
+body:not(.map-page) .site-footer {
+  @apply mt-auto border-t px-4 py-6 text-center text-sm;
+  background: var(--abs-bg-elevated);
+  border-color: var(--abs-border);
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .footer-inner {
+  @apply mx-auto;
+  max-width: var(--max-largeur);
+}
+body:not(.map-page) .site-footer p {
+  margin: 0.25rem 0;
+}
+body:not(.map-page) .footer-mention {
+  @apply text-xs opacity-80;
+}
+
+/* ── Flash messages ───────────────────────────────────────────────────── */
+body:not(.map-page) .errors {
+  @apply mx-auto mb-4 rounded-xl border px-4 py-3;
+  max-width: var(--max-largeur);
+  background: rgba(127, 29, 29, 0.35);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fecaca;
+}
+body:not(.map-page) .errors ul {
+  padding-left: 1.1rem;
+  margin: 0;
+}
+body:not(.map-page) .errors li {
+  margin: 0.15rem 0;
+}
+
+body:not(.map-page) .success {
+  @apply mx-auto mb-4 rounded-xl border px-4 py-3;
+  max-width: var(--max-largeur);
+  background: rgba(6, 78, 59, 0.35);
+  border-color: rgba(45, 212, 191, 0.35);
+  color: #a7f3d0;
+}
+
+/* ── Forms global ─────────────────────────────────────────────────────── */
+body:not(.map-page) form label {
+  @apply mb-1 block text-sm font-medium;
+  color: var(--abs-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+body:not(.map-page) form input,
+body:not(.map-page) form textarea,
+body:not(.map-page) form select {
+  @apply w-full max-w-lg rounded-lg border px-3 py-2 text-base;
+  font-family: var(--font-abs-sans);
+  background: var(--abs-surface);
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+}
+body:not(.map-page) form input::placeholder,
+body:not(.map-page) form textarea::placeholder {
+  color: var(--abs-text-muted);
+  opacity: 0.7;
+}
+
+/* Exclusions du style button global :
+ *   .star-btn            → boutons étoiles interactifs, ont leur propre couleur
+ *   .nav-deconnexion-btn → bouton nav avec sa propre déclaration plus haut
+ *   .nav-toggle          → hamburger mobile, style différent (surface + border)
+ */
+body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle),
+body:not(.map-page) .btn {
+  @apply cursor-pointer rounded-full border-0 px-5 py-2 font-semibold;
+  font-family: var(--font-abs-sans);
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(124,58,237,0.45);
+}
+body:not(.map-page) button:not(.star-btn):not(.nav-deconnexion-btn):not(.nav-toggle):hover,
+body:not(.map-page) .btn:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  animation: abs-btn-pulse 1.5s ease-in-out infinite;
+  transform: translateY(-1px);
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────── */
+body:not(.map-page) .conteneur {
+  @apply mx-auto px-5 pb-10;
+  max-width: var(--max-largeur);
+}
+
+/* ── Profil ───────────────────────────────────────────────────────────── */
+body:not(.map-page) .conteneur-profil {
+  @apply mx-auto px-5 pb-10 pt-6;
+  max-width: var(--max-largeur);
+}
+
+body:not(.map-page) .bloc-profil,
+body:not(.map-page) .bloc-avis {
+  @apply my-6 rounded-2xl border p-6;
+  background: var(--abs-surface);
+  border-color: var(--abs-border);
+}
+
+body:not(.map-page) .bloc-profil h2,
+body:not(.map-page) .bloc-avis h2 {
+  @apply mb-4 border-b pb-2 text-xl;
+  font-family: var(--font-abs-serif);
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+}
+
+body:not(.map-page) .grille-profil {
+  @apply grid gap-1;
+  grid-template-columns: 8rem 1fr;
+}
+body:not(.map-page) .grille-profil dt {
+  @apply text-sm;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .grille-profil dd {
+  margin: 0;
+  color: var(--abs-text);
+}
+
+body:not(.map-page) .message-vide {
+  color: var(--abs-text-muted);
+}
+
+body:not(.map-page) .liste-avis-profil {
+  @apply m-0 mt-2 list-none p-0;
+}
+body:not(.map-page) .liste-avis-profil li {
+  @apply border-b py-4;
+  border-color: var(--abs-border);
+}
+body:not(.map-page) .liste-avis-profil .note-profil {
+  color: var(--abs-cta);
+  font-weight: 600;
+}
+body:not(.map-page) .cible-avis {
+  @apply text-sm;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .comm-avis {
+  @apply my-1 text-sm italic;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .liste-avis-profil time {
+  @apply text-xs;
+  color: var(--abs-text-muted);
+  opacity: 0.8;
+}
+
+body:not(.map-page) .profil-avatar {
+  @apply rounded-full border-2 object-cover;
+  border-color: var(--abs-border);
+}
+body:not(.map-page) .profil-bio-titre {
+  @apply mb-1 text-base font-semibold;
+  color: var(--abs-text);
+}
+body:not(.map-page) .profil-bio-texte {
+  @apply m-0 leading-relaxed;
+  color: var(--abs-text-muted);
+}
+body:not(.map-page) .liste-avis-profil .avis-photo-thumb {
+  @apply rounded-lg border object-cover;
+  border-color: var(--abs-border);
+}
+
+/* Titres serif globaux (hors carte) */
+body:not(.map-page) h1,
+body:not(.map-page) .titre-page-avis,
+body:not(.map-page) .titre-page-pays {
+  font-family: var(--font-abs-serif);
+}
+
+/* ── Profil — sections dépliables ─────────────────────────────────────── */
+/* Utilise l'élément natif <details> : ouvert/fermé sans JavaScript.
+   Le chevron (::after) tourne via CSS transform quand [open] est présent. */
+body:not(.map-page) .details-profil {
+  @apply rounded-xl border mb-3 overflow-hidden;
+  background-color: var(--abs-card-bg, rgba(255,255,255,0.04));
+  border-color: var(--abs-border);
+  transition: border-color 0.2s ease;
+}
+
+body:not(.map-page) .details-profil[open] {
+  border-color: rgba(139, 92, 246, 0.45);
+}
+
+body:not(.map-page) .details-profil summary {
+  @apply px-5 py-4 font-semibold cursor-pointer select-none;
+  color: var(--abs-text);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+body:not(.map-page) .details-profil summary::-webkit-details-marker {
+  display: none;
+}
+
+body:not(.map-page) .details-profil summary::after {
+  content: '▸';
+  margin-left: auto;
+  font-size: 0.85em;
+  opacity: 0.5;
+  transition: transform 0.25s ease;
+}
+
+body:not(.map-page) .details-profil[open] summary::after {
+  transform: rotate(90deg);
+  opacity: 1;
+}
+
+body:not(.map-page) .details-profil summary:hover {
+  background-color: rgba(139, 92, 246, 0.07);
+}
+
+body:not(.map-page) .details-profil[open] summary {
+  color: var(--abs-violet);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* Formulaires dans les sections dépliables */
+body:not(.map-page) .form-profil {
+  @apply flex flex-col gap-4 px-5 py-5;
+}
+
+body:not(.map-page) .champ-profil {
+  @apply flex flex-col gap-1;
+}
+
+body:not(.map-page) .champ-profil label {
+  @apply text-sm font-medium;
+  color: var(--abs-text-muted);
+}
+
+body:not(.map-page) .champ-profil input[type="text"],
+body:not(.map-page) .champ-profil input[type="email"],
+body:not(.map-page) .champ-profil input[type="password"] {
+  @apply px-4 py-2 rounded-lg border text-sm w-full;
+  background-color: var(--abs-input-bg, rgba(255,255,255,0.07));
+  border-color: var(--abs-border);
+  color: var(--abs-text);
+  transition: border-color 0.2s ease;
+}
+
+body:not(.map-page) .champ-profil input:focus {
+  border-color: var(--abs-violet);
+  outline: none;
+}
+
+body:not(.map-page) .champ-profil input[type="file"] {
+  @apply text-sm py-2;
+  color: var(--abs-text-muted);
+}
+
+body:not(.map-page) .btn-profil-violet {
+  @apply self-start px-6 py-2 rounded-xl text-sm font-semibold cursor-pointer;
+  background-color: var(--abs-violet);
+  color: #fff;
+  border: none;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+body:not(.map-page) .btn-profil-violet:hover {
+  opacity: 0.88;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.45);
+}
+
+/* Aperçu avatar */
+body:not(.map-page) .apercu-avatar-wrap {
+  @apply mb-2;
+}
+body:not(.map-page) .apercu-avatar {
+  @apply rounded-full object-cover border;
+  border-color: rgba(139, 92, 246, 0.4);
+  width: 80px;
+  height: 80px;
+}
+body:not(.map-page) .apercu-avatar-vide {
+  @apply text-sm italic mb-2;
+  color: var(--abs-text-muted);
+}
+
+.profil-avatar-wrap {
+    margin-bottom: 1.25rem;
+}
+
+.profil-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(139,92,246,0.45);
+    box-shadow: 0 0 16px rgba(124,58,237,0.25);
+}
+
+.profil-avatar-vide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: 2px solid rgba(139,92,246,0.45);
+    box-shadow: 0 0 16px rgba(124,58,237,0.25);
+}
+
+.profil-avatar-initiales {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.05em;
+    font-family: var(--font-abs-serif);
+}

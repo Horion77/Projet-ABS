@@ -1,0 +1,15 @@
+@startuml
+title Cycle de vie d'un lieu
+hide empty description
+[*] --> Saisie : clic sur la carte + geocodage inverse
+Saisie --> [*] : annulation
+Saisie --> Enregistre : validation du formulaire (INSERT lieu)
+Enregistre --> AfficheSurCarte : chargement de la carte
+AfficheSurCarte --> SansAvis : aucun avis
+AfficheSurCarte --> Note : au moins un avis
+SansAvis --> Note : premier avis publie
+Note --> Note : nouvel avis (recalcul note moyenne)
+SansAvis --> Supprime : suppression (admin)
+Note --> Supprime : suppression (admin)
+Supprime --> [*]
+@enduml

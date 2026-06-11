@@ -1,0 +1,58 @@
+/* Thème cosmic violet — tokens partagés
+ *
+ * Double déclaration intentionnelle :
+ *   @theme  → consommé par Tailwind v4 (génère les classes utilitaires abs-*)
+ *   :root   → consommé par le CSS vanilla (var(--abs-*) dans tous les autres fichiers)
+ * Modifier une valeur ici suffit : les deux systèmes restent synchronisés.
+ */
+
+@theme {
+  --color-abs-bg: #0a0a0f;
+  --color-abs-bg-elevated: #12121a;
+  --color-abs-surface: #16161e;
+  --color-abs-surface-2: #1e1e28;
+  --color-abs-border: rgba(167, 139, 250, 0.22);
+  --color-abs-text: #f4f4f5;
+  --color-abs-text-muted: #a1a1aa;
+  --color-abs-violet: #8b5cf6;
+  --color-abs-violet-glow: #a78bfa;
+  --color-abs-cta: #2dd4bf;
+  --color-abs-cta-hover: #14b8a6;
+  --color-abs-gold: #fbbf24;
+  --color-abs-link: #67e8f9;
+  --font-abs-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-abs-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --radius-abs: 0.75rem;
+  --radius-abs-lg: 1.25rem;
+  --radius-abs-pill: 9999px;
+  --width-abs: 68rem;
+}
+
+:root {
+  --abs-bg: #0a0a0f;
+  --abs-bg-elevated: #12121a;
+  --abs-surface: #16161e;
+  --abs-surface-2: #1e1e28;
+  --abs-border: rgba(167, 139, 250, 0.22);
+  --abs-text: #f4f4f5;
+  --abs-text-muted: #a1a1aa;
+  --abs-violet: #8b5cf6;
+  --abs-violet-glow: #a78bfa;
+  --abs-cta: #2dd4bf;
+  --abs-cta-hover: #14b8a6;
+  --abs-gold: #fbbf24;
+  --abs-link: #67e8f9;
+
+  /* Alias legacy — conservés pour les vues PHP plus anciennes qui utilisent
+     encore ces noms. Ne pas supprimer tant que les vues n'ont pas été migrées. */
+  --couleur-primaire: var(--abs-cta);
+  --couleur-primaire-fonce: var(--abs-cta-hover);
+  --couleur-fond: var(--abs-bg);
+  --couleur-bloc: var(--abs-surface);
+  --couleur-texte: var(--abs-text);
+  --couleur-texte-alt: var(--abs-text-muted);
+  --couleur-lien: var(--abs-link);
+  --couleur-bordure: var(--abs-border);
+  --rayon: 0.75rem;
+  --max-largeur: 68rem;
+}

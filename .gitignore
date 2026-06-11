@@ -1,5 +1,13 @@
 # Configuration locale (contient les identifiants BDD)
-config/database.php
+app/Config/bdd.php
+app/Config/mapbox.php
+
+# Stockage local (logs, uploads non versionnés)
+storage/*
+!storage/.gitkeep
+
+# Node / Tailwind build
+node_modules/
 
 # macOS
 .DS_Store
@@ -18,6 +26,15 @@ Desktop.ini
 *.swo
 *~
 
+# Fichiers temporaires d'outils locaux (non versionnés)
+.claude/
+
 # Fichiers uploadés par les utilisateurs (si applicable)
-assets/uploads/*
-!assets/uploads/.gitkeep
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep
+
+# Photos de lieux uploadées par les utilisateurs (non versionnées)
+public/uploads/lieux/*
+!public/uploads/lieux/.gitkeep
+!public/uploads/lieux/.htaccess
+.cursor/
